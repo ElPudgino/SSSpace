@@ -199,7 +199,8 @@ int Create_SyncStructures(EngineState* engineState)
     fcreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fcreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    if (VkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence) != VK_SUCCESS)
+    for (int i = 0; i < _BufferCount; i++)
+    if (vkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence[i]) != VK_SUCCESS)
     {
         return -printf("Failed to create fence\n");
     }
@@ -208,15 +209,15 @@ int Create_SyncStructures(EngineState* engineState)
     semcreateInfo.pNext = NULL;
     semcreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    if (VkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore) != VK_SUCCESS)
+    if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore) != VK_SUCCESS)
     {
         return -printf("Failed to create swapchain semaphore\n");
     }
-    if (VkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore) != VK_SUCCESS)
+    if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore) != VK_SUCCESS)
     {
         return -printf("Failed to create compute semaphore\n");
-    }
-    return 0;
+    } 
+    return 0; 
 }
 
 // Returns 0 if initialization successful

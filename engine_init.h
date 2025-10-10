@@ -31,9 +31,9 @@ typedef struct _CommandsHandle
 
 typedef struct _Sync
 {
-    VkFence fence;
+    VkFence* fence[_BufferCount];
     VkSemaphore swapchainSemaphore;
-    vkSemaphore computeSemaphore;
+    VkSemaphore computeSemaphore;
 } Sync;
 
 typedef struct _QueueFamIndices
