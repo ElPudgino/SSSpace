@@ -21,6 +21,21 @@ typedef struct _SwapchainState
     uint32_t imageCount;
 } SwapchainState;
 
+#define _BufferCount 2
+
+typedef struct _CommandsHandle
+{
+    VkCommandPool commandPool;
+    VkCommandBuffer commandBuffers[_BufferCount];
+} CommandsHandle;
+
+typedef struct _Sync
+{
+    VkFence fence;
+    VkSemaphore swapchainSemaphore;
+    vkSemaphore computeSemaphore;
+} Sync;
+
 typedef struct _QueueFamIndices
 {
     uint32_t _Graphics;
@@ -38,6 +53,8 @@ typedef struct _EngineState
     VkSurfaceKHR surface;
     QueueFamIndices queueFamIndices;
     QueueHandles queueHandles;
+    CommandsHandle commandsHandle;
+    Sync sync;
     SDL_Window* window;
     SwapchainState* swapchainState;
 } EngineState;

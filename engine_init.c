@@ -15,16 +15,16 @@ int Create_VulkanInstance(EngineState* engineState)
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_0;
-    
+
     VkInstanceCreateInfo createInfo = {};
     uint32_t extCount = 0;
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo; 
+    createInfo.pApplicationInfo = &appInfo;
     createInfo.enabledLayerCount = 0;
     createInfo.ppEnabledExtensionNames = SDL_Vulkan_GetInstanceExtensions(&extCount);
     createInfo.enabledExtensionCount = extCount;
-    
-    
+
+
     int res = 0;
     if ((res = vkCreateInstance(&createInfo, NULL, &engineState->instance) != VK_SUCCESS)) return -printf("Failed to create VkInstance: %d\n", res);
 
@@ -38,14 +38,14 @@ int Get_PhysicalDevice(EngineState* engineState)
     VkPhysicalDevice* physDevices = (VkPhysicalDevice*)calloc(deviceCount, sizeof(VkPhysicalDevice));
 
     int res = 0;
-    if ((res = vkEnumeratePhysicalDevices(engineState->instance, &deviceCount, physDevices)) != VK_SUCCESS) 
+    if ((res = vkEnumeratePhysicalDevices(engineState->instance, &deviceCount, physDevices)) != VK_SUCCESS)
     {
         printf("Failed to enumerate devices, error code: %d\n", res);
         free(physDevices);
         return -1;
     }
-    
-    if (deviceCount < 1) 
+
+    if (deviceCount < 1)
     {
         printf("Failed find devices\n");
         free(physDevices);
@@ -54,7 +54,7 @@ int Get_PhysicalDevice(EngineState* engineState)
 
     VkPhysicalDeviceProperties props = {};
     for (int ind = 0; ind < deviceCount; ind++)
-    {     
+    {
         vkGetPhysicalDeviceProperties(physDevices[ind], &props);
 
         printf("%s - device available\n", props.deviceName);
@@ -77,9 +77,9 @@ int Create_MainSurface(EngineState* engineState)
 int Create_LogicalDevice(EngineState* engineState)
 {
     uint32_t families[5] = {engineState->queueFamIndices._Graphics,
-                       engineState->queueFamIndices._Compute, 
+                       engineState->queueFamIndices._Compute,
                        engineState->queueFamIndices._Sparse,
-                       engineState->queueFamIndices._Transfer, 
+                       engineState->queueFamIndices._Transfer,
                        engineState->queueFamIndices._Present};
 
     int uniqueFcount = 0;
@@ -89,7 +89,7 @@ int Create_LogicalDevice(EngineState* engineState)
         f = 1;
         for (int j = i - 1; j >= 0; j--)
         {
-            if (families[i] == families[j]) 
+            if (families[i] == families[j])
             {
                 f = 0;
                 families[i] = (uint32_t)-1;
@@ -104,7 +104,7 @@ int Create_LogicalDevice(EngineState* engineState)
     float queuePriority = 1.0f;
     for (int i = 0; i < 5; i++)
     {
-        if (families[i] != (uint32_t)-1) 
+        if (families[i] != (uint32_t)-1)
         {
             VkDeviceQueueCreateInfo queueCreateInfo = {};
             queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -118,14 +118,14 @@ int Create_LogicalDevice(EngineState* engineState)
         }
     }
     // Actual creation of logical device
-    VkPhysicalDeviceFeatures deviceFeatures = {}; 
+    VkPhysicalDeviceFeatures deviceFeatures = {};
 
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.queueCreateInfoCount = uniqueFcount;
     createInfo.pQueueCreateInfos = queueCreateInfos;
     createInfo.pEnabledFeatures = &deviceFeatures;
-    
+
     uint32_t extensionCount = 1;
     char const** extensions = (char const**)calloc(extensionCount, sizeof(char const**));
     extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
@@ -137,7 +137,7 @@ int Create_LogicalDevice(EngineState* engineState)
 
     int res = 0;
     if ((res = vkCreateDevice(engineState->physicalDevice, &createInfo, NULL, &engineState->device)) != VK_SUCCESS) printf("Failed to create logical device, error code: %d\n", res);
-   
+
     free(extensions);
     free(queueCreateInfos);
     return res;
@@ -159,9 +159,63 @@ int Get_QueueHandles(EngineState* engineState)
     return 0;
 }
 
+int Create_CommandsHandle(EngineState* engineState)
+{
+    VkCommandPoolCreateInfo createInfo = {};
+    createInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+    createInfo.pNext = NULL;
+    createInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+    createInfo.queueFamilyIndex = engineState->queueFamIndices._Graphics;
+
+    if (vkCreateCommandPool(engineState->device, &createInfo, NULL, &engineState->commandsHandle.commandPool) != VK_SUCCESS)
+    {
+        return -printf("Failed to create command pool\n");
+    }
+
+    VkCommandBufferAllocateInfo cmdAllocInfo = {};
+    cmdAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    cmdAllocInfo.pNext = NULL;
+    cmdAllocInfo.commandPool = engineState->commandsHandle.commandPool;
+    cmdAllocInfo.commandBufferCount = _BufferCount;
+    cmdAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+
+    if (vkAllocateCommandBuffers(engineState->device, &cmdAllocInfo, engineState->commandsHandle.commandBuffers) != VK_SUCCESS)
+    {
+        return -printf("Failed to allocate command buffers\n");
+    }
+    return 0;
+}
+
 int Create_MainWindow(EngineState* engineState)
 {
     engineState->window = SDL_CreateWindow("SSSpace", 1200, 800, SDL_WINDOW_VULKAN);
+    return 0;
+}
+
+int Create_SyncStructures(EngineState* engineState)
+{
+    VkFenceCreateInfo fcreateInfo = {};
+    fcreateInfo.pNext = NULL;
+    fcreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+    fcreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+    if (VkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence) != VK_SUCCESS)
+    {
+        return -printf("Failed to create fence\n");
+    }
+
+    VkSemaphoreCreateInfo semcreateInfo = {};
+    semcreateInfo.pNext = NULL;
+    semcreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+    if (VkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore) != VK_SUCCESS)
+    {
+        return -printf("Failed to create swapchain semaphore\n");
+    }
+    if (VkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore) != VK_SUCCESS)
+    {
+        return -printf("Failed to create compute semaphore\n");
+    }
     return 0;
 }
 
@@ -186,10 +240,19 @@ int Init_MainEngine(EngineState** esPointer)
     printf("Logical device created\n");
     Get_QueueHandles(engineState);
     printf("Queue handles aquired\n");
+    if (Create_CommandsHandle(engineState)) {printf("Commands handle failed\n"); goto CommandsHandle_Fail;}
+    printf("Command buffers created\n");
+
 
     *esPointer = engineState;
     return 0;
 
+    CommandsHandle_Fail:
+    free(engineState->queueHandles._Compute);
+    free(engineState->queueHandles._Graphics);
+    free(engineState->queueHandles._Sparse);
+    free(engineState->queueHandles._Transfer);
+    free(engineState->queueHandles._Present);
     QueueFamilies_Fail: vkDestroySurfaceKHR(engineState->instance, engineState->surface, NULL);
     PhysicalDevice_Fail: vkDestroyInstance(engineState->instance, NULL);
     SDL_Fail: free(engineState);
@@ -199,7 +262,12 @@ int Init_MainEngine(EngineState** esPointer)
 
 int Cleanup_MainEngine(EngineState* engineState)
 {
+    vkDeviceWaitIdle(engineState->device);
+    printf("Starting cleanup\n");
     Cleanup_Swapchain(engineState);
+    printf("Cleaned swapchain\n");
+    vkDestroyCommandPool(engineState->device, engineState->commandsHandle.commandPool, NULL);
+    printf("Cleaned commandpool\n");
     free(engineState->queueHandles._Compute);
     free(engineState->queueHandles._Graphics);
     free(engineState->queueHandles._Sparse);
