@@ -1,7 +1,7 @@
 #ifndef ENGINE_INIT
 
-#include <vulkan/vulkan.h>
-#include <SDL3/SDL.h>
+#include "libs.h"
+
 #define ENGINE_INIT
 
 typedef struct _QueueHandles
@@ -31,9 +31,9 @@ typedef struct _CommandsHandle
 
 typedef struct _Sync
 {
-    VkFence* fence[_BufferCount];
-    VkSemaphore swapchainSemaphore;
-    VkSemaphore computeSemaphore;
+    VkFence fence[_BufferCount];
+    VkSemaphore swapchainSemaphore[_BufferCount];
+    VkSemaphore computeSemaphore[_BufferCount];
 } Sync;
 
 typedef struct _QueueFamIndices
@@ -57,6 +57,7 @@ typedef struct _EngineState
     Sync sync;
     SDL_Window* window;
     SwapchainState* swapchainState;
+    VmaAllocator allocator;
 } EngineState;
 
 

@@ -1,7 +1,7 @@
 #ifndef SWAPCHAIN_INIT
 
-#include <vulkan/vulkan.h>
 #include "engine_init.h"
+
 #define SWAPCHAIN_INIT
 
 typedef struct _SwapChainSupportDetails {

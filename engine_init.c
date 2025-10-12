@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <math.h>
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_vulkan.h>
-#include <SDL3/SDL_video.h>
 #include "swapchain_init.h"
+
 
 
 int Create_VulkanInstance(EngineState* engineState)
@@ -14,7 +12,7 @@ int Create_VulkanInstance(EngineState* engineState)
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
+    appInfo.apiVersion = VK_API_VERSION_1_3;
 
     VkInstanceCreateInfo createInfo = {};
     uint32_t extCount = 0;
@@ -126,9 +124,11 @@ int Create_LogicalDevice(EngineState* engineState)
     createInfo.pQueueCreateInfos = queueCreateInfos;
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    uint32_t extensionCount = 1;
+    uint32_t extensionCount = 3;
     char const** extensions = (char const**)calloc(extensionCount, sizeof(char const**));
     extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+    extensions[1] = VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME;
+    extensions[2] = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
 
     // Add required extensions (like swapchain)
     createInfo.enabledExtensionCount = extensionCount;
@@ -199,25 +199,39 @@ int Create_SyncStructures(EngineState* engineState)
     fcreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
     fcreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-    for (int i = 0; i < _BufferCount; i++)
-    if (vkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence[i]) != VK_SUCCESS)
-    {
-        return -printf("Failed to create fence\n");
-    }
-
     VkSemaphoreCreateInfo semcreateInfo = {};
     semcreateInfo.pNext = NULL;
     semcreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-    if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore) != VK_SUCCESS)
+    for (int i = 0; i < _BufferCount; i++)
     {
-        return -printf("Failed to create swapchain semaphore\n");
+        if (vkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence[i]) != VK_SUCCESS)
+        {
+            return -printf("Failed to create fence\n");
+        }
+        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore[i]) != VK_SUCCESS)
+        {
+            return -printf("Failed to create swapchain semaphore\n");
+        }
+        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore[i]) != VK_SUCCESS)
+        {
+            return -printf("Failed to create compute semaphore\n");
+        } 
     }
-    if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore) != VK_SUCCESS)
-    {
-        return -printf("Failed to create compute semaphore\n");
-    } 
+
+    
     return 0; 
+}
+
+int Create_Allocator(EngineState* engineState)
+{
+    VmaAllocatorCreateInfo allocatorInfo = {};
+    allocatorInfo.physicalDevice = engineState->physicalDevice;
+    allocatorInfo.device = engineState->device;
+    allocatorInfo.instance = engineState->instance;
+    allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
+    if (vmaCreateAllocator(&allocatorInfo, &engineState->allocator) != VK_SUCCESS) return -printf("Failed to init VMA\n");
+    return 0;
 }
 
 // Returns 0 if initialization successful
@@ -243,11 +257,18 @@ int Init_MainEngine(EngineState** esPointer)
     printf("Queue handles aquired\n");
     if (Create_CommandsHandle(engineState)) {printf("Commands handle failed\n"); goto CommandsHandle_Fail;}
     printf("Command buffers created\n");
-
+    if (Create_SyncStructures(engineState)) {printf("Sync structs failed\n"); goto AllocatorFail;}
+    printf("Sync structs created\n");
+    if (Create_Allocator(engineState)) {printf("Allocator failed\n"); goto AllocatorFail;}
+    printf("Allocator created\n");
+    if (Create_Swapchain(engineState)) {printf("Swapchain failed\n"); goto AllocatorFail;}
+    printf("Swapchain created\n");
 
     *esPointer = engineState;
     return 0;
 
+    AllocatorFail: 
+    vkDestroyCommandPool(engineState->device, engineState->commandsHandle.commandPool, NULL);
     CommandsHandle_Fail:
     free(engineState->queueHandles._Compute);
     free(engineState->queueHandles._Graphics);

@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <math.h>
 #include "engine_init.h"
+#define VMA_IMPLEMENTATION
+#include "vk_mem_alloc.h"
+
 
 // Select queue families from available on startup
 // Return 0 if all 5 queueFamilies were found 1 otherwise

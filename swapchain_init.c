@@ -26,6 +26,7 @@ int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapCh
     // Get supported present modes
     uint32_t presentModeCount = 0;
     if (vkGetPhysicalDeviceSurfacePresentModesKHR(*device, *surface, &presentModeCount, NULL)) return -printf("Failed to get Physical Device Surface Present Modes count\n");
+    details.presentModes = (VkPresentModeKHR*)calloc(presentModeCount, sizeof(VkPresentModeKHR));
     if (presentModeCount != 0)
     {
         int res = vkGetPhysicalDeviceSurfacePresentModesKHR(*device, *surface, &presentModeCount, details.presentModes);
@@ -53,8 +54,11 @@ VkSurfaceFormatKHR Choose_SwapSurfaceFormat(const VkSurfaceFormatKHR* availableF
 
 VkPresentModeKHR Choose_SwapPresentMode(const VkPresentModeKHR* availablePresentModes, uint32_t count) {
     // Prefer mailbox (triple buffering) for low latency
-    for (int ind = 0; ind < count; ind++) {
-        if (availablePresentModes[ind] == VK_PRESENT_MODE_MAILBOX_KHR) {
+    printf("%d | %d\n",availablePresentModes ==NULL,count);
+    for (int ind = 0; ind < count; ind++) 
+    {
+        if (availablePresentModes[ind] == VK_PRESENT_MODE_MAILBOX_KHR) 
+        {
             return availablePresentModes[ind];
         }
     }
@@ -95,10 +99,17 @@ int Create_Swapchain(EngineState* engineState)
     SwapChainSupportDetails swapChainSupport = {};
     if (Get_SwapchainDetails(&engineState->physicalDevice, &engineState->surface, &swapChainSupport) != VK_SUCCESS) return -printf("Failed to get swapchain support details\n");
 
+    printf("Got swapchain details\n");
     VkSurfaceFormatKHR surfaceFormat = Choose_SwapSurfaceFormat(swapChainSupport.formats, swapChainSupport.formatCount);
+    printf("Chose sc format\n");
     VkPresentModeKHR presentMode = Choose_SwapPresentMode(swapChainSupport.presentModes, swapChainSupport.presentModesCount);
+    printf("Chose sc present mode\n");
     VkExtent2D extent = Choose_SwapExtent(&swapChainSupport.capabilities, engineState->window);
 
+    free(swapChainSupport.formats);
+    free(swapChainSupport.presentModes);
+
+    printf("Chose swapchain params\n");
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 &&
         imageCount > swapChainSupport.capabilities.maxImageCount) {
@@ -147,7 +158,7 @@ int Create_Swapchain(EngineState* engineState)
 
         Cleanup_Swapchain(engineState);
     }
-
+    printf("Allocated swapchain\n");
 
     if (vkCreateSwapchainKHR(engineState->device, &createInfo, NULL, &engineState->swapchainState->swapchain) != VK_SUCCESS)
     {
@@ -180,6 +191,7 @@ int Create_Swapchain(EngineState* engineState)
         createInfo.image = engineState->swapchainState->images[i];
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         createInfo.format = surfaceFormat.format;
+        createInfo.flags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
         // Default mapping of color channels
         createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -217,11 +229,12 @@ int Cleanup_Swapchain(EngineState* engineState)
     }
 
     uint32_t imageCount = engineState->swapchainState->imageCount;
+
+    /*
     if (engineState->swapchainState->imageViews == NULL)
     {
         //Cleanup broken swapchain
         if (engineState->swapchainState->images != NULL) free(engineState->swapchainState->images);
-        free(engineState->swapchainState);
         printf("Swapchain in a broken state: Swapchain not NULL but imageViews are NULL\n");
     }
     if (engineState->swapchainState->images == NULL)
@@ -235,10 +248,8 @@ int Cleanup_Swapchain(EngineState* engineState)
             }
             free(engineState->swapchainState->imageViews);
         }
-        free(engineState->swapchainState);
         printf("Swapchain in a broken state: Swapchain not NULL but images are NULL\n");
-    }
-
+    }*/
 
     for (int i = 0; i < imageCount; i++)
     {
@@ -248,8 +259,5 @@ int Cleanup_Swapchain(EngineState* engineState)
 
     free(engineState->swapchainState->imageViews);
     free(engineState->swapchainState->images);
-
-    vkDestroySwapchainKHR(engineState->device, engineState->swapchainState->swapchain, NULL);
-
     return 0;
 }

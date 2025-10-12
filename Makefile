@@ -4,8 +4,8 @@ LDFLAGS = -lSDL3 -lvulkan
 
 all : CompileApp
 
-CompileApp : engine.o engine_init.o support_check.o swapchain_init.o
-	g++ $(CFLAGS) engine.o engine_init.o support_check.o swapchain_init.o -o app $(LDFLAGS)
+CompileApp : engine.o engine_init.o support_check.o swapchain_init.o engine_utils.o
+	g++ $(CFLAGS) engine.o engine_init.o support_check.o swapchain_init.o engine_utils.o -o app $(LDFLAGS)
 
 engine.o : engine.c
 	g++ $(CFLAGS) engine.c -o engine.o -c $(LDFLAGS)
@@ -19,7 +19,11 @@ support_check.o : support_check.c
 swapchain_init.o : swapchain_init.c 
 	g++ $(CFLAGS) swapchain_init.c -o swapchain_init.o -c $(LDFLAGS)
 
+engine_utils.o : engine_utils.c
+	g++ $(CFLAGS) engine_utils.c -o engine_utils.o -c $(LDFLAGS)
 
 run : CompileApp
 	./app
 	
+cleanup :
+	rm -f app engine_init.o engine.o support_check.o swapchain_init.o engine_utils.o
