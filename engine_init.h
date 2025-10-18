@@ -6,11 +6,11 @@
 
 typedef struct _QueueHandles
 {
-    VkQueue* _Graphics;
-    VkQueue* _Compute;
-    VkQueue* _Sparse;
-    VkQueue* _Transfer;
-    VkQueue* _Present;
+    VkQueue _Graphics;
+    VkQueue _Compute;
+    VkQueue _Sparse;
+    VkQueue _Transfer;
+    VkQueue _Present;
 } QueueHandles;
 
 typedef struct _SwapchainState
@@ -19,6 +19,7 @@ typedef struct _SwapchainState
     VkImage* images;
     VkImageView* imageViews;
     uint32_t imageCount;
+    int created;
 } SwapchainState;
 
 #define _BufferCount 2
@@ -56,15 +57,20 @@ typedef struct _EngineState
     CommandsHandle commandsHandle;
     Sync sync;
     SDL_Window* window;
-    SwapchainState* swapchainState;
+    SwapchainState swapchainState;
     VmaAllocator allocator;
 } EngineState;
 
+typedef struct _AllocInfo
+{
+    int (*CleanupFunc)(EngineState*);
+    struct _AllocInfo* next;
+} AllocInfo;
 
 int Select_QueueFamilies(EngineState* engineState);
 
-int Init_MainEngine(EngineState** esPointer);
+int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo);
 
-int Cleanup_MainEngine(EngineState* engineState);
+int Cleanup_MainEngine(EngineState* engineState, AllocInfo* allocInfo);
 
 #endif

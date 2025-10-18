@@ -29,6 +29,13 @@ int Create_VulkanInstance(EngineState* engineState)
     return 0;
 }
 
+int Destroy_VulkanInstance(EngineState* engineState)
+{
+    printf("Destroying Instance\n");
+    vkDestroyInstance(engineState->instance, NULL);
+    return 1;
+}
+
 int Get_PhysicalDevice(EngineState* engineState)
 {
     uint32_t deviceCount = 0;
@@ -70,6 +77,13 @@ int Get_PhysicalDevice(EngineState* engineState)
 int Create_MainSurface(EngineState* engineState)
 {
     return !SDL_Vulkan_CreateSurface(engineState->window, engineState->instance, NULL, &engineState->surface);
+}
+
+int Destroy_MainSurface(EngineState* engineState)
+{
+    printf("Destroying Surface\n");
+    vkDestroySurfaceKHR(engineState->instance, engineState->surface, NULL);
+    return 1;
 }
 
 int Create_LogicalDevice(EngineState* engineState)
@@ -143,19 +157,20 @@ int Create_LogicalDevice(EngineState* engineState)
     return res;
 }
 
+int Destroy_LogicalDevice(EngineState* engineState)
+{
+    printf("Destroying Logical device\n");
+    vkDestroyDevice(engineState->device, NULL);
+    return 1;
+}
+
 int Get_QueueHandles(EngineState* engineState)
 {
-    engineState->queueHandles._Compute = (VkQueue*)calloc(1, sizeof(VkQueue));
-    engineState->queueHandles._Graphics = (VkQueue*)calloc(1, sizeof(VkQueue));
-    engineState->queueHandles._Sparse = (VkQueue*)calloc(1, sizeof(VkQueue));
-    engineState->queueHandles._Transfer = (VkQueue*)calloc(1, sizeof(VkQueue));
-    engineState->queueHandles._Present = (VkQueue*)calloc(1, sizeof(VkQueue));
-
-    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Compute, 0, engineState->queueHandles._Compute);
-    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Graphics, 0, engineState->queueHandles._Graphics);
-    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Sparse, 0, engineState->queueHandles._Sparse);
-    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Transfer, 0, engineState->queueHandles._Transfer);
-    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Present, 0, engineState->queueHandles._Present);
+    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Compute, 0, &engineState->queueHandles._Compute);
+    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Graphics, 0, &engineState->queueHandles._Graphics);
+    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Sparse, 0, &engineState->queueHandles._Sparse);
+    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Transfer, 0, &engineState->queueHandles._Transfer);
+    vkGetDeviceQueue(engineState->device, engineState->queueFamIndices._Present, 0, &engineState->queueHandles._Present);
     return 0;
 }
 
@@ -186,10 +201,24 @@ int Create_CommandsHandle(EngineState* engineState)
     return 0;
 }
 
+int Destroy_CommandsHandles(EngineState* engineState)
+{
+    printf("Destroying Command pool\n");
+    vkDestroyCommandPool(engineState->device, engineState->commandsHandle.commandPool, NULL);
+    return 1;
+}
+
 int Create_MainWindow(EngineState* engineState)
 {
     engineState->window = SDL_CreateWindow("SSSpace", 1200, 800, SDL_WINDOW_VULKAN);
     return 0;
+}
+
+int Destroy_MainWindow(EngineState* engineState)
+{
+    printf("Destroying Main window\n");
+    SDL_DestroyWindow(engineState->window);
+    return 1;
 }
 
 int Create_SyncStructures(EngineState* engineState)
@@ -223,6 +252,18 @@ int Create_SyncStructures(EngineState* engineState)
     return 0; 
 }
 
+int Destroy_SyncStructures(EngineState* engineState)
+{
+    printf("Destroying Sync structures\n");
+    for (int i = 0; i < _BufferCount; i++)
+    {
+        vkDestroyFence(engineState->device, engineState->sync.fence[i], NULL);
+        vkDestroySemaphore(engineState->device, engineState->sync.swapchainSemaphore[i], NULL);
+        vkDestroySemaphore(engineState->device, engineState->sync.computeSemaphore[i], NULL);
+    }
+    return 1;
+}
+
 int Create_Allocator(EngineState* engineState)
 {
     VmaAllocatorCreateInfo allocatorInfo = {};
@@ -234,73 +275,107 @@ int Create_Allocator(EngineState* engineState)
     return 0;
 }
 
+int Destroy_Allocator(EngineState* engineState)
+{
+    printf("Destroying VMA\n");
+    vmaDestroyAllocator(engineState->allocator);
+    return 1;
+}
+
+// Adds a destructor to a singly linked list
+// Order is FILO
+int Add_ToCleanupQueue(AllocInfo** allocInfo, int (*cleanupFunc)(EngineState*))
+{
+    AllocInfo* n = (AllocInfo*)calloc(1, sizeof(AllocInfo));
+    (*allocInfo)->CleanupFunc = cleanupFunc;
+    n->next = *allocInfo; 
+    *allocInfo = n;
+    return 1;
+}
+
+// Recursively calls allocInfos destructors
+int Destroy_FromQueue(AllocInfo* allocInfo, EngineState* engineState)
+{
+    if (allocInfo->CleanupFunc) allocInfo->CleanupFunc(engineState);
+    if (allocInfo->next) Destroy_FromQueue(allocInfo->next, engineState);
+    free(allocInfo);
+    return 1;
+}
+
+int Quit_SDL(EngineState* engineState)
+{
+    SDL_Quit();
+    return 1;
+}
+
+int Dealloc_Engine(EngineState* engineState)
+{
+    free(engineState);
+    return 1;
+}
+
 // Returns 0 if initialization successful
 // Writes a pointer to created EngineState if successful
-int Init_MainEngine(EngineState** esPointer)
+int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
 {
     EngineState* engineState = (EngineState*)calloc(1, sizeof(EngineState));
-    if (!SDL_Init(SDL_INIT_VIDEO)) goto SDL_Fail;
+    Add_ToCleanupQueue(allocInfo, Dealloc_Engine);
 
-    if (Create_MainWindow(engineState)) goto SDL_Fail;
+    if (!SDL_Init(SDL_INIT_VIDEO)) goto Fail;
+    Add_ToCleanupQueue(allocInfo, Quit_SDL);
+
+    if (Create_MainWindow(engineState)) goto Fail;
+    Add_ToCleanupQueue(allocInfo, Destroy_MainWindow);
     printf("Main window created\n");
-    if (Create_VulkanInstance(engineState)) {printf("Vulkan Instance failed\n"); goto SDL_Fail;}
+
+    if (Create_VulkanInstance(engineState)) {printf("Vulkan Instance failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_VulkanInstance);
     printf("Vulkan instance created\n");
-    if (Get_PhysicalDevice(engineState)) {printf("Physical Device failed\n"); goto PhysicalDevice_Fail;}
+
+    if (Get_PhysicalDevice(engineState)) {printf("Physical Device failed\n"); goto Fail;}
     printf("Physical device aquired\n");
-    if (Create_MainSurface(engineState)) {printf("Main Surface failed\n"); goto PhysicalDevice_Fail;}
+
+    if (Create_MainSurface(engineState)) {printf("Main Surface failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_MainSurface);
     printf("Main surface created\n");
-    if (Select_QueueFamilies(engineState)) {printf("QueueFamilies failed\n"); goto QueueFamilies_Fail;}
+
+    if (Select_QueueFamilies(engineState)) {printf("QueueFamilies failed\n"); goto Fail;}
     printf("Queue families selected\n");
-    if (Create_LogicalDevice(engineState)) {printf("Logical Device failed\n"); goto QueueFamilies_Fail;}
+
+    if (Create_LogicalDevice(engineState)) {printf("Logical Device failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_LogicalDevice);
     printf("Logical device created\n");
-    Get_QueueHandles(engineState);
+
+    if (Get_QueueHandles(engineState)) {printf("Queue handles failed\n"); goto Fail;}
     printf("Queue handles aquired\n");
-    if (Create_CommandsHandle(engineState)) {printf("Commands handle failed\n"); goto CommandsHandle_Fail;}
+
+    if (Create_CommandsHandle(engineState)) {printf("Commands handle failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_CommandsHandles);
     printf("Command buffers created\n");
-    if (Create_SyncStructures(engineState)) {printf("Sync structs failed\n"); goto AllocatorFail;}
+
+    if (Create_SyncStructures(engineState)) {printf("Sync structs failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_SyncStructures);
     printf("Sync structs created\n");
-    if (Create_Allocator(engineState)) {printf("Allocator failed\n"); goto AllocatorFail;}
+
+    if (Create_Allocator(engineState)) {printf("Allocator failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_Allocator);
     printf("Allocator created\n");
-    if (Create_Swapchain(engineState)) {printf("Swapchain failed\n"); goto AllocatorFail;}
+
+    if (Create_Swapchain(engineState)) {printf("Swapchain failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Cleanup_Swapchain);
     printf("Swapchain created\n");
 
     *esPointer = engineState;
     return 0;
-
-    AllocatorFail: 
-    vkDestroyCommandPool(engineState->device, engineState->commandsHandle.commandPool, NULL);
-    CommandsHandle_Fail:
-    free(engineState->queueHandles._Compute);
-    free(engineState->queueHandles._Graphics);
-    free(engineState->queueHandles._Sparse);
-    free(engineState->queueHandles._Transfer);
-    free(engineState->queueHandles._Present);
-    QueueFamilies_Fail: vkDestroySurfaceKHR(engineState->instance, engineState->surface, NULL);
-    PhysicalDevice_Fail: vkDestroyInstance(engineState->instance, NULL);
-    SDL_Fail: free(engineState);
-
+Fail:
+    Cleanup_MainEngine(engineState, *allocInfo);
     return -1;
 }
 
-int Cleanup_MainEngine(EngineState* engineState)
+int Cleanup_MainEngine(EngineState* engineState, AllocInfo* allocInfo)
 {
-    vkDeviceWaitIdle(engineState->device);
     printf("Starting cleanup\n");
-    Cleanup_Swapchain(engineState);
-    printf("Cleaned swapchain\n");
-    vkDestroyCommandPool(engineState->device, engineState->commandsHandle.commandPool, NULL);
-    printf("Cleaned commandpool\n");
-    free(engineState->queueHandles._Compute);
-    free(engineState->queueHandles._Graphics);
-    free(engineState->queueHandles._Sparse);
-    free(engineState->queueHandles._Transfer);
-    free(engineState->queueHandles._Present);
-    vkDestroyDevice(engineState->device, NULL);
-    vkDestroySurfaceKHR(engineState->instance, engineState->surface, NULL);
-    vkDestroyInstance(engineState->instance, NULL);
-    SDL_DestroyWindow(engineState->window);
-    SDL_Quit();
-    free(engineState->swapchainState);
-    free(engineState);
+    vkDeviceWaitIdle(engineState->device);
+    Destroy_FromQueue(allocInfo, engineState);
     return 0;
 }

@@ -3,6 +3,7 @@
 #include <vulkan/vulkan.h>
 #include <SDL3/SDL.h>
 #include "swapchain_init.h"
+#include <assert.h>
 
 
 int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapChainSupportDetails* dets)
@@ -147,48 +148,41 @@ int Create_Swapchain(EngineState* engineState)
     createInfo.clipped = VK_TRUE; // Don't care about obscured pixels
     createInfo.oldSwapchain = VK_NULL_HANDLE; // Used for swapchain recreation
 
-    if (engineState->swapchainState == NULL)
-    {
-        SwapchainState* scState = (SwapchainState*)calloc(1, sizeof(SwapchainState));
-        engineState->swapchainState = scState;
-    }
-    else // Swapchain recreation
+    if (engineState->swapchainState.created)
     {
         vkDeviceWaitIdle(engineState->device);
-
         Cleanup_Swapchain(engineState);
     }
+    
+    
     printf("Allocated swapchain\n");
 
-    if (vkCreateSwapchainKHR(engineState->device, &createInfo, NULL, &engineState->swapchainState->swapchain) != VK_SUCCESS)
+    if (vkCreateSwapchainKHR(engineState->device, &createInfo, NULL, &engineState->swapchainState.swapchain) != VK_SUCCESS)
     {
-        free(engineState->swapchainState);
         return -printf("Failed to Create Swapchain\n");
     }
 
-    if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState->swapchain, &imageCount, NULL) != VK_SUCCESS)
+    if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState.swapchain, &imageCount, NULL) != VK_SUCCESS)
     {
-        free(engineState->swapchainState);
         return -printf("Failed to get swapchain images amount\n");
     }
 
-    engineState->swapchainState->images = (VkImage*)calloc(imageCount, sizeof(VkImage));
+    engineState->swapchainState.images = (VkImage*)calloc(imageCount, sizeof(VkImage));
 
-    if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState->swapchain, &imageCount, engineState->swapchainState->images) != VK_SUCCESS)
+    if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState.swapchain, &imageCount, engineState->swapchainState.images) != VK_SUCCESS)
     {
-        free(engineState->swapchainState->images);
-        free(engineState->swapchainState);
+        free(engineState->swapchainState.images);
         return -printf("Failed to get swapchain images\n");
     }
 
 
-    engineState->swapchainState->imageViews = (VkImageView*)calloc(imageCount, sizeof(VkImageView));
+    engineState->swapchainState.imageViews = (VkImageView*)calloc(imageCount, sizeof(VkImageView));
 
 
     for (size_t i = 0; i < imageCount; i++) {
         VkImageViewCreateInfo createInfo = {};
         createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        createInfo.image = engineState->swapchainState->images[i];
+        createInfo.image = engineState->swapchainState.images[i];
         createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         createInfo.format = surfaceFormat.format;
         createInfo.flags = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
@@ -206,58 +200,39 @@ int Create_Swapchain(EngineState* engineState)
         createInfo.subresourceRange.baseArrayLayer = 0;
         createInfo.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(engineState->device, &createInfo, NULL, &engineState->swapchainState->imageViews[i]) != VK_SUCCESS)
+        if (vkCreateImageView(engineState->device, &createInfo, NULL, &engineState->swapchainState.imageViews[i]) != VK_SUCCESS)
         {
-            free(engineState->swapchainState->images);
-            free(engineState->swapchainState->imageViews);
-            free(engineState->swapchainState);
+            free(engineState->swapchainState.images);
+            free(engineState->swapchainState.imageViews);
             return -printf("Failed to create image view\n");
         }
     }
 
-    engineState->swapchainState->imageCount = imageCount;
-
+    engineState->swapchainState.imageCount = imageCount;
+    engineState->swapchainState.created = 1;
     return 0;
 }
 
 int Cleanup_Swapchain(EngineState* engineState)
 {
-    if (engineState->swapchainState == NULL)
+    assert(engineState);
+
+    if (!engineState->swapchainState.created)
     {
         printf("Swapchain was NULL when cleaning up\n");
         return 0;
     }
 
-    uint32_t imageCount = engineState->swapchainState->imageCount;
+    uint32_t imageCount = engineState->swapchainState.imageCount;
 
-    /*
-    if (engineState->swapchainState->imageViews == NULL)
-    {
-        //Cleanup broken swapchain
-        if (engineState->swapchainState->images != NULL) free(engineState->swapchainState->images);
-        printf("Swapchain in a broken state: Swapchain not NULL but imageViews are NULL\n");
-    }
-    if (engineState->swapchainState->images == NULL)
-    {
-        //Cleanup broken swapchain
-        if (engineState->swapchainState->imageViews != NULL)
-        {
-            for (int i = 0; i < imageCount; i++)
-            {
-                vkDestroyImageView(engineState->device, engineState->swapchainState->imageViews[i], NULL);
-            }
-            free(engineState->swapchainState->imageViews);
-        }
-        printf("Swapchain in a broken state: Swapchain not NULL but images are NULL\n");
-    }*/
 
     for (int i = 0; i < imageCount; i++)
     {
-        vkDestroyImageView(engineState->device, engineState->swapchainState->imageViews[i], NULL);
+        vkDestroyImageView(engineState->device, engineState->swapchainState.imageViews[i], NULL);
     }
-    vkDestroySwapchainKHR(engineState->device, engineState->swapchainState->swapchain, NULL);
+    vkDestroySwapchainKHR(engineState->device, engineState->swapchainState.swapchain, NULL);
 
-    free(engineState->swapchainState->imageViews);
-    free(engineState->swapchainState->images);
+    free(engineState->swapchainState.imageViews);
+    free(engineState->swapchainState.images);
     return 0;
 }
