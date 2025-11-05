@@ -3,27 +3,30 @@
 #include "render_passes.h"
 #include "engine_utils.h"
 
+
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 {
     int frame_ind = frameCount % _BufferCount;
 
 
-    if (vkWaitForFences(engineState->device, 1, &engineState->sync.fence[frame_ind], true, 10e9) != VK_SUCCESS)
+    if (vkWaitForFences(engineState->device, 1, &engineState->frameData.fence[frame_ind], true, 10e9) != VK_SUCCESS)
     {
         return -printf("Waiting for render fence failed\n");
     }
-    if (vkResetFences(engineState->device, 1, &engineState->sync.fence[frame_ind]))
+    if (vkResetFences(engineState->device, 1, &engineState->frameData.fence[frame_ind]) != VK_SUCCESS)
     {
         return -printf("Reseting render fence failed\n");
     }
     uint32_t scImageIndex = 0;
-    if (VK_SUCCESS != vkAcquireNextImageKHR(engineState->device, engineState->swapchainState.swapchain, 10e9, engineState->sync.swapchainSemaphore[frame_ind], NULL, &scImageIndex))
+    if (VK_SUCCESS != vkAcquireNextImageKHR(engineState->device, engineState->swapchainState.swapchain, 10e9, engineState->frameData.swapchainSemaphore[frame_ind], NULL, &scImageIndex))
     {
         return -printf("Failed to acquire next swapchain image\n");;
     }
 
     // start command buffer
     VkCommandBuffer Cmnd = engineState->commandsHandle.commandBuffers[frame_ind];
+    ImageData DrawImage = engineState->frameData.drawImage;
+    VkImage ScImage = engineState->swapchainState.images[scImageIndex];
 
     if (vkResetCommandBuffer(Cmnd, 0) != VK_SUCCESS) return -printf("Failed to reset command buffer\n");
 
@@ -31,21 +34,33 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     bInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     bInfo.pNext = NULL;
     bInfo.pInheritanceInfo = NULL;
-    bInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    bInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;   
 
-    
+    VkRenderingAttachmentInfo raInfo = Get_RenderAttachmentInfo(DrawImage.imageView);
+    VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, engineState);
+
+    //Start first render pass
     if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("Failed to begin command buffer\n");
 
-    //start first render pass
-    Change_ImageFormat(Cmnd, engineState->swapchainState.images[scImageIndex], VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    VkRenderingAttachmentInfo raInfo = Get_RenderAttachmentInfo(engineState->swapchainState.imageViews[scImageIndex]);
-    VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, engineState);
+    //Clear image
+    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
+    Clear_Image(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
+    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+    //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
+    
 
     vkCmdEndRendering(Cmnd);
 
-    Change_ImageFormat(Cmnd, engineState->swapchainState.images[scImageIndex], VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    //Copy draw image to swapchain
+    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    Copy_ImageToImage(Cmnd, DrawImage.image, ScImage, DrawImage.imageExtent, engineState->swapchainState.extent);
+    
+    //Prepare image for presentation
+    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(Cmnd);
 
@@ -58,7 +73,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 	presentInfo.pSwapchains = &engineState->swapchainState.swapchain;
 	presentInfo.swapchainCount = 1;
 
-	presentInfo.pWaitSemaphores = &engineState->sync.computeSemaphore[frame_ind];
+	presentInfo.pWaitSemaphores = &engineState->frameData.computeSemaphore[frame_ind];
 	presentInfo.waitSemaphoreCount = 1;
 
 	presentInfo.pImageIndices = &scImageIndex;

@@ -45,14 +45,14 @@ int Get_PhysicalDevice(EngineState* engineState)
     int res = 0;
     if ((res = vkEnumeratePhysicalDevices(engineState->instance, &deviceCount, physDevices)) != VK_SUCCESS)
     {
-        printf("Failed to enumerate devices, error code: %d\n", res);
+        printf("!!Failed to enumerate devices, error code: %d\n", res);
         free(physDevices);
         return -1;
     }
 
     if (deviceCount < 1)
     {
-        printf("Failed find devices\n");
+        printf("!!Failed find devices\n");
         free(physDevices);
         return -2;
     }
@@ -184,7 +184,7 @@ int Create_CommandsHandle(EngineState* engineState)
 
     if (vkCreateCommandPool(engineState->device, &createInfo, NULL, &engineState->commandsHandle.commandPool) != VK_SUCCESS)
     {
-        return -printf("Failed to create command pool\n");
+        return -printf("!!Failed to create command pool\n");
     }
 
     VkCommandBufferAllocateInfo cmdAllocInfo = {};
@@ -196,7 +196,7 @@ int Create_CommandsHandle(EngineState* engineState)
 
     if (vkAllocateCommandBuffers(engineState->device, &cmdAllocInfo, engineState->commandsHandle.commandBuffers) != VK_SUCCESS)
     {
-        return -printf("Failed to allocate command buffers\n");
+        return -printf("!!Failed to allocate command buffers\n");
     }
     return 0;
 }
@@ -234,17 +234,17 @@ int Create_SyncStructures(EngineState* engineState)
 
     for (int i = 0; i < _BufferCount; i++)
     {
-        if (vkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->sync.fence[i]) != VK_SUCCESS)
+        if (vkCreateFence(engineState->device, &fcreateInfo, NULL, &engineState->frameData.fence[i]) != VK_SUCCESS)
         {
-            return -printf("Failed to create fence\n");
+            return -printf("!!Failed to create fence\n");
         }
-        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.swapchainSemaphore[i]) != VK_SUCCESS)
+        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->frameData.swapchainSemaphore[i]) != VK_SUCCESS)
         {
-            return -printf("Failed to create swapchain semaphore\n");
+            return -printf("!!Failed to create swapchain semaphore\n");
         }
-        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->sync.computeSemaphore[i]) != VK_SUCCESS)
+        if (vkCreateSemaphore(engineState->device, &semcreateInfo, NULL, &engineState->frameData.computeSemaphore[i]) != VK_SUCCESS)
         {
-            return -printf("Failed to create compute semaphore\n");
+            return -printf("!!Failed to create compute semaphore\n");
         } 
     }
 
@@ -257,9 +257,9 @@ int Destroy_SyncStructures(EngineState* engineState)
     printf("Destroying Sync structures\n");
     for (int i = 0; i < _BufferCount; i++)
     {
-        vkDestroyFence(engineState->device, engineState->sync.fence[i], NULL);
-        vkDestroySemaphore(engineState->device, engineState->sync.swapchainSemaphore[i], NULL);
-        vkDestroySemaphore(engineState->device, engineState->sync.computeSemaphore[i], NULL);
+        vkDestroyFence(engineState->device, engineState->frameData.fence[i], NULL);
+        vkDestroySemaphore(engineState->device, engineState->frameData.swapchainSemaphore[i], NULL);
+        vkDestroySemaphore(engineState->device, engineState->frameData.computeSemaphore[i], NULL);
     }
     return 1;
 }
@@ -290,6 +290,19 @@ int Add_ToCleanupQueue(AllocInfo** allocInfo, int (*cleanupFunc)(EngineState*))
     (*allocInfo)->CleanupFunc = cleanupFunc;
     n->next = *allocInfo; 
     *allocInfo = n;
+    return 1;
+}
+
+// Create image to which everything will be rendered before being copied to swapchain
+int Create_MainDrawImage(EngineState* engineState)
+{
+    return Create_Image(engineState->device, engineState->allocator, &engineState->frameData.drawImage, (VkExtent3D){1080, 720, 1});
+}
+
+int Destroy_MainDrawImage(EngineState* engineState)
+{
+    vkDestroyImageView(engineState->device, engineState->frameData.drawImage.imageView, NULL);
+    vmaDestroyImage(engineState->allocator, engineState->frameData.drawImage.image, engineState->frameData.drawImage.allocation);
     return 1;
 }
 
@@ -328,46 +341,51 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     Add_ToCleanupQueue(allocInfo, Destroy_MainWindow);
     printf("Main window created\n");
 
-    if (Create_VulkanInstance(engineState)) {printf("Vulkan Instance failed\n"); goto Fail;}
+    if (Create_VulkanInstance(engineState)) {printf("!!Vulkan Instance failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_VulkanInstance);
     printf("Vulkan instance created\n");
 
-    if (Get_PhysicalDevice(engineState)) {printf("Physical Device failed\n"); goto Fail;}
-    printf("Physical device aquired\n");
+    if (Get_PhysicalDevice(engineState)) {printf("!!Physical Device failed\n"); goto Fail;}
+    printf("Physical device acquired\n");
 
-    if (Create_MainSurface(engineState)) {printf("Main Surface failed\n"); goto Fail;}
+    if (Create_MainSurface(engineState)) {printf("!!Main Surface failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_MainSurface);
     printf("Main surface created\n");
 
-    if (Select_QueueFamilies(engineState)) {printf("QueueFamilies failed\n"); goto Fail;}
+    if (Select_QueueFamilies(engineState)) {printf("!!QueueFamilies failed\n"); goto Fail;}
     printf("Queue families selected\n");
 
-    if (Create_LogicalDevice(engineState)) {printf("Logical Device failed\n"); goto Fail;}
+    if (Create_LogicalDevice(engineState)) {printf("!!Logical Device failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_LogicalDevice);
     printf("Logical device created\n");
 
-    if (Get_QueueHandles(engineState)) {printf("Queue handles failed\n"); goto Fail;}
-    printf("Queue handles aquired\n");
+    if (Get_QueueHandles(engineState)) {printf("!!Queue handles failed\n"); goto Fail;}
+    printf("Queue handles acquired\n");
 
-    if (Create_CommandsHandle(engineState)) {printf("Commands handle failed\n"); goto Fail;}
+    if (Create_CommandsHandle(engineState)) {printf("!!Commands handle failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_CommandsHandles);
     printf("Command buffers created\n");
 
-    if (Create_SyncStructures(engineState)) {printf("Sync structs failed\n"); goto Fail;}
+    if (Create_SyncStructures(engineState)) {printf("!!Sync structs failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_SyncStructures);
     printf("Sync structs created\n");
 
-    if (Create_Allocator(engineState)) {printf("Allocator failed\n"); goto Fail;}
+    if (Create_Allocator(engineState)) {printf("!!Allocator failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_Allocator);
     printf("Allocator created\n");
 
-    if (Create_Swapchain(engineState)) {printf("Swapchain failed\n"); goto Fail;}
+    if (Create_Swapchain(engineState)) {printf("!!Swapchain failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Cleanup_Swapchain);
     printf("Swapchain created\n");
+
+    if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
+    printf("Main draw image created\n");
 
     *esPointer = engineState;
     return 0;
 Fail:
+    printf("Fatal error while initializing engine; shutting down\n");
     Cleanup_MainEngine(engineState, *allocInfo);
     return -1;
 }

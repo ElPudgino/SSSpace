@@ -1,19 +1,6 @@
 #include "engine_init.h"
-
-typedef struct _PipelineBuilder
-{
-    VkDevice device;
-    VkPipelineShaderStageCreateInfo* shaderStages;
-    uint32_t shaderCount;
-    uint32_t _shaderCap;
-    VkPipelineInputAssemblyStateCreateInfo inputAssembly;
-    VkPipelineRasterizationStateCreateInfo rasterizer;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment;
-    VkPipelineMultisampleStateCreateInfo multisampling;
-    VkPipelineLayout pipelineLayout;
-    VkPipelineDepthStencilStateCreateInfo depthStencil;
-    VkPipelineRenderingCreateInfo renderInfo;
-} PipelineBuilder;
+#include "pipeline_builder.h"
+#include <stdio.h>
 
 PipelineBuilder* PipelineBuilder_Start(EngineState* engineState)
 {
@@ -21,41 +8,60 @@ PipelineBuilder* PipelineBuilder_Start(EngineState* engineState)
     res->_shaderCap = 2;
     res->device = engineState->device;
     res->shaderStages = (VkPipelineShaderStageCreateInfo*)calloc(2, sizeof(VkPipelineShaderStageCreateInfo));
-    res->inputAssembly = (VkPipelineInputAssemblyStateCreateInfo){.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,.sType= VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO};
+    res->inputAssembly = (VkPipelineInputAssemblyStateCreateInfo){.sType= VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
     res->rasterizer = (VkPipelineRasterizationStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     res->colorBlendAttachment = (VkPipelineColorBlendAttachmentState){};
-    res->multisampling = (VkPipelineMultisampleStateCreateInfo){.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT,.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO};
+    res->multisampling = (VkPipelineMultisampleStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
     res->depthStencil = (VkPipelineDepthStencilStateCreateInfo){
-        .depthCompareOp = VK_COMPARE_OP_LESS,
-        .depthWriteEnable = VK_TRUE,
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .depthTestEnable = VK_TRUE,
-        .depthBoundsTestEnable = VK_FALSE,.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO};
+        .depthWriteEnable = VK_TRUE,
+        .depthCompareOp = VK_COMPARE_OP_LESS,
+        .depthBoundsTestEnable = VK_FALSE};
     res->renderInfo.colorAttachmentCount = 1;
     return res;
 }
 
-int PlBuilder_Set_ColorFormat(PipelineBuilder* builder, VkFormat colorFormat)
+void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shader)
+{
+    if (builder->shaderCount == builder->_shaderCap) builder->shaderStages = (VkPipelineShaderStageCreateInfo*)realloc(builder->shaderStages, builder->_shaderCap * 2 * sizeof(VkPipelineShaderStageCreateInfo)),builder->_shaderCap *= 2;
+    VkPipelineShaderStageCreateInfo cInfo = {};
+    cInfo.module = shader;
+    cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    cInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    cInfo.pName = "main";
+    builder->shaderStages[builder->shaderCount] = cInfo;
+}
+
+void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
+{
+    if (builder->shaderCount == builder->_shaderCap) builder->shaderStages = (VkPipelineShaderStageCreateInfo*)realloc(builder->shaderStages, builder->_shaderCap * 2 * sizeof(VkPipelineShaderStageCreateInfo)),builder->_shaderCap *= 2;
+    VkPipelineShaderStageCreateInfo cInfo = {};
+    cInfo.module = shader;
+    cInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    cInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    cInfo.pName = "main";
+    builder->shaderStages[builder->shaderCount] = cInfo;
+}
+
+void PlBuilder_Set_ColorFormat(PipelineBuilder* builder, VkFormat colorFormat)
 {
     builder->renderInfo.pColorAttachmentFormats = &colorFormat;
-    return 1;
 }
 
-int PlBuilder_Set_DepthFormat(PipelineBuilder* builder, VkFormat depthFormat)
+void PlBuilder_Set_DepthFormat(PipelineBuilder* builder, VkFormat depthFormat)
 {
     builder->renderInfo.depthAttachmentFormat = depthFormat;
-    return 1;
 }
 
-int PlBuilder_Set_StencilFormat(PipelineBuilder* builder, VkFormat stencilFormat)
+void PlBuilder_Set_StencilFormat(PipelineBuilder* builder, VkFormat stencilFormat)
 {
     builder->renderInfo.stencilAttachmentFormat = stencilFormat;
-    return 1;
 }
 
-int PlBuilder_Set_PipelineLayout(PipelineBuilder* builder, VkPipelineLayout layout)
+void PlBuilder_Set_PipelineLayout(PipelineBuilder* builder, VkPipelineLayout layout)
 {
     builder->pipelineLayout = layout;
-    return 1;
 }
 
 VkPipeline PipelineBuilder_Finish(PipelineBuilder* builder)
@@ -105,7 +111,11 @@ VkPipeline PipelineBuilder_Finish(PipelineBuilder* builder)
     if (vkCreateGraphicsPipelines(builder->device, NULL, 1, &cInfo, NULL, &res) != VK_SUCCESS)
     {
         printf("Failed to create graphics pipeline\n");
+        free(builder->shaderStages);
+        free(builder);
         return NULL;
     }
+    free(builder->shaderStages);
+    free(builder);
     return res;
 }

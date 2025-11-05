@@ -19,7 +19,7 @@ int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapCh
     if (formatCount != 0)
     {
         int res = vkGetPhysicalDeviceSurfaceFormatsKHR(*device, *surface, &formatCount, details.formats);
-        if (res != VK_SUCCESS) return -printf("Failed to get Physical Device Surface Formats\n");
+        if (res != VK_SUCCESS) return -printf("!!Failed to get Physical Device Surface Formats\n");
     }
     details.formatCount = formatCount;
 
@@ -31,7 +31,7 @@ int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapCh
     if (presentModeCount != 0)
     {
         int res = vkGetPhysicalDeviceSurfacePresentModesKHR(*device, *surface, &presentModeCount, details.presentModes);
-        if (res != VK_SUCCESS) return -printf("Failed to get Physical Device Surface Present Modes\n");
+        if (res != VK_SUCCESS) return -printf("!!Failed to get Physical Device Surface Present Modes\n");
     }
     details.presentModesCount = presentModeCount;
 
@@ -55,7 +55,6 @@ VkSurfaceFormatKHR Choose_SwapSurfaceFormat(const VkSurfaceFormatKHR* availableF
 
 VkPresentModeKHR Choose_SwapPresentMode(const VkPresentModeKHR* availablePresentModes, uint32_t count) {
     // Prefer mailbox (triple buffering) for low latency
-    printf("%d | %d\n",availablePresentModes ==NULL,count);
     for (int ind = 0; ind < count; ind++) 
     {
         if (availablePresentModes[ind] == VK_PRESENT_MODE_MAILBOX_KHR) 
@@ -106,6 +105,8 @@ int Create_Swapchain(EngineState* engineState)
     VkPresentModeKHR presentMode = Choose_SwapPresentMode(swapChainSupport.presentModes, swapChainSupport.presentModesCount);
     printf("Chose sc present mode\n");
     VkExtent2D extent = Choose_SwapExtent(&swapChainSupport.capabilities, engineState->window);
+
+    engineState->swapchainState.extent = (VkExtent3D){extent.width,extent.height,1};
 
     free(swapChainSupport.formats);
     free(swapChainSupport.presentModes);
@@ -159,12 +160,12 @@ int Create_Swapchain(EngineState* engineState)
 
     if (vkCreateSwapchainKHR(engineState->device, &createInfo, NULL, &engineState->swapchainState.swapchain) != VK_SUCCESS)
     {
-        return -printf("Failed to Create Swapchain\n");
+        return -printf("!!Failed to Create Swapchain\n");
     }
 
     if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState.swapchain, &imageCount, NULL) != VK_SUCCESS)
     {
-        return -printf("Failed to get swapchain images amount\n");
+        return -printf("!!Failed to get swapchain images amount\n");
     }
 
     engineState->swapchainState.images = (VkImage*)calloc(imageCount, sizeof(VkImage));
@@ -172,7 +173,7 @@ int Create_Swapchain(EngineState* engineState)
     if (vkGetSwapchainImagesKHR(engineState->device, engineState->swapchainState.swapchain, &imageCount, engineState->swapchainState.images) != VK_SUCCESS)
     {
         free(engineState->swapchainState.images);
-        return -printf("Failed to get swapchain images\n");
+        return -printf("!!Failed to get swapchain images\n");
     }
 
 
@@ -204,7 +205,7 @@ int Create_Swapchain(EngineState* engineState)
         {
             free(engineState->swapchainState.images);
             free(engineState->swapchainState.imageViews);
-            return -printf("Failed to create image view\n");
+            return -printf("!!Failed to create image view\n");
         }
     }
 
@@ -219,7 +220,7 @@ int Cleanup_Swapchain(EngineState* engineState)
 
     if (!engineState->swapchainState.created)
     {
-        printf("Swapchain was NULL when cleaning up\n");
+        printf("!Swapchain was NULL when cleaning up\n");
         return 0;
     }
 

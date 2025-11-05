@@ -1,8 +1,15 @@
 #ifndef ENGINE_INIT
 
-#include "libs.h"
+#include "engine_utils.h"
+#include "descriptors_util.h"
 
 #define ENGINE_INIT
+
+typedef struct _DescriptorCache
+{
+    // Data like the draw image, camera transform and other things which dont change throughout the frame
+    DescriptorData frameShaderData;
+} DescriptorCache;
 
 typedef struct _QueueHandles
 {
@@ -16,6 +23,7 @@ typedef struct _QueueHandles
 typedef struct _SwapchainState
 {
     VkSwapchainKHR swapchain;
+    VkExtent3D extent;
     VkImage* images;
     VkImageView* imageViews;
     uint32_t imageCount;
@@ -30,12 +38,13 @@ typedef struct _CommandsHandle
     VkCommandBuffer commandBuffers[_BufferCount];
 } CommandsHandle;
 
-typedef struct _Sync
+typedef struct _FrameData
 {
     VkFence fence[_BufferCount];
     VkSemaphore swapchainSemaphore[_BufferCount];
     VkSemaphore computeSemaphore[_BufferCount];
-} Sync;
+    ImageData drawImage;
+} FrameData;
 
 typedef struct _QueueFamIndices
 {
@@ -55,7 +64,7 @@ typedef struct _EngineState
     QueueFamIndices queueFamIndices;
     QueueHandles queueHandles;
     CommandsHandle commandsHandle;
-    Sync sync;
+    FrameData frameData;
     SDL_Window* window;
     SwapchainState swapchainState;
     VmaAllocator allocator;

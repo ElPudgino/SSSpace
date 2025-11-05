@@ -5,7 +5,7 @@ int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffe
     VkSemaphoreSubmitInfo csemInfo = {};
 	csemInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
 	csemInfo.pNext = NULL;
-	csemInfo.semaphore = engineState->sync.computeSemaphore[frame_ind];
+	csemInfo.semaphore = engineState->frameData.computeSemaphore[frame_ind];
 	csemInfo.stageMask = VK_PIPELINE_STAGE_2_ALL_GRAPHICS_BIT;
 	csemInfo.deviceIndex = 0;
 	csemInfo.value = 1;
@@ -13,7 +13,7 @@ int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffe
     VkSemaphoreSubmitInfo semInfo = {};
 	semInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
 	semInfo.pNext = NULL;
-	semInfo.semaphore = engineState->sync.swapchainSemaphore[frame_ind];
+	semInfo.semaphore = engineState->frameData.swapchainSemaphore[frame_ind];
 	semInfo.stageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT_KHR;
 	semInfo.deviceIndex = 0;
 	semInfo.value = 1;
@@ -34,7 +34,7 @@ int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffe
     submitInfo.waitSemaphoreInfoCount = 1;
     submitInfo.pWaitSemaphoreInfos = &semInfo;
 
-    vkQueueSubmit2(engineState->queueHandles._Graphics, 1, &submitInfo, engineState->sync.fence[frame_ind]);
+    vkQueueSubmit2(engineState->queueHandles._Graphics, 1, &submitInfo, engineState->frameData.fence[frame_ind]);
     return 0;
 }
 

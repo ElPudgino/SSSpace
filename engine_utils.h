@@ -1,4 +1,4 @@
-#ifndef ENGINE_UTILs
+#ifndef ENGINE_UTILS
 
 #include "libs.h"
 
@@ -14,8 +14,12 @@ typedef struct _ImageData
     VkFormat imageFormat;
 } ImageData;
 
-int Create_Image(VmaAllocator allocator, ImageData* imageData, VkExtent3D extent);
+int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent);
 
-int Change_ImageFormat(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+int Change_ImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+
+void Copy_ImageToImage(VkCommandBuffer cmnd, VkImage src, VkImage dst, VkExtent3D srcSize, VkExtent3D dstSize);
+
+void Clear_Image(VkCommandBuffer cmnd, VkImage image, VkImageLayout layout, VkClearColorValue color);
 
 #endif

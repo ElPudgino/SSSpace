@@ -1,16 +1,25 @@
 #include <stdio.h>
 #include "engine_utils.h"
 
+VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
+{
+    VkImageSubresourceRange subRes = {};
+    subRes.aspectMask = aspectMask;
+    subRes.baseMipLevel = 0;
+    subRes.levelCount = VK_REMAINING_MIP_LEVELS;
+    subRes.baseArrayLayer = 0;
+    subRes.layerCount = VK_REMAINING_ARRAY_LAYERS;
 
+    return subRes;
+}
 
-int Create_Image(VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
+int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
 {
     VkFormat format = VK_FORMAT_R16G16B16A16_SFLOAT;
     VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | 
                               VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                               VK_IMAGE_USAGE_STORAGE_BIT |
                               VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
 
     VkImageCreateInfo iInfo = {};
     iInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -32,7 +41,7 @@ int Create_Image(VmaAllocator allocator, ImageData* imageData, VkExtent3D extent
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 	allocInfo.requiredFlags = VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-    vmaCreateImage(allocator, &iInfo, &allocInfo, &imageData->image, &imageData->allocation, NULL);
+    if (vmaCreateImage(allocator, &iInfo, &allocInfo, &imageData->image, &imageData->allocation, NULL) != VK_SUCCESS) return -printf("!!Failed to allocate image\n");
 
     VkImageViewCreateInfo ivInfo = {};
     ivInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -46,22 +55,54 @@ int Create_Image(VmaAllocator allocator, ImageData* imageData, VkExtent3D extent
     ivInfo.subresourceRange.layerCount = 1;
     ivInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
+    if (vkCreateImageView(device, &ivInfo, NULL, &imageData->imageView) != VK_SUCCESS) return -printf("!!Failed to create image view for allocated image\n");
+
+
     return 0;
 }   
 
-VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
+void Clear_Image(VkCommandBuffer cmnd, VkImage image, VkImageLayout layout, VkClearColorValue color)
 {
-    VkImageSubresourceRange subRes = {};
-    subRes.aspectMask = aspectMask;
-    subRes.baseMipLevel = 0;
-    subRes.levelCount = VK_REMAINING_MIP_LEVELS;
-    subRes.baseArrayLayer = 0;
-    subRes.layerCount = VK_REMAINING_ARRAY_LAYERS;
-
-    return subRes;
+    VkImageSubresourceRange range = Get_ImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
+    vkCmdClearColorImage(cmnd, image, layout, &color, 1, &range);
 }
 
-int Change_ImageFormat(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout)
+void Copy_ImageToImage(VkCommandBuffer cmnd, VkImage src, VkImage dst, VkExtent3D srcSize, VkExtent3D dstSize)
+{
+    VkImageBlit2 blitInfo = {};
+    blitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blitInfo.dstSubresource.baseArrayLayer = 0;
+    blitInfo.dstSubresource.layerCount = 1;
+    blitInfo.dstSubresource.mipLevel = 0;
+
+    blitInfo.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    blitInfo.srcSubresource.baseArrayLayer = 0;
+    blitInfo.srcSubresource.layerCount = 1;
+    blitInfo.srcSubresource.mipLevel = 0;
+    
+    blitInfo.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2;
+    // Setting Top Right corner of the copy area
+    blitInfo.srcOffsets[1].x = srcSize.width;
+    blitInfo.srcOffsets[1].y = srcSize.height;
+    blitInfo.srcOffsets[1].z = srcSize.depth;
+
+    blitInfo.dstOffsets[1].x = dstSize.width;
+    blitInfo.dstOffsets[1].y = dstSize.height;
+    blitInfo.dstOffsets[1].z = dstSize.depth;
+
+    VkBlitImageInfo2 iInfo = {};
+    iInfo.regionCount = 1;
+    iInfo.pRegions = &blitInfo;
+    iInfo.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2;
+    iInfo.srcImage = src;
+    iInfo.dstImage = dst;
+    iInfo.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+    iInfo.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+    iInfo.filter = VK_FILTER_LINEAR;
+    vkCmdBlitImage2(cmnd, &iInfo);
+}
+
+int Change_ImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout)
 {
     VkImageMemoryBarrier2 imageBarrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
     imageBarrier.pNext = NULL;

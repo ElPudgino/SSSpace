@@ -2,10 +2,12 @@ CFLAGS = -std=c++17
 #CFLAGS += -I includes
 LDFLAGS = -lSDL3 -lvulkan
 
+app_main = engine.o engine_init.o support_check.o swapchain_init.o engine_utils.o render_passes.o pipeline_builder.o descriptors_util.o
+
 all : CompileApp
 
-CompileApp : engine.o engine_init.o support_check.o swapchain_init.o engine_utils.o render_passes.o
-	g++ $(CFLAGS) engine.o engine_init.o support_check.o swapchain_init.o engine_utils.o render_passes.o -o app $(LDFLAGS)
+CompileApp : $(app_main)
+	g++ $(CFLAGS) $(app_main) -o app $(LDFLAGS)
 
 engine.o : engine.c
 	g++ $(CFLAGS) engine.c -o engine.o -c $(LDFLAGS)
@@ -25,8 +27,14 @@ engine_utils.o : engine_utils.c
 render_passes.o : render_passes.c
 	g++ $(CFLAGS) render_passes.c -o render_passes.o -c $(LDFLAGS)
 
+pipeline_builder.o : pipeline_builder.c
+	g++ $(CFLAGS) pipeline_builder.c -o pipeline_builder.o -c $(LDFLAGS)
+
+descriptors_util.o : descriptors_util.c
+	g++ $(CFLAGS) descriptors_util.c -o descriptors_util.o -c $(LDFLAGS)
+
 run : CompileApp
 	./app
 	
 cleanup :
-	rm -f app engine_init.o engine.o support_check.o swapchain_init.o engine_utils.o render_passes.o
+	rm -f app $(app_main)
