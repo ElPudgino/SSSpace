@@ -1,13 +1,12 @@
 #include "engine_init.h"
-#include <stdio.h>
 #include "descriptors_util.h"
 
-DescriptorLayoutBuilder* Start_DescriptorLayoutBuilder(EngineState* engineState)
+DescriptorLayoutBuilder* Start_DescriptorLayoutBuilder(VkDevice device)
 {
     DescriptorLayoutBuilder* res = (DescriptorLayoutBuilder*)calloc(1, sizeof(DescriptorLayoutBuilder));
-    res->bindings = (VkDescriptorSetLayoutBinding*)calloc(4, sizeof(VkDescriptorSetLayoutBinding));
-    res->cap = 4;
-    res->device = engineState->device;
+    res->bindings = (VkDescriptorSetLayoutBinding*)calloc(1, sizeof(VkDescriptorSetLayoutBinding));
+    res->cap = 1;
+    res->device = device;
     return res;
 }
 
@@ -42,7 +41,7 @@ VkDescriptorSetLayout Finish_DescriptorLayoutBuilder(DescriptorLayoutBuilder* bu
 /* 
 * All Descriptor sets in a pool are the same
 */
-VkDescriptorPool Create_DescriptorPool(EngineState* engineState, uint32_t maxSets, DescriptorPoolSizes sizes)
+VkDescriptorPool Create_DescriptorPool(VkDevice device, uint32_t maxSets, DescriptorPoolSizes sizes)
 {
     VkDescriptorPoolCreateInfo cInfo = {};
     cInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -55,11 +54,11 @@ VkDescriptorPool Create_DescriptorPool(EngineState* engineState, uint32_t maxSet
     }
 
     VkDescriptorPool pool;
-    if (vkCreateDescriptorPool(engineState->device, &cInfo, NULL, &pool)) {printf("Failed to create descriptor pool, max sets: %u\n", maxSets); return NULL;}
+    if (vkCreateDescriptorPool(device, &cInfo, NULL, &pool)) {printf("Failed to create descriptor pool, max sets: %u\n", maxSets); return NULL;}
     return pool;
 }
 
-VkDescriptorSet Allocate_DescriptorSet(EngineState* engineState, VkDescriptorPool pool, VkDescriptorSetLayout layout)
+VkDescriptorSet Allocate_DescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout layout)
 {
     VkDescriptorSetAllocateInfo allocInfo = {.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO};
     allocInfo.pNext = NULL;
@@ -68,6 +67,6 @@ VkDescriptorSet Allocate_DescriptorSet(EngineState* engineState, VkDescriptorPoo
     allocInfo.pSetLayouts = &layout;
 
     VkDescriptorSet ds;
-    if (vkAllocateDescriptorSets(engineState->device, &allocInfo, &ds)) {printf("Failed to allocate descriptor set\n"); return NULL;}
+    if (vkAllocateDescriptorSets(device, &allocInfo, &ds)) {printf("Failed to allocate descriptor set\n"); return NULL;}
     return ds;
 }

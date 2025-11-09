@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "render_passes.h"
-#include "engine_utils.h"
+#include "image_utils.h"
 
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -50,7 +50,6 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
-    
 
     vkCmdEndRendering(Cmnd);
 

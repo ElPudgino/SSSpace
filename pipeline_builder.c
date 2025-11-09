@@ -1,13 +1,67 @@
 #include "engine_init.h"
 #include "pipeline_builder.h"
-#include <stdio.h>
 
-PipelineBuilder* PipelineBuilder_Start(EngineState* engineState)
+PipelineLayoutBuilder* Start_PipelineLayoutBuilder(VkDevice device)
+{
+    PipelineLayoutBuilder* res = (PipelineLayoutBuilder*)calloc(1, sizeof(PipelineLayoutBuilder));
+    res->descSetlayouts = (VkDescriptorSetLayout*)calloc(1, sizeof(VkDescriptorSetLayout));
+    res->_descSetCap = 1;
+    res->pushConstRanges = (VkPushConstantRange*)calloc(1, sizeof(VkPushConstantRange));
+    res->_pushConstCap = 1;
+    res->device = device;
+    return res;
+}
+
+void PllBuilder_Add_DescriptorSet(PipelineLayoutBuilder* builder, VkDescriptorSetLayout layout)
+{
+    if (builder->_descSetCap == builder->descSetCount)
+    {
+        builder->descSetlayouts = (VkDescriptorSetLayout*)realloc(builder->descSetlayouts, builder->_descSetCap*2*sizeof(VkDescriptorSetLayout));
+        builder->_descSetCap *= 2;
+    }
+    builder->descSetlayouts[builder->descSetCount] = layout;
+    builder->descSetCount++;
+}
+
+void PllBuilder_Add_PushConstRange(PipelineLayoutBuilder* builder, uint32_t offset, uint32_t size, VkShaderStageFlags stage)
+{
+    VkPushConstantRange range = {.stageFlags = stage,.offset = offset,.size = size};
+    if (builder->_pushConstCap == builder->pushConstCount)
+    {
+        builder->pushConstRanges = (VkPushConstantRange*)realloc(builder->pushConstRanges, builder->_pushConstCap*2*sizeof(VkPushConstantRange));
+        builder->_pushConstCap *= 2;
+    }
+    builder->pushConstRanges[builder->pushConstCount] = range;
+    builder->pushConstCount++;
+}
+
+VkPipelineLayout Finish_PipelineLayoutBuilder(PipelineLayoutBuilder* builder)
+{
+    VkPipelineLayoutCreateInfo plInfo = {};
+    plInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    plInfo.setLayoutCount = builder->descSetCount;
+    plInfo.pSetLayouts = builder->descSetlayouts;
+    plInfo.pushConstantRangeCount = builder->pushConstCount;
+    plInfo.pPushConstantRanges = builder->pushConstRanges;
+
+    VkPipelineLayout pLayout;
+    if (vkCreatePipelineLayout(builder->device, &plInfo, NULL, &pLayout) != VK_SUCCESS)
+    {
+        printf("!Failed to create pipeline layout\n");
+        return NULL;
+    }
+    free(builder->pushConstRanges);
+    free(builder->descSetlayouts);
+    free(builder);
+    return pLayout;
+}
+
+PipelineBuilder* Start_PipelineBuilder(VkDevice device)
 {
     PipelineBuilder* res = (PipelineBuilder*)calloc(1, sizeof(PipelineBuilder));
-    res->_shaderCap = 2;
-    res->device = engineState->device;
-    res->shaderStages = (VkPipelineShaderStageCreateInfo*)calloc(2, sizeof(VkPipelineShaderStageCreateInfo));
+    res->device = device;
+    res->shaderStages = (VkPipelineShaderStageCreateInfo*)calloc(1, sizeof(VkPipelineShaderStageCreateInfo));
+    res->_shaderCap = 1;
     res->inputAssembly = (VkPipelineInputAssemblyStateCreateInfo){.sType= VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
     res->rasterizer = (VkPipelineRasterizationStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
     res->colorBlendAttachment = (VkPipelineColorBlendAttachmentState){};
@@ -59,12 +113,12 @@ void PlBuilder_Set_StencilFormat(PipelineBuilder* builder, VkFormat stencilForma
     builder->renderInfo.stencilAttachmentFormat = stencilFormat;
 }
 
-void PlBuilder_Set_PipelineLayout(PipelineBuilder* builder, VkPipelineLayout layout)
+void PlBuilder_SetLayout(PipelineBuilder* builder, VkPipelineLayout layout)
 {
-    builder->pipelineLayout = layout;
+    builder->layout = layout;
 }
 
-VkPipeline PipelineBuilder_Finish(PipelineBuilder* builder)
+VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
 {
     VkGraphicsPipelineCreateInfo cInfo = {};
     
@@ -104,7 +158,7 @@ VkPipeline PipelineBuilder_Finish(PipelineBuilder* builder)
     cInfo.pMultisampleState = &builder->multisampling;
     cInfo.pColorBlendState = &colorBlending;
     cInfo.pDepthStencilState = &builder->depthStencil;
-    cInfo.layout = builder->pipelineLayout;
+    cInfo.layout = builder->layout;
     cInfo.pDynamicState = &dynamicInfo;
 
     VkPipeline res;

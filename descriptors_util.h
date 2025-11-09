@@ -24,4 +24,14 @@ typedef struct _DescriptorPoolSizes
     VkDescriptorPoolSize* sizesPerSet;
 } DescriptorPoolSizes;
 
+DescriptorLayoutBuilder* Start_DescriptorLayoutBuilder(VkDevice device);
+
+void DlBuilder_Add_DescriptorLayoutBinding(DescriptorLayoutBuilder* builder, unsigned int bindingNum, VkDescriptorType type, VkShaderStageFlags shaderStages);
+
+VkDescriptorSetLayout Finish_DescriptorLayoutBuilder(DescriptorLayoutBuilder* builder, VkDescriptorSetLayoutCreateFlags flags);
+
+VkDescriptorPool Create_DescriptorPool(VkDevice device, uint32_t maxSets, DescriptorPoolSizes sizes);
+
+VkDescriptorSet Allocate_DescriptorSet(VkDevice device, VkDescriptorPool pool, VkDescriptorSetLayout layout);
+
 #endif
