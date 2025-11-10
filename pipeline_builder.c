@@ -14,6 +14,7 @@ PipelineLayoutBuilder* Start_PipelineLayoutBuilder(VkDevice device)
 
 void PllBuilder_Add_DescriptorSet(PipelineLayoutBuilder* builder, VkDescriptorSetLayout layout)
 {
+    assert(builder);
     if (builder->_descSetCap == builder->descSetCount)
     {
         builder->descSetlayouts = (VkDescriptorSetLayout*)realloc(builder->descSetlayouts, builder->_descSetCap*2*sizeof(VkDescriptorSetLayout));
@@ -25,6 +26,7 @@ void PllBuilder_Add_DescriptorSet(PipelineLayoutBuilder* builder, VkDescriptorSe
 
 void PllBuilder_Add_PushConstRange(PipelineLayoutBuilder* builder, uint32_t offset, uint32_t size, VkShaderStageFlags stage)
 {
+    assert(builder);
     VkPushConstantRange range = {.stageFlags = stage,.offset = offset,.size = size};
     if (builder->_pushConstCap == builder->pushConstCount)
     {
@@ -37,6 +39,7 @@ void PllBuilder_Add_PushConstRange(PipelineLayoutBuilder* builder, uint32_t offs
 
 VkPipelineLayout Finish_PipelineLayoutBuilder(PipelineLayoutBuilder* builder)
 {
+    assert(builder);
     VkPipelineLayoutCreateInfo plInfo = {};
     plInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     plInfo.setLayoutCount = builder->descSetCount;
@@ -78,6 +81,7 @@ PipelineBuilder* Start_PipelineBuilder(VkDevice device)
 
 void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shader)
 {
+    assert(builder);
     if (builder->shaderCount == builder->_shaderCap) builder->shaderStages = (VkPipelineShaderStageCreateInfo*)realloc(builder->shaderStages, builder->_shaderCap * 2 * sizeof(VkPipelineShaderStageCreateInfo)),builder->_shaderCap *= 2;
     VkPipelineShaderStageCreateInfo cInfo = {};
     cInfo.module = shader;
@@ -89,6 +93,7 @@ void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shade
 
 void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
 {
+    assert(builder);
     if (builder->shaderCount == builder->_shaderCap) builder->shaderStages = (VkPipelineShaderStageCreateInfo*)realloc(builder->shaderStages, builder->_shaderCap * 2 * sizeof(VkPipelineShaderStageCreateInfo)),builder->_shaderCap *= 2;
     VkPipelineShaderStageCreateInfo cInfo = {};
     cInfo.module = shader;
@@ -100,26 +105,31 @@ void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
 
 void PlBuilder_Set_ColorFormat(PipelineBuilder* builder, VkFormat colorFormat)
 {
+    assert(builder);
     builder->renderInfo.pColorAttachmentFormats = &colorFormat;
 }
 
 void PlBuilder_Set_DepthFormat(PipelineBuilder* builder, VkFormat depthFormat)
 {
+    assert(builder);
     builder->renderInfo.depthAttachmentFormat = depthFormat;
 }
 
 void PlBuilder_Set_StencilFormat(PipelineBuilder* builder, VkFormat stencilFormat)
 {
+    assert(builder);
     builder->renderInfo.stencilAttachmentFormat = stencilFormat;
 }
 
 void PlBuilder_SetLayout(PipelineBuilder* builder, VkPipelineLayout layout)
 {
+    assert(builder);
     builder->layout = layout;
 }
 
 VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
 {
+    assert(builder);
     VkGraphicsPipelineCreateInfo cInfo = {};
     
     VkPipelineViewportStateCreateInfo viewportState = {};

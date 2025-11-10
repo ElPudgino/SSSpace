@@ -12,6 +12,7 @@ DescriptorLayoutBuilder* Start_DescriptorLayoutBuilder(VkDevice device)
 
 void DlBuilder_Add_DescriptorLayoutBinding(DescriptorLayoutBuilder* builder, unsigned int bindingNum, VkDescriptorType type, VkShaderStageFlags shaderStages)
 {
+    assert(builder);
     if (builder->bCount == builder->cap) builder->bindings = (VkDescriptorSetLayoutBinding*)realloc(builder->bindings, builder->cap*2*sizeof(VkDescriptorSetLayoutBinding));
 
     builder->bindings[builder->bCount] = (VkDescriptorSetLayoutBinding){};
@@ -25,6 +26,7 @@ void DlBuilder_Add_DescriptorLayoutBinding(DescriptorLayoutBuilder* builder, uns
 
 VkDescriptorSetLayout Finish_DescriptorLayoutBuilder(DescriptorLayoutBuilder* builder, VkDescriptorSetLayoutCreateFlags flags)
 {
+    assert(builder);
     VkDescriptorSetLayoutCreateInfo cInfo = {};
     cInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
     cInfo.pNext = NULL;

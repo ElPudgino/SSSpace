@@ -2,6 +2,7 @@
 
 VkShaderModule Create_ShaderModule(char* data, VkDevice device, uint32_t size)
 {
+    assert(data);
     uint32_t* sdata = (uint32_t*)data;
 
     VkShaderModuleCreateInfo cInfo = {};
@@ -20,6 +21,7 @@ VkShaderModule Create_ShaderModule(char* data, VkDevice device, uint32_t size)
 
 VkShaderModule Read_SpirvFile(char* name, VkDevice device)
 {
+    assert(name);
     assert(name);
 
     FILE* file;

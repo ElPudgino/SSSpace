@@ -9,6 +9,7 @@
 // Return 0 if all 5 queueFamilies were found 1 otherwise
 int Select_QueueFamilies(EngineState* engineState)//QueueFamIndices* Selected, VkPhysicalDevice* device, VkSurfaceKHR* surface)
 {
+    assert(engineState);
     uint32_t queueFamilyCount = 0;
     vkGetPhysicalDeviceQueueFamilyProperties(engineState->physicalDevice, &queueFamilyCount, NULL);
     VkQueueFamilyProperties* queueFamilies = (VkQueueFamilyProperties*)calloc(queueFamilyCount, sizeof(VkQueueFamilyProperties));

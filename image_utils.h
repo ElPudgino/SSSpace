@@ -9,6 +9,7 @@ typedef struct _ImageData
 {
     VkImage image;
     VkImageView imageView;
+    VkImageLayout layout;
     VmaAllocation allocation;
     VkExtent3D imageExtent;
     VkFormat imageFormat;
@@ -16,10 +17,10 @@ typedef struct _ImageData
 
 int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent);
 
-int Change_ImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout);
+int Change_ImageLayout(VkCommandBuffer cmd, ImageData imageData, VkImageLayout newLayout);
 
-void Copy_ImageToImage(VkCommandBuffer cmnd, VkImage src, VkImage dst, VkExtent3D srcSize, VkExtent3D dstSize);
+void Copy_ImageToImage(VkCommandBuffer cmnd, ImageData src, ImageData dst);
 
-void Clear_Image(VkCommandBuffer cmnd, VkImage image, VkImageLayout layout, VkClearColorValue color);
+void Clear_Image(VkCommandBuffer cmnd, ImageData imageData, VkClearColorValue color);
 
 #endif

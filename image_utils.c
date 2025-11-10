@@ -15,6 +15,7 @@ VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
 
 int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
 {
+    assert(imageData);
     VkFormat format = VK_FORMAT_R16G16B16A16_SFLOAT;
     VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | 
                               VK_IMAGE_USAGE_TRANSFER_DST_BIT |
@@ -36,6 +37,7 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
 
     imageData->imageExtent = extent;
     imageData->imageFormat = format;
+    imageData->layout = VK_IMAGE_LAYOUT_UNDEFINED;
 
     VmaAllocationCreateInfo allocInfo = {};
 	allocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -61,13 +63,13 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
     return 0;
 }   
 
-void Clear_Image(VkCommandBuffer cmnd, VkImage image, VkImageLayout layout, VkClearColorValue color)
+void Clear_Image(VkCommandBuffer cmnd, ImageData imageData, VkClearColorValue color)
 {
     VkImageSubresourceRange range = Get_ImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
-    vkCmdClearColorImage(cmnd, image, layout, &color, 1, &range);
+    vkCmdClearColorImage(cmnd, imageData.image, imageData.layout, &color, 1, &range);
 }
 
-void Copy_ImageToImage(VkCommandBuffer cmnd, VkImage src, VkImage dst, VkExtent3D srcSize, VkExtent3D dstSize)
+void Copy_ImageToImage(VkCommandBuffer cmnd, ImageData src, ImageData dst)
 {
     VkImageBlit2 blitInfo = {};
     blitInfo.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -82,27 +84,27 @@ void Copy_ImageToImage(VkCommandBuffer cmnd, VkImage src, VkImage dst, VkExtent3
     
     blitInfo.sType = VK_STRUCTURE_TYPE_IMAGE_BLIT_2;
     // Setting Top Right corner of the copy area
-    blitInfo.srcOffsets[1].x = srcSize.width;
-    blitInfo.srcOffsets[1].y = srcSize.height;
-    blitInfo.srcOffsets[1].z = srcSize.depth;
+    blitInfo.srcOffsets[1].x = src.imageExtent.width;
+    blitInfo.srcOffsets[1].y = src.imageExtent.height;
+    blitInfo.srcOffsets[1].z = src.imageExtent.depth;
 
-    blitInfo.dstOffsets[1].x = dstSize.width;
-    blitInfo.dstOffsets[1].y = dstSize.height;
-    blitInfo.dstOffsets[1].z = dstSize.depth;
+    blitInfo.dstOffsets[1].x = dst.imageExtent.width;
+    blitInfo.dstOffsets[1].y = dst.imageExtent.height;
+    blitInfo.dstOffsets[1].z = dst.imageExtent.depth;
 
     VkBlitImageInfo2 iInfo = {};
     iInfo.regionCount = 1;
     iInfo.pRegions = &blitInfo;
     iInfo.sType = VK_STRUCTURE_TYPE_BLIT_IMAGE_INFO_2;
-    iInfo.srcImage = src;
-    iInfo.dstImage = dst;
+    iInfo.srcImage = src.image;
+    iInfo.dstImage = dst.image;
     iInfo.dstImageLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
     iInfo.srcImageLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
     iInfo.filter = VK_FILTER_LINEAR;
     vkCmdBlitImage2(cmnd, &iInfo);
 }
 
-int Change_ImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout currentLayout, VkImageLayout newLayout)
+int Change_ImageLayout(VkCommandBuffer cmd, ImageData imageData, VkImageLayout newLayout)
 {
     VkImageMemoryBarrier2 imageBarrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
     imageBarrier.pNext = NULL;
@@ -112,12 +114,12 @@ int Change_ImageLayout(VkCommandBuffer cmd, VkImage image, VkImageLayout current
     imageBarrier.dstStageMask = VK_PIPELINE_STAGE_2_ALL_COMMANDS_BIT;
     imageBarrier.dstAccessMask = VK_ACCESS_2_MEMORY_WRITE_BIT | VK_ACCESS_2_MEMORY_READ_BIT;
 
-    imageBarrier.oldLayout = currentLayout;
+    imageBarrier.oldLayout = imageData.layout;
     imageBarrier.newLayout = newLayout;
 
     VkImageAspectFlags aspectMask = (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
     imageBarrier.subresourceRange = Get_ImageSubresourceRange(aspectMask);
-    imageBarrier.image = image;
+    imageBarrier.image = imageData.image;
 
     VkDependencyInfo depInfo = {};
     depInfo.sType = VK_STRUCTURE_TYPE_DEPENDENCY_INFO;

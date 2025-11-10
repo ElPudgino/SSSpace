@@ -1,23 +1,8 @@
-#include "libs.h"
 #include "render_primitives.h"
-#include "pipeline_builder.h"
-#include "image_utils.h"
-#include "descriptors_util.h"
-
-typedef struct _MaterialBuilder
-{
-    VkDevice device;
-    PipelineBuilder* pipelineBuilder;
-    PipelineLayoutBuilder* pipelineLayoutBuilder;
-    DescriptorLayoutBuilder* descLayoutBuilder;
-    DescriptorPoolSizes poolSizes;
-    uint32_t curParamOffset;
-    MaterialParameter* matParams;
-    uint32_t matParamsCount;
-} MaterialBuilder;
 
 void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType descType)
 {
+    assert(builder);
     VkDescriptorPoolSize size = {};
     switch (descType)
     {
@@ -47,7 +32,7 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
     builder->pipelineLayoutBuilder = Start_PipelineLayoutBuilder(device);
     builder->pipelineBuilder = Start_PipelineBuilder(device);
 
-    PlBuilder_Set_ColorFormat(builder->pipelineBuilder, VK_FORMAT_R8G8B8A8_UNORM);
+    PlBuilder_Set_ColorFormat(builder->pipelineBuilder, VK_FORMAT_R16G16B16A16_SFLOAT);
     PlBuilder_Set_DepthFormat(builder->pipelineBuilder, VK_FORMAT_R16_USCALED);
     PlBuilder_Set_StencilFormat(builder->pipelineBuilder, VK_FORMAT_R8_UINT);
 
@@ -57,31 +42,40 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
 
 void MatBuilder_SetFragmentShader(MaterialBuilder* builder, VkShaderModule shader)
 {  
+    assert(builder);
     PlBuilder_Set_FragmentShader(builder->pipelineBuilder, shader);
 }
 
 void MatBuilder_SetVertexShader(MaterialBuilder* builder, VkShaderModule shader)
 {  
+    assert(builder);
     PlBuilder_Set_VertexShader(builder->pipelineBuilder, shader);
 }
 
 void MatBuilder_AddImageSlot(MaterialBuilder* builder, uint32_t bind, VkShaderStageFlags stage)
 {
+    assert(builder);
     DlBuilder_Add_DescriptorLayoutBinding(builder->descLayoutBuilder, bind, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, stage);
     _MatBuilder_Increase_PoolSize(builder, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
 }
 
 void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkShaderStageFlags stage)
 {
+    assert(builder);
     PllBuilder_Add_PushConstRange(builder->pipelineLayoutBuilder, builder->curParamOffset, paramSize, stage);
     builder->matParams = (MaterialParameter*)realloc(builder->matParams, (builder->matParamsCount + 1) * sizeof(MaterialParameter));
-    builder->matParams[builder->matParamsCount] = (MaterialParameter){.size = paramSize, .offset = builder->curParamOffset, .stage = stage};
+    builder->matParams[builder->matParamsCount] = (MaterialParameter){
+        .size = paramSize,
+        .offset = builder->curParamOffset,
+        .stage = stage,
+        .value = calloc(paramSize, 1)};
     builder->matParamsCount++;
     builder->curParamOffset += paramSize;
 }
 
 Material Finish_MaterialBuilder(MaterialBuilder* builder)
 {
+    assert(builder);
     Material mat = {};
     mat.parameterCount = builder->matParamsCount;
     mat.parameters = builder->matParams;
@@ -100,6 +94,7 @@ Material Finish_MaterialBuilder(MaterialBuilder* builder)
 
 void Material_SetParameter(Material mat, uint32_t index, void* value)
 {
+    assert(value);
     memcpy(mat.parameters[index].value, value, mat.parameters[index].size);
 }
 

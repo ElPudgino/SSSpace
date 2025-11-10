@@ -26,7 +26,11 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     // start command buffer
     VkCommandBuffer Cmnd = engineState->commandsHandle.commandBuffers[frame_ind];
     ImageData DrawImage = engineState->frameData.drawImage;
-    VkImage ScImage = engineState->swapchainState.images[scImageIndex];
+    ImageData ScImage = (ImageData){
+        .image = engineState->swapchainState.images[scImageIndex],
+        .imageView = engineState->swapchainState.imageViews[scImageIndex],
+        .layout = VK_IMAGE_LAYOUT_UNDEFINED,
+        .imageExtent = engineState->swapchainState.extent};
 
     if (vkResetCommandBuffer(Cmnd, 0) != VK_SUCCESS) return -printf("Failed to reset command buffer\n");
 
@@ -43,9 +47,9 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("Failed to begin command buffer\n");
 
     //Clear image
-    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_GENERAL);
-    Clear_Image(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
-    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_GENERAL);
+    Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
+    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
@@ -54,12 +58,12 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     vkCmdEndRendering(Cmnd);
 
     //Copy draw image to swapchain
-    Change_ImageLayout(Cmnd, DrawImage.image, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-    Copy_ImageToImage(Cmnd, DrawImage.image, ScImage, DrawImage.imageExtent, engineState->swapchainState.extent);
+    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    Copy_ImageToImage(Cmnd, DrawImage, ScImage);
     
     //Prepare image for presentation
-    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(Cmnd);
 

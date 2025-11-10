@@ -331,7 +331,10 @@ int Dealloc_Engine(EngineState* engineState)
 // Writes a pointer to created EngineState if successful
 int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
 {
+    assert(esPointer);
+    assert(allocInfo);
     EngineState* engineState = (EngineState*)calloc(1, sizeof(EngineState));
+    assert(engineState);
     Add_ToCleanupQueue(allocInfo, Dealloc_Engine);
 
     if (!SDL_Init(SDL_INIT_VIDEO)) goto Fail;
@@ -392,6 +395,8 @@ Fail:
 
 int Cleanup_MainEngine(EngineState* engineState, AllocInfo* allocInfo)
 {
+    assert(engineState);
+    assert(allocInfo);
     printf("Starting cleanup\n");
     vkDeviceWaitIdle(engineState->device);
     Destroy_FromQueue(allocInfo, engineState);

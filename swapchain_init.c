@@ -8,6 +8,9 @@
 
 int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapChainSupportDetails* dets)
 {
+    assert(device);
+    assert(surface);
+    assert(dets);
     SwapChainSupportDetails details = {};
 
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(*device, *surface, &details.capabilities);
@@ -40,7 +43,9 @@ int Get_SwapchainDetails(VkPhysicalDevice* device, VkSurfaceKHR* surface, SwapCh
     return VK_SUCCESS;
 }
 
-VkSurfaceFormatKHR Choose_SwapSurfaceFormat(const VkSurfaceFormatKHR* availableFormats, uint32_t count) {
+VkSurfaceFormatKHR Choose_SwapSurfaceFormat(const VkSurfaceFormatKHR* availableFormats, uint32_t count) 
+{
+    assert(availableFormats);
     // Prefer SRGB color space with 8-bit normalized RGBA
     for (int ind = 0; ind < count; ind++)
     {
@@ -53,7 +58,9 @@ VkSurfaceFormatKHR Choose_SwapSurfaceFormat(const VkSurfaceFormatKHR* availableF
     return availableFormats[0];
 }
 
-VkPresentModeKHR Choose_SwapPresentMode(const VkPresentModeKHR* availablePresentModes, uint32_t count) {
+VkPresentModeKHR Choose_SwapPresentMode(const VkPresentModeKHR* availablePresentModes, uint32_t count) 
+{
+    assert(availablePresentModes);
     // Prefer mailbox (triple buffering) for low latency
     for (int ind = 0; ind < count; ind++) 
     {
@@ -69,7 +76,10 @@ VkPresentModeKHR Choose_SwapPresentMode(const VkPresentModeKHR* availablePresent
 #define MIN(a,b) (((a)<(b))?(a):(b))
 #define MAX(a,b) (((a)>(b))?(a):(b))
 
-VkExtent2D Choose_SwapExtent(const VkSurfaceCapabilitiesKHR* capabilities, SDL_Window* window) {
+VkExtent2D Choose_SwapExtent(const VkSurfaceCapabilitiesKHR* capabilities, SDL_Window* window) 
+{
+    assert(capabilities);
+    assert(window);
     // If current extent is defined, use it
     if (capabilities->currentExtent.width != UINT32_MAX) {
         return capabilities->currentExtent;
@@ -96,6 +106,7 @@ VkExtent2D Choose_SwapExtent(const VkSurfaceCapabilitiesKHR* capabilities, SDL_W
 // If creation fails then swapchainState is NULL, else it must be freed when shutting down
 int Create_Swapchain(EngineState* engineState)
 {
+    assert(engineState);
     SwapChainSupportDetails swapChainSupport = {};
     if (Get_SwapchainDetails(&engineState->physicalDevice, &engineState->surface, &swapChainSupport) != VK_SUCCESS) return -printf("Failed to get swapchain support details\n");
 

@@ -2,6 +2,7 @@
 
 int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffer Cmnd)
 {
+    assert(engineState);
     VkSemaphoreSubmitInfo csemInfo = {};
 	csemInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_SUBMIT_INFO;
 	csemInfo.pNext = NULL;
@@ -40,6 +41,8 @@ int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffe
 
 VkRenderingInfo Get_MainRenderPassInfo(Uint64 frameCount, VkRenderingAttachmentInfo* colorAttachments, EngineState* engineState)
 {
+    assert(engineState);
+    assert(colorAttachments);
     int h = 0, w = 0;
     SDL_GetWindowSizeInPixels(engineState->window, &w, &h);
 
