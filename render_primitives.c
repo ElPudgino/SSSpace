@@ -1,5 +1,7 @@
 #include "render_primitives.h"
 
+#define PUSH_CONSTANTS_MAX_SIZE 128
+
 void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType descType)
 {
     assert(builder);
@@ -70,7 +72,9 @@ void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkSha
         .stage = stage,
         .value = calloc(paramSize, 1)};
     builder->matParamsCount++;
+    // Paremeters are added next to each other
     builder->curParamOffset += paramSize;
+    if (builder->curParamOffset > PUSH_CONSTANTS_MAX_SIZE) printf("!Total size of parameters in a material exceeds %d byte\n", PUSH_CONSTANTS_MAX_SIZE);
 }
 
 Material Finish_MaterialBuilder(MaterialBuilder* builder)
@@ -80,6 +84,7 @@ Material Finish_MaterialBuilder(MaterialBuilder* builder)
     mat.parameterCount = builder->matParamsCount;
     mat.parameters = builder->matParams;
     mat.device = builder->device;
+    // Order of these commands is important
     mat.ownLayout = Finish_DescriptorLayoutBuilder(builder->descLayoutBuilder, 0);
     mat.ownPool = Create_DescriptorPool(builder->device, 1, builder->poolSizes);
 
@@ -92,7 +97,7 @@ Material Finish_MaterialBuilder(MaterialBuilder* builder)
     return mat;
 }
 
-void Material_SetParameter(Material mat, uint32_t index, void* value)
+void Material_SetParameter(Material mat, uint32_t index, const void* value)
 {
     assert(value);
     memcpy(mat.parameters[index].value, value, mat.parameters[index].size);

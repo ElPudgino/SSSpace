@@ -69,22 +69,69 @@ typedef struct _MaterialBuilder
     uint32_t matParamsCount;
 } MaterialBuilder;
 
+/*! @brief Create a material builder instance
+* Builder resources are freed when Finish is called
+* @param device Logic device on which materials will be created
+*/
 MaterialBuilder* Start_MaterialBuilder(VkDevice device);
 
+/*! @brief Set fragment shader of the materials pipeline
+* Shader module should not be destroyed until builder is finished
+* @param builder Target builder
+* @param shader Used shader module
+*/
 void MatBuilder_SetFragmentShader(MaterialBuilder* builder, VkShaderModule shader);
 
+/*! @brief Set vertex shader of the materials pipeline
+* Shader module should not be destroyed until builder is finished
+* @param builder Target builder
+* @param shader Used shader module
+*/
 void MatBuilder_SetVertexShader(MaterialBuilder* builder, VkShaderModule shader);
 
+/*! @brief Add a slot for an image to the pipeline
+* Image itself will need to be bound after material has been created 
+* @param builder Target builder
+* @param bind Binding index, must be unique
+* @param stage Shader stage
+*/
 void MatBuilder_AddImageSlot(MaterialBuilder* builder, uint32_t bind, VkShaderStageFlags stage);
 
+/*! @brief Add a parameter to the pipeline
+* Parameters are not reset automatically and need not be set each frame
+* Parameters are will be sent as Push Constants
+* Total size of parameters in bytes should not exceed 128 bytes
+* @param builder Target builder
+* @param paramSize Size of the parameter in bytes
+* @param stage Shader stage
+*/
 void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkShaderStageFlags stage);
 
+/*! @brief Finish building a material
+* Builder can not be used after finishing
+* @param builder Target builder
+*/
 Material Finish_MaterialBuilder(MaterialBuilder* builder);
 
-void Material_SetParameter(Material mat, uint32_t index, void* value);
+/*! @brief Set value of a material parameter
+* @param mat Target material
+* @param index Index of the parameter
+* @param value Pointer from which value will be copied
+*/
+void Material_SetParameter(Material mat, uint32_t index, const void* value);
 
+/*! @brief Link an image to a slot in the pipeline
+* @param mat Target material
+* @param bind Binding index of the slot
+* @param imageData Image to be bound
+*/
 void Material_SetImageSlot(Material mat, uint32_t bind, ImageData imageData);
 
+/*! @brief Bind material for rendering
+* Binds materials pipeline and descriptors and pushes parameters
+* @param cmnd Target command buffer
+* @param material Material to be bound
+*/
 void Bind_Material(VkCommandBuffer cmnd, Material material);
 
 #endif

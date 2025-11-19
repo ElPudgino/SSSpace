@@ -14,6 +14,9 @@ typedef struct _SwapChainSupportDetails {
 
 int Cleanup_Swapchain(EngineState* engineState);
 
+/*! @brief Create or recreate swapchain in engine
+* @param engineState Engine
+*/
 int Create_Swapchain(EngineState* engineState);
 
 #endif
