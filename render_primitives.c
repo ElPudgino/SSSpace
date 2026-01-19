@@ -77,33 +77,33 @@ void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkSha
     if (builder->curParamOffset > PUSH_CONSTANTS_MAX_SIZE) printf("!Total size of parameters in a material exceeds %d byte\n", PUSH_CONSTANTS_MAX_SIZE);
 }
 
-Material Finish_MaterialBuilder(MaterialBuilder* builder)
+Material* Finish_MaterialBuilder(MaterialBuilder* builder)
 {
     assert(builder);
-    Material mat = {};
-    mat.parameterCount = builder->matParamsCount;
-    mat.parameters = builder->matParams;
-    mat.device = builder->device;
+    Material* mat = (Material*)calloc(1, sizeof(Material));
+    mat->parameterCount = builder->matParamsCount;
+    mat->parameters = builder->matParams;
+    mat->device = builder->device;
     // Order of these commands is important
-    mat.ownLayout = Finish_DescriptorLayoutBuilder(builder->descLayoutBuilder, 0);
-    mat.ownPool = Create_DescriptorPool(builder->device, 1, builder->poolSizes);
+    mat->ownLayout = Finish_DescriptorLayoutBuilder(builder->descLayoutBuilder, 0);
+    mat->ownPool = Create_DescriptorPool(builder->device, 1, builder->poolSizes);
 
-    PllBuilder_Add_DescriptorSet(builder->pipelineLayoutBuilder, mat.ownLayout);
+    PllBuilder_Add_DescriptorSet(builder->pipelineLayoutBuilder, mat->ownLayout);
 
-    mat.descSets[3] = Allocate_DescriptorSet(builder->device, mat.ownPool, mat.ownLayout);
-    mat.pLayout = Finish_PipelineLayoutBuilder(builder->pipelineLayoutBuilder);
-    PlBuilder_SetLayout(builder->pipelineBuilder, mat.pLayout);
-    mat.pipeline = Finish_PipelineBuilder(builder->pipelineBuilder);
+    mat->descSets[3] = Allocate_DescriptorSet(builder->device, mat->ownPool, mat->ownLayout);
+    mat->pLayout = Finish_PipelineLayoutBuilder(builder->pipelineLayoutBuilder);
+    PlBuilder_SetLayout(builder->pipelineBuilder, mat->pLayout);
+    mat->pipeline = Finish_PipelineBuilder(builder->pipelineBuilder);
     return mat;
 }
 
-void Material_SetParameter(Material mat, uint32_t index, const void* value)
+void Material_SetParameter(Material* mat, uint32_t index, const void* value)
 {
     assert(value);
-    memcpy(mat.parameters[index].value, value, mat.parameters[index].size);
+    memcpy(mat->parameters[index].value, value, mat->parameters[index].size);
 }
 
-void Material_SetImageSlot(Material mat, uint32_t bind, ImageData imageData)
+void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 {
     VkDescriptorImageInfo imgInfo = {};
 	imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
@@ -114,21 +114,29 @@ void Material_SetImageSlot(Material mat, uint32_t bind, ImageData imageData)
 	drawImageWrite.pNext = NULL;
 	
 	drawImageWrite.dstBinding = bind;
-	drawImageWrite.dstSet = mat.descSets[3];
+	drawImageWrite.dstSet = mat->descSets[3];
 	drawImageWrite.descriptorCount = 1;
 	drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 	drawImageWrite.pImageInfo = &imgInfo;
 
-	vkUpdateDescriptorSets(mat.device, 1, &drawImageWrite, 0, NULL);
+	vkUpdateDescriptorSets(mat->device, 1, &drawImageWrite, 0, NULL);
 }
 
-void Bind_Material(VkCommandBuffer cmnd, Material material)
+void Bind_Material(VkCommandBuffer cmnd, Material* material)
 {
-    vkCmdBindPipeline(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material.pipeline);
-    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material.pLayout, 0, 4, material.descSets, 0, NULL);
-    for (int i = 0; i < material.parameterCount; i++)
+    vkCmdBindPipeline(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline);
+    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pLayout, 0, 4, material->descSets, 0, NULL);
+    for (int i = 0; i < material->parameterCount; i++)
     {
-        vkCmdPushConstants(cmnd, material.pLayout, material.parameters[i].stage, material.parameters[i].offset, material.parameters[i].size, material.parameters[i].value);
+        vkCmdPushConstants(cmnd, material->pLayout, material->parameters[i].stage, material->parameters[i].offset, material->parameters[i].size, material->parameters[i].value);
     }
-    
+}
+
+void Destroy_Material(Material* mat)
+{
+    if (mat->parameters)
+    {
+        free(mat->parameters);
+    }
+    free(mat);
 }

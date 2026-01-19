@@ -109,29 +109,35 @@ void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkSha
 
 /*! @brief Finish building a material
 * Builder can not be used after finishing
+* Material should be destroyed later with Destroy_Material()
 * @param builder Target builder
 */
-Material Finish_MaterialBuilder(MaterialBuilder* builder);
+Material* Finish_MaterialBuilder(MaterialBuilder* builder);
 
 /*! @brief Set value of a material parameter
 * @param mat Target material
 * @param index Index of the parameter
 * @param value Pointer from which value will be copied
 */
-void Material_SetParameter(Material mat, uint32_t index, const void* value);
+void Material_SetParameter(Material* mat, uint32_t index, const void* value);
 
 /*! @brief Link an image to a slot in the pipeline
 * @param mat Target material
 * @param bind Binding index of the slot
 * @param imageData Image to be bound
 */
-void Material_SetImageSlot(Material mat, uint32_t bind, ImageData imageData);
+void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData);
 
 /*! @brief Bind material for rendering
 * Binds materials pipeline and descriptors and pushes parameters
 * @param cmnd Target command buffer
 * @param material Material to be bound
 */
-void Bind_Material(VkCommandBuffer cmnd, Material material);
+void Bind_Material(VkCommandBuffer cmnd, Material* material);
+
+/*! @brief Destroy material and free its resources
+* @param material Material to be destroyed
+*/
+void Destroy_Material(Material* mat);
 
 #endif

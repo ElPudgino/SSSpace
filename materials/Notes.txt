@@ -1,0 +1,3 @@
+layout (set = n, binding = k) - uniform resources like textures, bound with descriptor sets
+layout (location = n) - data passed directly from one stage to another (per frament or per vertex): 
+    data put into location 0 in vertex shader can be read from location 0 in fragment shader
