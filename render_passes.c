@@ -46,8 +46,11 @@ VkRenderingInfo Get_MainRenderPassInfo(Uint64 frameCount, VkRenderingAttachmentI
     int h = 0, w = 0;
     SDL_GetWindowSizeInPixels(engineState->window, &w, &h);
 
+    uint32_t hu, wu;
+    hu = (uint32_t)h;
+    wu = (uint32_t)w;
     VkRect2D rect = {.offset = {.x = 0, .y = 0},
-    .extent = {.width = w, .height = h}};
+    .extent = {.width = wu, .height = hu}};
 
     VkRenderingInfo rInfo = {};
     rInfo.sType = VK_STRUCTURE_TYPE_RENDERING_INFO;

@@ -1,24 +1,19 @@
 CFLAGS = -std=c++17
-#CFLAGS += -I includes
+#CFLAGS += -Imaterials
 LDFLAGS = -lSDL3 -lvulkan 
 
-OBJ_DIR := objs
-OBJECTS := $(wildcard $(OBJ_DIR)/*.o)
-SHADERS := $(wildcard materials/*/*.c)
+MATS_DIR := materials
+SOURCES := $(wildcard *.c)
+SHADERS := $(wildcard $(MATS_DIR)/*/*.c)
 
 all : CompileApp
 
-CompileApp : $(OBJECTS)
-	g++ $(CFLAGS) $(OBJECTS) -o app $(LDFLAGS)
-
-$(OBJ_DIR)/%.o : %.c
-	g++ $(CFLAGS) $< -o objs/$@ -c $(LDFLAGS)
-
-$(OBJ_DIR)/Shaders.o : $(SHADERS)
-	g++ $(CFLAGS) $< -o objs/$@ -c $(LDFLAGS)
+CompileApp : $(SOURCES) $(SHADERS)
+	g++ $(CFLAGS) $(SOURCES) $(SHADERS) -o app $(LDFLAGS)
 
 run : CompileApp
+	export VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation
 	./app
 	
 cleanup :
-	rm -f app $(app_main)
+	rm -f app 

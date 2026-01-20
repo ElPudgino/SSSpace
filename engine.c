@@ -2,16 +2,29 @@
 #include <math.h>
 #include "render_passes.h"
 #include "image_utils.h"
+#include "materials/materials.h"
 
+// Testing
+Material* gradient = NULL;
+
+void setup_mats(EngineState* engineState)
+{
+    gradient = Gradient_Mat_Build(engineState);
+}
+
+void _Testing(EngineState* engineState)
+{
+    setup_mats(engineState);
+}
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 {
     int frame_ind = frameCount % _BufferCount;
 
-
-    if (vkWaitForFences(engineState->device, 1, &engineState->frameData.fence[frame_ind], true, 10e9) != VK_SUCCESS)
+    int error = 0;
+    if ((error = vkWaitForFences(engineState->device, 1, &engineState->frameData.fence[frame_ind], true, 10e9)) != VK_SUCCESS)
     {
-        return -printf("Waiting for render fence failed\n");
+        return -printf("Waiting for render fence failed: %d\n",error);
     }
     if (vkResetFences(engineState->device, 1, &engineState->frameData.fence[frame_ind]) != VK_SUCCESS)
     {
@@ -54,6 +67,31 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
+    printf("Started binding material\n");
+    Bind_Material(Cmnd, gradient);
+    printf("Bound material\n");
+    VkExtent3D _drawExtent = engineState->frameData.drawImage.imageExtent;
+
+    VkViewport viewport = {};
+	viewport.x = 0;
+	viewport.y = 0;
+	viewport.width = _drawExtent.width;
+	viewport.height = _drawExtent.height;
+	viewport.minDepth = 0.f;
+	viewport.maxDepth = 1.f;
+
+	vkCmdSetViewport(Cmnd, 0, 1, &viewport);
+
+	VkRect2D scissor = {};
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent.width = _drawExtent.width;
+	scissor.extent.height = _drawExtent.height;
+
+	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
+
+    printf("Start draw\n");
+    vkCmdDraw(Cmnd, 3, 1, 0, 0);
 
     vkCmdEndRendering(Cmnd);
 
@@ -97,6 +135,8 @@ int main(int argc, char** argv)
 
     printf("Starting main loop\n");
     SDL_Event event;
+
+    _Testing(engineState);
 
     Uint64 frameCount = 0;
     while (running)

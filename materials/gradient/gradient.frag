@@ -1,7 +1,5 @@
 #version 450
 
-layout(rgba16f,set = 3, binding = 0) uniform image2D image;
-
 //shader input
 layout (location = 0) in vec3 inColor;
 

@@ -6,6 +6,8 @@
 
 int Create_VulkanInstance(EngineState* engineState)
 {
+    SDL_SetHint(SDL_HINT_RENDER_VULKAN_DEBUG, "1");
+
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "SSSpace";
@@ -138,16 +140,32 @@ int Create_LogicalDevice(EngineState* engineState)
     createInfo.pQueueCreateInfos = queueCreateInfos;
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    uint32_t extensionCount = 3;
+    uint32_t extensionCount = 4;
     char const** extensions = (char const**)calloc(extensionCount, sizeof(char const**));
     extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
     extensions[1] = VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME;
     extensions[2] = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
+    extensions[3] = VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
 
     // Add required extensions (like swapchain)
     createInfo.enabledExtensionCount = extensionCount;
     createInfo.ppEnabledExtensionNames = extensions;
 
+    VkPhysicalDeviceBufferDeviceAddressFeatures bdaf = {};
+    bdaf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    bdaf.bufferDeviceAddress = VK_TRUE;
+
+    VkPhysicalDeviceSynchronization2Features s2f = {};
+    s2f.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_SYNCHRONIZATION_2_FEATURES;
+    s2f.synchronization2 = VK_TRUE;
+    bdaf.pNext = &s2f;
+
+    VkPhysicalDeviceDynamicRenderingFeatures drf = {};
+    drf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DYNAMIC_RENDERING_FEATURES;
+    drf.dynamicRendering = VK_TRUE;
+    s2f.pNext = &drf;
+
+    createInfo.pNext = &bdaf;
 
     int res = 0;
     if ((res = vkCreateDevice(engineState->physicalDevice, &createInfo, NULL, &engineState->device)) != VK_SUCCESS) printf("Failed to create logical device, error code: %d\n", res);
@@ -296,7 +314,7 @@ int Add_ToCleanupQueue(AllocInfo** allocInfo, int (*cleanupFunc)(EngineState*))
 // Create image to which everything will be rendered before being copied to swapchain
 int Create_MainDrawImage(EngineState* engineState)
 {
-    return Create_Image(engineState->device, engineState->allocator, &engineState->frameData.drawImage, (VkExtent3D){1080, 720, 1});
+    return Create_Image(engineState->device, engineState->allocator, &engineState->frameData.drawImage, (VkExtent3D){1200, 800, 1});
 }
 
 int Destroy_MainDrawImage(EngineState* engineState)

@@ -16,7 +16,7 @@ void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType de
         break;
     
     default:
-        printf("!Used not implemented descriptor type in material construction\n");
+        printf("!Used a not implemented (in render_primitives) descriptor type in material construction\n");
     }
 }
 
@@ -90,6 +90,7 @@ Material* Finish_MaterialBuilder(MaterialBuilder* builder)
 
     PllBuilder_Add_DescriptorSet(builder->pipelineLayoutBuilder, mat->ownLayout);
 
+
     mat->descSets[3] = Allocate_DescriptorSet(builder->device, mat->ownPool, mat->ownLayout);
     mat->pLayout = Finish_PipelineLayoutBuilder(builder->pipelineLayoutBuilder);
     PlBuilder_SetLayout(builder->pipelineBuilder, mat->pLayout);
@@ -124,8 +125,11 @@ void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 
 void Bind_Material(VkCommandBuffer cmnd, Material* material)
 {
+    assert(material->pLayout);
+    assert(material->descSets);
+    
     vkCmdBindPipeline(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline);
-    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pLayout, 0, 4, material->descSets, 0, NULL);
+    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pLayout, 0, 1, material->descSets, 0, NULL);
     for (int i = 0; i < material->parameterCount; i++)
     {
         vkCmdPushConstants(cmnd, material->pLayout, material->parameters[i].stage, material->parameters[i].offset, material->parameters[i].size, material->parameters[i].value);

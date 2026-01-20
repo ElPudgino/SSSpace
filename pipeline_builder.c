@@ -89,6 +89,7 @@ void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shade
     cInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
     cInfo.pName = "main";
     builder->shaderStages[builder->shaderCount] = cInfo;
+    builder->shaderCount++;
 }
 
 void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
@@ -101,6 +102,7 @@ void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
     cInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
     cInfo.pName = "main";
     builder->shaderStages[builder->shaderCount] = cInfo;
+    builder->shaderCount++;
 }
 
 void PlBuilder_Set_ColorFormat(PipelineBuilder* builder, VkFormat colorFormat)
