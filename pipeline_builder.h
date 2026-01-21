@@ -27,6 +27,7 @@ typedef struct _PipelineBuilder
     VkPipelineLayout layout;
     VkPipelineDepthStencilStateCreateInfo depthStencil;
     VkPipelineRenderingCreateInfo renderInfo;
+    VkFormat colorFormat;
 } PipelineBuilder;
 
 PipelineLayoutBuilder* Start_PipelineLayoutBuilder(VkDevice device);

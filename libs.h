@@ -2,6 +2,8 @@
 
 #define LIBS_ALL
 
+#define MAIN_RENDER_IMAGE_FORMAT VK_FORMAT_R16G16B16A16_SFLOAT
+
 #include <vulkan/vulkan.h>
 #include <vk_mem_alloc.h>
 

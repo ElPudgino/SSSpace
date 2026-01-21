@@ -6,6 +6,8 @@
 #include "image_utils.h"
 #include "descriptors_util.h"
 
+#define MATERIAL_DESC_SET_COUNT 4
+
 /*! @brief Material data which is updated every frame via push constants
 * @param size Size in bytes of the parameter
 * @param offset Offset in bytes of the parameter. Handled by material builder
@@ -38,7 +40,7 @@ typedef struct _Material
     VkPipeline pipeline;
     VkDescriptorPool ownPool;
     VkDescriptorSetLayout ownLayout;
-    VkDescriptorSet descSets[4]; // Last set is material own unique set 
+    VkDescriptorSet descSets[MATERIAL_DESC_SET_COUNT]; // Last set is material own unique set 
     VkPipelineLayout pLayout;
     MaterialParameter* parameters;
     uint32_t parameterCount;

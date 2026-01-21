@@ -5,28 +5,35 @@
 void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType descType)
 {
     assert(builder);
-    VkDescriptorPoolSize size = {};
-    switch (descType)
+    if (builder->poolSizes.sizeCap == 0)
     {
-    case VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE:
-        builder->poolSizes.sizesPerSet[0].descriptorCount++;
-        break;
-    case VK_DESCRIPTOR_TYPE_SAMPLER:
-        builder->poolSizes.sizesPerSet[1].descriptorCount++;
-        break;
-    
-    default:
-        printf("!Used a not implemented (in render_primitives) descriptor type in material construction\n");
+        builder->poolSizes.sizesPerSet = (VkDescriptorPoolSize*)calloc(1, sizeof(VkDescriptorPoolSize));
+        builder->poolSizes.sizeCap = 1;
+        builder->poolSizes.sizesCount = 1;
+        builder->poolSizes.sizesPerSet[0] = (VkDescriptorPoolSize){.type = descType, .descriptorCount = 1};
+        return;
     }
+    for (int i = 0; i < builder->poolSizes.sizesCount; i++)
+    {
+        if (builder->poolSizes.sizesPerSet[i].type == descType)
+        {
+            builder->poolSizes.sizesPerSet[i].descriptorCount++;
+            return;
+        }
+    }
+    if (builder->poolSizes.sizesCount = builder->poolSizes.sizeCap)
+    {
+        builder->poolSizes.sizesPerSet = (VkDescriptorPoolSize*)realloc(builder->poolSizes.sizesPerSet, sizeof(VkDescriptorPoolSize)*builder->poolSizes.sizeCap*2);
+        builder->poolSizes.sizeCap *= 2;
+    }
+    builder->poolSizes.sizesPerSet[builder->poolSizes.sizesCount] = (VkDescriptorPoolSize){.type = descType, .descriptorCount = 1};
 }
 
 MaterialBuilder* Start_MaterialBuilder(VkDevice device)
 {
     MaterialBuilder* builder = (MaterialBuilder*)calloc(1, sizeof(MaterialBuilder));
-    builder->poolSizes.sizesPerSet = (VkDescriptorPoolSize*)calloc(6, sizeof(VkDescriptorPoolSize));
-    builder->poolSizes.sizesCount = 6;
-    builder->poolSizes.sizesPerSet[0].type = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
-    builder->poolSizes.sizesPerSet[1].type = VK_DESCRIPTOR_TYPE_SAMPLER;
+    builder->poolSizes.sizesCount = 0;
+    builder->poolSizes.sizeCap = 0;
 
     builder->matParams = (MaterialParameter*)calloc(1, sizeof(MaterialParameter));
 
@@ -34,9 +41,9 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
     builder->pipelineLayoutBuilder = Start_PipelineLayoutBuilder(device);
     builder->pipelineBuilder = Start_PipelineBuilder(device);
 
-    PlBuilder_Set_ColorFormat(builder->pipelineBuilder, VK_FORMAT_R16G16B16A16_SFLOAT);
-    PlBuilder_Set_DepthFormat(builder->pipelineBuilder, VK_FORMAT_R16_USCALED);
-    PlBuilder_Set_StencilFormat(builder->pipelineBuilder, VK_FORMAT_R8_UINT);
+    PlBuilder_Set_ColorFormat(builder->pipelineBuilder, MAIN_RENDER_IMAGE_FORMAT);
+    //PlBuilder_Set_DepthFormat(builder->pipelineBuilder, VK_FORMAT_D32_SFLOAT_S8_UINT);
+    //PlBuilder_Set_StencilFormat(builder->pipelineBuilder, VK_FORMAT_D32_SFLOAT_S8_UINT);
 
     builder->device = device;
     return builder;
@@ -90,7 +97,6 @@ Material* Finish_MaterialBuilder(MaterialBuilder* builder)
 
     PllBuilder_Add_DescriptorSet(builder->pipelineLayoutBuilder, mat->ownLayout);
 
-
     mat->descSets[3] = Allocate_DescriptorSet(builder->device, mat->ownPool, mat->ownLayout);
     mat->pLayout = Finish_PipelineLayoutBuilder(builder->pipelineLayoutBuilder);
     PlBuilder_SetLayout(builder->pipelineBuilder, mat->pLayout);
@@ -115,7 +121,7 @@ void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 	drawImageWrite.pNext = NULL;
 	
 	drawImageWrite.dstBinding = bind;
-	drawImageWrite.dstSet = mat->descSets[3];
+	drawImageWrite.dstSet = mat->descSets[MATERIAL_DESC_SET_COUNT-1];
 	drawImageWrite.descriptorCount = 1;
 	drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
 	drawImageWrite.pImageInfo = &imgInfo;
@@ -129,7 +135,8 @@ void Bind_Material(VkCommandBuffer cmnd, Material* material)
     assert(material->descSets);
     
     vkCmdBindPipeline(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pipeline);
-    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pLayout, 0, 1, material->descSets, 0, NULL);
+    // todo: change this to bind correctly when materials have different amounts of descsets
+    vkCmdBindDescriptorSets(cmnd, VK_PIPELINE_BIND_POINT_GRAPHICS, material->pLayout, 0, 1, &material->descSets[MATERIAL_DESC_SET_COUNT-1], 0, NULL);
     for (int i = 0; i < material->parameterCount; i++)
     {
         vkCmdPushConstants(cmnd, material->pLayout, material->parameters[i].stage, material->parameters[i].offset, material->parameters[i].size, material->parameters[i].value);
@@ -138,6 +145,13 @@ void Bind_Material(VkCommandBuffer cmnd, Material* material)
 
 void Destroy_Material(Material* mat)
 {
+    vkDeviceWaitIdle(mat->device); // ! Could cause performance issues if materials are destroyed frequently
+                                   // Shouldnt be an issue if materials are created/destroyed on app startup/closing
+    vkDestroyPipeline(mat->device, mat->pipeline, NULL);
+    vkDestroyPipelineLayout(mat->device, mat->pLayout, NULL);
+    vkResetDescriptorPool(mat->device, mat->ownPool, 0);
+    vkDestroyDescriptorPool(mat->device, mat->ownPool, NULL);
+    vkDestroyDescriptorSetLayout(mat->device, mat->ownLayout, NULL);
     if (mat->parameters)
     {
         free(mat->parameters);

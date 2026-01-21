@@ -20,6 +20,7 @@ typedef struct _DescriptorLayoutBuilder
 
 typedef struct _DescriptorPoolSizes
 {
+    uint32_t sizeCap;
     uint32_t sizesCount;
     VkDescriptorPoolSize* sizesPerSet;
 } DescriptorPoolSizes;

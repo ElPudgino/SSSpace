@@ -37,7 +37,7 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
 * @param imageData Image information
 * @param newLayout Target layout
 */
-int Change_ImageLayout(VkCommandBuffer cmnd, ImageData imageData, VkImageLayout newLayout);
+int Change_ImageLayout(VkCommandBuffer cmnd, ImageData* imageData, VkImageLayout newLayout);
 
 /*! @brief Copy image to image with rescaling
 * @param cmnd Used command buffer

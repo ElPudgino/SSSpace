@@ -6,8 +6,6 @@
 
 int Create_VulkanInstance(EngineState* engineState)
 {
-    SDL_SetHint(SDL_HINT_RENDER_VULKAN_DEBUG, "1");
-
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
     appInfo.pApplicationName = "SSSpace";
@@ -25,9 +23,19 @@ int Create_VulkanInstance(EngineState* engineState)
     createInfo.enabledExtensionCount = extCount;
 
 
-    int res = 0;
-    if ((res = vkCreateInstance(&createInfo, NULL, &engineState->instance) != VK_SUCCESS)) return -printf("Failed to create VkInstance: %d\n", res);
-
+    int res = -1;   
+    while (res != VK_SUCCESS) 
+    {
+        res = vkCreateInstance(&createInfo, NULL, &engineState->instance);
+        if (res == VK_NOT_READY)
+        {
+            printf("Failed to create VkInstance: Not Ready\n");
+        }
+        else if (res != 0)
+        {
+            return -printf("Failed to create VkInstance: %d\n", res);
+        }
+    }
     return 0;
 }
 
@@ -229,6 +237,7 @@ int Destroy_CommandsHandles(EngineState* engineState)
 int Create_MainWindow(EngineState* engineState)
 {
     engineState->window = SDL_CreateWindow("SSSpace", 1200, 800, SDL_WINDOW_VULKAN);
+    if (!engineState->window) {printf("%s\n",SDL_GetError());return -1;}
     return 0;
 }
 
@@ -369,7 +378,7 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Get_PhysicalDevice(engineState)) {printf("!!Physical Device failed\n"); goto Fail;}
     printf("Physical device acquired\n");
 
-    if (Create_MainSurface(engineState)) {printf("!!Main Surface failed\n"); goto Fail;}
+    if (Create_MainSurface(engineState)) {printf("!!Main Surface failed\n"); printf("%s\n",SDL_GetError()); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_MainSurface);
     printf("Main surface created\n");
 

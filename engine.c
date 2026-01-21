@@ -33,7 +33,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     uint32_t scImageIndex = 0;
     if (VK_SUCCESS != vkAcquireNextImageKHR(engineState->device, engineState->swapchainState.swapchain, 10e9, engineState->frameData.swapchainSemaphore[frame_ind], NULL, &scImageIndex))
     {
-        return -printf("Failed to acquire next swapchain image\n");;
+        return -printf("Failed to acquire next swapchain image\n");
     }
 
     // start command buffer
@@ -60,16 +60,16 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("Failed to begin command buffer\n");
 
     //Clear image
-    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_GENERAL);
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_GENERAL);
     Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
-    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
-    printf("Started binding material\n");
+
     Bind_Material(Cmnd, gradient);
-    printf("Bound material\n");
+
     VkExtent3D _drawExtent = engineState->frameData.drawImage.imageExtent;
 
     VkViewport viewport = {};
@@ -90,18 +90,17 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
 	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
 
-    printf("Start draw\n");
     vkCmdDraw(Cmnd, 3, 1, 0, 0);
 
     vkCmdEndRendering(Cmnd);
 
     //Copy draw image to swapchain
-    Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     Copy_ImageToImage(Cmnd, DrawImage, ScImage);
     
     //Prepare image for presentation
-    Change_ImageLayout(Cmnd, ScImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 
     vkEndCommandBuffer(Cmnd);
 
@@ -119,7 +118,15 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
 	presentInfo.pImageIndices = &scImageIndex;
 
-	vkQueuePresentKHR(engineState->queueHandles._Graphics, &presentInfo);
+    vkQueueWaitIdle(engineState->queueHandles._Present); // Questionable solution for the following problem:
+    /*
+    1. first time command buffer is submitted (sets a fence)
+    2. presentation starts (no fence is set)
+    -- next frame (actually frame after the next because everything alternates between 2 frames)
+    3. fence is waited for
+    4(error). second time command buffer is submitted, BUT presentation from previous frame may not have finished
+    */
+	vkQueuePresentKHR(engineState->queueHandles._Present, &presentInfo);
 
     return 0;
 }
@@ -153,6 +160,9 @@ int main(int argc, char** argv)
         if (Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
         frameCount++;
     }
+
+    Destroy_Material(gradient);
+
     printf("%ld\n",frameCount);
     printf("Closing\n");
     Cleanup_MainEngine(engineState, allocInfo);

@@ -66,16 +66,27 @@ PipelineBuilder* Start_PipelineBuilder(VkDevice device)
     res->shaderStages = (VkPipelineShaderStageCreateInfo*)calloc(1, sizeof(VkPipelineShaderStageCreateInfo));
     res->_shaderCap = 1;
     res->inputAssembly = (VkPipelineInputAssemblyStateCreateInfo){.sType= VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST};
-    res->rasterizer = (VkPipelineRasterizationStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO};
-    res->colorBlendAttachment = (VkPipelineColorBlendAttachmentState){};
+    res->rasterizer = (VkPipelineRasterizationStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO, 
+        .polygonMode = VK_POLYGON_MODE_FILL,
+        .cullMode = VK_CULL_MODE_NONE,
+        .lineWidth = 1.0};
+    res->colorBlendAttachment = (VkPipelineColorBlendAttachmentState)
+    {
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+    };
     res->multisampling = (VkPipelineMultisampleStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
     res->depthStencil = (VkPipelineDepthStencilStateCreateInfo){
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
-        .depthTestEnable = VK_TRUE,
+        .depthTestEnable = VK_FALSE,
         .depthWriteEnable = VK_TRUE,
         .depthCompareOp = VK_COMPARE_OP_LESS,
         .depthBoundsTestEnable = VK_FALSE};
-    res->renderInfo.colorAttachmentCount = 1;
+    //res->renderInfo.colorAttachmentCount = 1;
+    res->renderInfo = (VkPipelineRenderingCreateInfo){
+        .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
+        .viewMask = 0,
+        .colorAttachmentCount = 1
+    };
     return res;
 }
 
@@ -108,7 +119,7 @@ void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader)
 void PlBuilder_Set_ColorFormat(PipelineBuilder* builder, VkFormat colorFormat)
 {
     assert(builder);
-    builder->renderInfo.pColorAttachmentFormats = &colorFormat;
+    builder->colorFormat = colorFormat;
 }
 
 void PlBuilder_Set_DepthFormat(PipelineBuilder* builder, VkFormat depthFormat)
@@ -132,6 +143,8 @@ void PlBuilder_SetLayout(PipelineBuilder* builder, VkPipelineLayout layout)
 VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
 {
     assert(builder);
+    assert(builder->colorFormat != VK_FORMAT_UNDEFINED);
+    builder->renderInfo.pColorAttachmentFormats = &builder->colorFormat;
     VkGraphicsPipelineCreateInfo cInfo = {};
     
     VkPipelineViewportStateCreateInfo viewportState = {};
@@ -145,11 +158,14 @@ VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
     VkPipelineColorBlendStateCreateInfo colorBlending = {};
     colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
     colorBlending.pNext = NULL;
-
     colorBlending.logicOpEnable = VK_FALSE;
     colorBlending.logicOp = VK_LOGIC_OP_COPY;
     colorBlending.attachmentCount = 1;
     colorBlending.pAttachments = &builder->colorBlendAttachment;
+    colorBlending.blendConstants[0] = 1;
+    colorBlending.blendConstants[1] = 1;
+    colorBlending.blendConstants[2] = 1;
+    colorBlending.blendConstants[3] = 1;
 
     VkDynamicState state[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
 
@@ -160,7 +176,7 @@ VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
     VkPipelineVertexInputStateCreateInfo _vertexInputInfo = { .sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
 
     cInfo.pNext = &builder->renderInfo;
-
+    cInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     cInfo.stageCount = builder->shaderCount;
     cInfo.pStages = builder->shaderStages;
     cInfo.pVertexInputState = &_vertexInputInfo;
@@ -176,7 +192,7 @@ VkPipeline Finish_PipelineBuilder(PipelineBuilder* builder)
     VkPipeline res;
     if (vkCreateGraphicsPipelines(builder->device, NULL, 1, &cInfo, NULL, &res) != VK_SUCCESS)
     {
-        printf("Failed to create graphics pipeline\n");
+        printf("!Failed to create graphics pipeline\n");
         free(builder->shaderStages);
         free(builder);
         return NULL;
