@@ -1,13 +1,4 @@
-#include "engine_utils.h"
-#include "engine_init.h"
-#include "render_primitives.h"
-
-typedef struct _BufferInfo
-{
-    VkBuffer buffer;
-    VmaAllocation allocation;
-    VmaAllocationInfo allocInfo;
-} BufferInfo;
+#include "vmem_util.h"
 
 void Mesh_UploadData(Mesh* mesh)
 {
@@ -16,13 +7,13 @@ void Mesh_UploadData(Mesh* mesh)
     size_t tem = ind + ver;
 
     BufferInfo temp = CreateBuffer(mesh->engineState->allocator, tem, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+        (VmaMemoryUsage)(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT), 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
     BufferInfo vertexbuf = CreateBuffer(mesh->engineState->allocator, ver, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
+        (VmaMemoryUsage)VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
     BufferInfo indexbuf = CreateBuffer(mesh->engineState->allocator, ind, 
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+        (VmaMemoryUsage)VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
         VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
 
     // Get vertex array gpu pointer
@@ -94,7 +85,7 @@ BufferInfo CreateBuffer(VmaAllocator alloc, size_t size, VmaMemoryUsage mem_prop
     cInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT;
     if (vmaCreateBuffer(alloc, &bInfo, &cInfo, &n.buffer, &n.allocation, &n.allocInfo) != VK_SUCCESS)
     {
-        printf("!Failed to create buffer of size %u\n", size);
+        printf("!Failed to create buffer of size %lu\n", size);
         return (BufferInfo){};
     }
     return n;

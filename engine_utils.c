@@ -2,7 +2,7 @@
 
 ImmediateCommand Command_Immediate_Begin(VkDevice device, VkCommandBuffer cmnd, VkQueue queue)
 {
-    if (vkResetCommandBuffer(cmnd, 0) != VK_SUCCESS) {printf("!Failed to reset immediate command buffer\n"); return;}
+    if (vkResetCommandBuffer(cmnd, 0) != VK_SUCCESS) {printf("!Failed to reset immediate command buffer\n"); return (ImmediateCommand){};}
     VkFence fence;
     VkFenceCreateInfo cInfo = {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO
@@ -18,7 +18,7 @@ ImmediateCommand Command_Immediate_Begin(VkDevice device, VkCommandBuffer cmnd, 
     bInfo.pInheritanceInfo = NULL;
     bInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;   
 
-    if (vkBeginCommandBuffer(cmnd, &bInfo) != VK_SUCCESS) {printf("!Failed to begin immediate command buffer\n"); return;}
+    if (vkBeginCommandBuffer(cmnd, &bInfo) != VK_SUCCESS) {printf("!Failed to begin immediate command buffer\n"); return (ImmediateCommand){};}
     return (ImmediateCommand){.fence = fence, .buffer = cmnd, .queue = queue, .device = device};
 }
 

@@ -5,6 +5,7 @@
 #include "pipeline_builder.h"
 #include "image_utils.h"
 #include "descriptors_util.h"
+#include "engine_init.h"
 
 #define MATERIAL_DESC_SET_COUNT 4
 
@@ -70,6 +71,13 @@ typedef struct _MaterialBuilder
     MaterialParameter* matParams;
     uint32_t matParamsCount;
 } MaterialBuilder;
+
+typedef struct _BufferInfo
+{
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo allocInfo;
+} BufferInfo;
 
 typedef struct _Vertex
 {
