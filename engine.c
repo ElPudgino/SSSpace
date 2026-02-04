@@ -32,7 +32,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
         .layout = VK_IMAGE_LAYOUT_UNDEFINED,
         .imageExtent = engineState->swapchainState.extent};
 
-    if (vkResetCommandBuffer(Cmnd, 0) != VK_SUCCESS) return -printf("Failed to reset command buffer\n");
+    if (vkResetCommandBuffer(Cmnd, 0) != VK_SUCCESS) return -printf("!Failed to reset command buffer\n");
 
     VkCommandBufferBeginInfo bInfo = {};
     bInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -44,7 +44,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, engineState);
 
     //Start first render pass
-    if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("Failed to begin command buffer\n");
+    if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("!Failed to begin command buffer\n");
 
     //Clear image
     Change_ImageLayout(Cmnd, DrawImage, VK_IMAGE_LAYOUT_GENERAL);

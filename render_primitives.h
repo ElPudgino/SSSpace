@@ -71,6 +71,7 @@ typedef struct _MaterialBuilder
 
 /*! @brief Create a material builder instance
 * Builder resources are freed when Finish is called
+* A paramameter of type MeshParameter is added by default upon material creation
 * @param device Logic device on which materials will be created
 */
 MaterialBuilder* Start_MaterialBuilder(VkDevice device);
@@ -101,6 +102,7 @@ void MatBuilder_AddImageSlot(MaterialBuilder* builder, uint32_t bind, VkShaderSt
 * Parameters are not reset automatically and need not be set each frame
 * Parameters are will be sent as Push Constants
 * Total size of parameters in bytes should not exceed 128 bytes
+* A paramameter of type MeshParameter is added by default upon material creation
 * @param builder Target builder
 * @param paramSize Size of the parameter in bytes
 * @param stage Shader stage
@@ -111,27 +113,27 @@ void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkSha
 * Builder can not be used after finishing
 * @param builder Target builder
 */
-Material Finish_MaterialBuilder(MaterialBuilder* builder);
+Material* Finish_MaterialBuilder(MaterialBuilder* builder);
 
 /*! @brief Set value of a material parameter
 * @param mat Target material
 * @param index Index of the parameter
 * @param value Pointer from which value will be copied
 */
-void Material_SetParameter(Material mat, uint32_t index, const void* value);
+void Material_SetParameter(Material* mat, uint32_t index, const void* value);
 
 /*! @brief Link an image to a slot in the pipeline
 * @param mat Target material
 * @param bind Binding index of the slot
 * @param imageData Image to be bound
 */
-void Material_SetImageSlot(Material mat, uint32_t bind, ImageData imageData);
+void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData);
 
 /*! @brief Bind material for rendering
 * Binds materials pipeline and descriptors and pushes parameters
 * @param cmnd Target command buffer
 * @param material Material to be bound
 */
-void Bind_Material(VkCommandBuffer cmnd, Material material);
+void Bind_Material(VkCommandBuffer cmnd, Material* material);
 
 #endif
