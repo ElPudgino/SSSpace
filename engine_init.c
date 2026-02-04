@@ -224,6 +224,14 @@ int Create_CommandsHandle(EngineState* engineState)
     {
         return -printf("!!Failed to allocate command buffers\n");
     }
+
+    cmdAllocInfo.commandBufferCount = 1;
+
+    if (vkAllocateCommandBuffers(engineState->device, &cmdAllocInfo, &engineState->commandsHandle.miscUpdateBuffer) != VK_SUCCESS)
+    {
+        return -printf("!!Failed to allocate miscUpdate command buffer\n");
+    }
+
     return 0;
 }
 

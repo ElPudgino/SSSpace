@@ -46,6 +46,9 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
     //PlBuilder_Set_StencilFormat(builder->pipelineBuilder, VK_FORMAT_D32_SFLOAT_S8_UINT);
 
     builder->device = device;
+
+    MatBuilder_AddParameter(builder, sizeof(MeshParameter), VK_SHADER_STAGE_VERTEX_BIT);
+
     return builder;
 }
 

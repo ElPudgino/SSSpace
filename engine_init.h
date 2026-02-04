@@ -36,6 +36,7 @@ typedef struct _CommandsHandle
 {
     VkCommandPool commandPool;
     VkCommandBuffer commandBuffers[_BufferCount];
+    VkCommandBuffer miscUpdateBuffer;
 } CommandsHandle;
 
 typedef struct _FrameData

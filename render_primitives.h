@@ -71,6 +71,31 @@ typedef struct _MaterialBuilder
     uint32_t matParamsCount;
 } MaterialBuilder;
 
+typedef struct _Vertex
+{
+    vec3 position;
+    vec2 uv;
+    vec2 normal;
+} Vertex;
+
+typedef struct _Mesh
+{
+    EngineState* engineState;
+    struct _BufferInfo g_Vertices;
+    struct _BufferInfo g_Indices;
+    VkDeviceAddress g_Address;
+    uint32_t* indices;
+    size_t indexCount;
+    Vertex* vertices;
+    size_t vertexCount;
+} Mesh;
+
+typedef struct _MeshParameter
+{
+    mat4 worldMatrix;
+    VkDeviceAddress meshAddress;
+} MeshParameter;
+
 /*! @brief Create a material builder instance
 * Builder resources are freed when Finish is called
 * @param device Logic device on which materials will be created

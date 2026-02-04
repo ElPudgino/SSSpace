@@ -1,8 +1,8 @@
-#ifndef ENGINE_UTILS
+#ifndef IMAGE_UTILS
 
 #include "libs.h"
 
-#define ENGINE_UTILS
+#define IMAGE_UTILS
 
 /*! @brief Stores all info related to an image
 * Avoid incompletely initializing this structs data
