@@ -1,14 +1,15 @@
 #ifndef VMEM_UTILS
 #define VMEM_UTILS
 
-#include "engine_utils.h"
-#include "engine_init.h"
-#include "render_primitives.h"
+#include "libs.h"
 
-void Mesh_UploadData(Mesh* mesh);
+typedef struct _BufferInfo
+{
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo allocInfo;
+} BufferInfo;
 
-BufferInfo CreateBuffer(VmaAllocator alloc, size_t size, VmaMemoryUsage mem_property, VkBufferUsageFlags buf_usage);
-
-void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat, mat4 TRS);
+BufferInfo CreateBuffer(VmaAllocator alloc, size_t size, VmaMemoryUsage mem_property, VmaAllocationCreateFlagBits alloc_create, VkBufferUsageFlags buf_usage);
 
 #endif

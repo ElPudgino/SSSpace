@@ -47,7 +47,7 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
 
     builder->device = device;
 
-    MatBuilder_AddParameter(builder, sizeof(MeshParameter), VK_SHADER_STAGE_VERTEX_BIT);
+    //MatBuilder_AddParameter(builder, sizeof(MeshParameter), VK_SHADER_STAGE_VERTEX_BIT);
 
     return builder;
 }

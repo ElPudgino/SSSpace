@@ -3,18 +3,45 @@
 #include "render_passes.h"
 #include "image_utils.h"
 #include "materials/materials.h"
+#include "mesh_utils.h"
 
 // Testing
 Material* gradient = NULL;
+Material* basicmesh = NULL;
+Mesh* testmesh = NULL;
 
 void setup_mats(EngineState* engineState)
 {
     gradient = Gradient_Mat_Build(engineState);
+    basicmesh = Basic_Mesh_Mat_Build(engineState);
+}
+
+Mesh* get_testmesh(EngineState* engineState)
+{
+    Mesh* mesh = (Mesh*)calloc(1, sizeof(Mesh));
+    mesh->engineState = engineState;
+    mesh->vertices = (Vertex*)calloc(4, sizeof(Vertex));
+    mesh->vertexCount = 4;
+    mesh->indexCount = 6;
+    mesh->indices = (uint32_t*)calloc(6, sizeof(uint32_t));
+    mesh->vertices[0] = (Vertex){-1.0f,0.0f,0.0f};
+    mesh->vertices[1] = (Vertex){0.0f,0.5f,0.0f};
+    mesh->vertices[2] = (Vertex){0.0f,-0.5f,0.0f};
+    mesh->vertices[3] = (Vertex){1.0f,0.0f,0.0f};
+    mesh->indices[0] = 0;
+    mesh->indices[1] = 1;
+    mesh->indices[2] = 2;
+    mesh->indices[3] = 3;
+    mesh->indices[4] = 1;
+    mesh->indices[5] = 2;
+    Mesh_UploadData(mesh);
+    return mesh;
 }
 
 void _Testing(EngineState* engineState)
 {
     setup_mats(engineState);
+    testmesh = get_testmesh(engineState);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -68,7 +95,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     vkCmdBeginRendering(Cmnd, &rInfo);
 
 
-    Bind_Material(Cmnd, gradient);
+    //Bind_Material(Cmnd, gradient);
 
     VkExtent3D _drawExtent = engineState->frameData.drawImage.imageExtent;
 
@@ -90,7 +117,9 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
 	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
 
-    vkCmdDraw(Cmnd, 3, 1, 0, 0);
+    //vkCmdDraw(Cmnd, 3, 1, 0, 0);s
+
+    RenderMeshesInstanced(Cmnd, testmesh, basicmesh);
 
     vkCmdEndRendering(Cmnd);
 
