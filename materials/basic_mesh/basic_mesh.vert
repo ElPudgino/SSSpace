@@ -3,10 +3,13 @@
 
 layout (location = 0) out vec3 outColor;
 
+
+// !!!! vec3 is aligned with 16 bytes !!!!
 struct Vertex {
 	vec3 pos;
-	vec2 uv;
+	float pad;
 	vec2 normal;
+	vec2 uv;
 };
 // buffer_reference tells that this array is accessed through a device pointer
 layout(buffer_reference, std430) readonly buffer VertexBuffer{ 
@@ -22,13 +25,17 @@ void main()
 {
 
 	//const array of colors for the triangle
-	const vec3 colors[3] = vec3[3](
+	const vec3 colors[4] = vec3[4](
 		vec3(1.0f, 0.0f, 0.0f), //red
 		vec3(0.0f, 1.0f, 0.0f), //green
-		vec3(00.f, 0.0f, 1.0f)  //blue
+		vec3(1.0f, 1.0f, 0.0f),  //blue
+		vec3(0.0f, 0.0f, 0.0f)
 	);
+
+	//gl_Position = vec4(colors[gl_VertexIndex],1.0f);
+	//outColor = PushConstants.vertexBuffer.vertices[gl_VertexIndex].pos;
 
 	//output the position of each vertex
 	gl_Position = vec4(PushConstants.vertexBuffer.vertices[gl_VertexIndex].pos, 1.0f);
-	outColor = colors[gl_VertexIndex%3];
+	outColor = colors[gl_VertexIndex];
 }

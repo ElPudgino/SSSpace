@@ -73,11 +73,15 @@ typedef struct _MaterialBuilder
     uint32_t matParamsCount;
 } MaterialBuilder;
 
+// !!!! Be careful with alignment
+// vec3 is aligned to 16 bytes like vec4
+// 2 vec2 can be packed into 1 16 bytes slot
 typedef struct _Vertex
 {
     vec3 position;
-    vec2 uv;
+    float extra;
     vec2 normal;
+    vec2 uv;
 } Vertex;
 
 typedef struct _Mesh
@@ -90,11 +94,14 @@ typedef struct _Mesh
     size_t indexCount;
     Vertex* vertices;
     size_t vertexCount;
+    uint32_t ID;
 } Mesh;
 
 typedef struct _MeshParameter
 {
     VkDeviceAddress meshAddress;
+    VkDeviceAddress trasformAddress;
+    uint32_t transformStartIndex;
 } MeshParameter;
 
 /*! @brief Create a material builder instance

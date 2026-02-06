@@ -159,8 +159,8 @@ int Create_LogicalDevice(EngineState* engineState)
     createInfo.enabledExtensionCount = extensionCount;
     createInfo.ppEnabledExtensionNames = extensions;
 
-    VkPhysicalDeviceBufferDeviceAddressFeatures bdaf = {};
-    bdaf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES;
+    VkPhysicalDeviceBufferDeviceAddressFeaturesEXT bdaf = {};
+    bdaf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT;
     bdaf.bufferDeviceAddress = VK_TRUE;
 
     VkPhysicalDeviceSynchronization2Features s2f = {};
