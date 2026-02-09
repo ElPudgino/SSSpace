@@ -4,6 +4,7 @@
 #include "image_utils.h"
 #include "materials/materials.h"
 #include "mesh_utils.h"
+#include "transform_utils.h"
 
 // Testing
 Material* gradient = NULL;
@@ -119,7 +120,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
     //vkCmdDraw(Cmnd, 3, 1, 0, 0);s
 
-    RenderMeshesInstanced(Cmnd, testmesh, basicmesh);
+    RenderMesh(Cmnd, testmesh, basicmesh);
 
     vkCmdEndRendering(Cmnd);
 

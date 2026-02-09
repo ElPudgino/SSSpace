@@ -11,13 +11,17 @@ typedef struct _TransformArray
     mat4* array;
     uint32_t count;
     uint32_t cap;
-    struct _TransformArray* next;
+    InstancedRenderData renderData; 
 } TransformArray;
 
-void Add_TransformArray(Mesh* mesh);
+void Add_TransformArray(InstancedRenderData* mesh);
 
 void Destroy_TransformArrays();
 
-void Add_MeshToRender(Mesh* mesh, mat4 trs);
+void Add_MeshToRender(InstancedRenderData* mesh, mat4 trs);
+
+void Upload_Transforms(EngineState* engineState);
+
+int Setup_TransformBuffer(EngineState* engineState, uint32_t size);
 
 #endif

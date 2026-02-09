@@ -94,13 +94,20 @@ typedef struct _Mesh
     size_t indexCount;
     Vertex* vertices;
     size_t vertexCount;
-    uint32_t ID;
 } Mesh;
+
+typedef struct _InstancedRenderData
+{
+    Mesh* mesh;
+    Material* material; 
+    uint32_t ID;
+    uint32_t transformStartIndex;
+} InstancedRenderData;
 
 typedef struct _MeshParameter
 {
     VkDeviceAddress meshAddress;
-    VkDeviceAddress trasformAddress;
+    VkDeviceAddress transformAddress;
     uint32_t transformStartIndex;
 } MeshParameter;
 

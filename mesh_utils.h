@@ -7,6 +7,6 @@
 
 void Mesh_UploadData(Mesh* mesh);
 
-void RenderMeshesInstanced(VkCommandBuffer cmnd, Mesh* mesh, Material* mat);
+void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat);
 
 #endif

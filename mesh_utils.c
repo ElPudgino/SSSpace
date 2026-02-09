@@ -1,4 +1,5 @@
 #include "mesh_utils.h"
+#include "transform_utils.h"
 
 Mesh* Create_Mesh(EngineState* engineState)
 {
@@ -111,7 +112,7 @@ void Mesh_UploadData(Mesh* mesh)
     //printf("vert: %d %d %d\n", testarr[0], testarr[1], testarr[2]);
 } 
 
-void RenderMeshesInstanced(VkCommandBuffer cmnd, Mesh* mesh, Material* mat)
+void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat)
 {
     assert(mesh);
     assert(mat);
