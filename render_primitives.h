@@ -84,6 +84,17 @@ typedef struct _Vertex
     vec2 uv;
 } Vertex;
 
+/*! @brief Stores a unique mesh
+* @attention When mesh is destroyed vertices and indices are freed
+* @param engineState Reference to the main engine
+* @param g_Vertices Vertex buffer, created when mesh is uploaded
+* @param g_Indices Index buffer, created when mesh is uploaded
+* @param g_Address GPU pointer, created when mesh is uploaded
+* @param indices CPU side Index array, set manually
+* @param indexCount length of indices array, set manually
+* @param vertices CPU side Vertex array, set manually
+* @param vertexCount Length of vertices array, set manually
+*/
 typedef struct _Mesh
 {
     EngineState* engineState;
@@ -96,6 +107,13 @@ typedef struct _Mesh
     size_t vertexCount;
 } Mesh;
 
+/*! @brief Contains data needed to render instances
+* One InstancedRenderData is used per combination of Mesh+Material
+* @param mesh Used mesh
+* @param material Used material
+* @param ID Index used to get corresponding TransformArray
+* @param transformStartIndex Index of the first transform used in the shader
+*/
 typedef struct _InstancedRenderData
 {
     Mesh* mesh;
@@ -104,6 +122,11 @@ typedef struct _InstancedRenderData
     uint32_t transformStartIndex;
 } InstancedRenderData;
 
+/*! @brief Data passed to the shader when rendering
+* @param meshAddress GPU pointer to the mesh vertex array
+* @param transformAddress GPU pointer to the transform array
+* @param transformStartIndex Index of the transform which will be used by the first instance
+*/
 typedef struct _MeshParameter
 {
     VkDeviceAddress meshAddress;

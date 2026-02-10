@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <math.h>
 #include "swapchain_init.h"
-
+#include "transform_utils.h"
 
 
 int Create_VulkanInstance(EngineState* engineState)
@@ -419,6 +419,10 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
     printf("Main draw image created\n");
+
+    if (Setup_TransformBuffer(engineState, GLOBAL_TRASNFORM_ARRAY_SIZE)) {}
+    Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
+    printf("Global transform array created with size: %d\n", GLOBAL_TRASNFORM_ARRAY_SIZE);
 
     *esPointer = engineState;
     return 0;

@@ -5,16 +5,20 @@
 #include "materials/materials.h"
 #include "mesh_utils.h"
 #include "transform_utils.h"
+#include "math_util.h"
 
 // Testing
 Material* gradient = NULL;
 Material* basicmesh = NULL;
+Material* testinstanced = NULL;
 Mesh* testmesh = NULL;
+InstancedRenderData testdata = {};
 
 void setup_mats(EngineState* engineState)
 {
     gradient = Gradient_Mat_Build(engineState);
     basicmesh = Basic_Mesh_Mat_Build(engineState);
+    testinstanced = Test_Instanced_Mat_Build(engineState);
 }
 
 Mesh* get_testmesh(EngineState* engineState)
@@ -25,10 +29,10 @@ Mesh* get_testmesh(EngineState* engineState)
     mesh->vertexCount = 4;
     mesh->indexCount = 6;
     mesh->indices = (uint32_t*)calloc(6, sizeof(uint32_t));
-    mesh->vertices[0] = (Vertex){-1.0f,0.0f,0.0f};
-    mesh->vertices[1] = (Vertex){0.0f,0.5f,0.0f};
-    mesh->vertices[2] = (Vertex){0.0f,-0.5f,0.0f};
-    mesh->vertices[3] = (Vertex){1.0f,0.0f,0.0f};
+    mesh->vertices[0] = (Vertex){-1.0f,-0.5f,2.0f};
+    mesh->vertices[1] = (Vertex){0.0f,0.5f,2.0f};
+    mesh->vertices[2] = (Vertex){0.0f,-0.5f,2.0f};
+    mesh->vertices[3] = (Vertex){1.0f,0.5f,2.0f};
     mesh->indices[0] = 0;
     mesh->indices[1] = 1;
     mesh->indices[2] = 2;
@@ -43,6 +47,9 @@ void _Testing(EngineState* engineState)
 {
     setup_mats(engineState);
     testmesh = get_testmesh(engineState);
+    testdata.material = testinstanced;
+    testdata.mesh = testmesh;
+    Add_TransformArray(&testdata);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -119,8 +126,17 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
 
     //vkCmdDraw(Cmnd, 3, 1, 0, 0);s
-
-    RenderMesh(Cmnd, testmesh, basicmesh);
+    mat4 mat;
+    mat4 proj;
+    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
+    //printf("%f %f\n",proj[0][0],proj[1][1]);
+    float phi = (float)frameCount / 400.0f;
+    glm_mat4_copy((mat4){{cos(phi),-sin(phi),0,0},{sin(phi),cos(phi),0,0},{0,0,1,0},{0,0,0,1}}, mat);
+    glm_mat4_mul(proj, mat, mat);
+    Add_InstanceToRender(&testdata, mat);
+    //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
+    Render_InstancedMeshes(engineState, Cmnd);
+    //RenderMesh(Cmnd, testmesh, basicmesh);
 
     vkCmdEndRendering(Cmnd);
 
@@ -192,6 +208,9 @@ int main(int argc, char** argv)
     }
 
     Destroy_Material(gradient);
+    Destroy_Material(basicmesh);
+    Destroy_Material(testinstanced);
+    Destroy_Mesh(testmesh);
 
     printf("%ld\n",frameCount);
     printf("Closing\n");

@@ -6,7 +6,7 @@ TransformArray* GlobalTransformArrays = NULL;
 uint32_t GlobalTransformCap = 0;
 VkDeviceAddress g_Transforms = 0;
 
-BufferInfo TransformBuffer;
+BufferInfo TransformBuffer = {};
 mat4* FullTransformArray = NULL;
 
 void _add_RenderTransform(TransformArray* array, mat4 matrix);
@@ -19,11 +19,13 @@ void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd)
     for (int i = 0; i < CurrentArrayIndex - 1; i++)
     {
         InstancedRenderData data = GlobalTransformArrays[i].renderData;
+        //printf("inst data: %d | %d\n", GlobalTransformArrays[i].count, data.transformStartIndex);
         MeshParameter p =  {.meshAddress = data.mesh->g_Address, .transformAddress = g_Transforms, .transformStartIndex = data.transformStartIndex};
         Material_SetParameter(data.material, 0, &p);
         Bind_Material(cmnd, data.material);
         vkCmdBindIndexBuffer(cmnd, data.mesh->g_Indices.buffer, 0, VK_INDEX_TYPE_UINT32);
         vkCmdDrawIndexed(cmnd, data.mesh->indexCount, GlobalTransformArrays[i].count, 0, 0, 0);
+        GlobalTransformArrays[i].count = 0;
     }
 }
 
@@ -40,7 +42,16 @@ int Setup_TransformBuffer(EngineState* engineState, uint32_t size)
     {
         return -printf("!Failed to setup transform buffer (map fail: %d)\n", res);
     }
+    VkBufferDeviceAddressInfo info = {.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO, .buffer = TransformBuffer.buffer};
+    g_Transforms = vkGetBufferDeviceAddress(engineState->device, &info);
     return 0;
+}
+
+int Destroy_TransformBuffer(EngineState* engineState)
+{
+    vmaUnmapMemory(engineState->allocator, TransformBuffer.allocation);
+    vmaDestroyBuffer(engineState->allocator, TransformBuffer.buffer, TransformBuffer.allocation);
+    return 1;
 }
 
 void Upload_Transforms(EngineState* engineState)
@@ -50,9 +61,11 @@ void Upload_Transforms(EngineState* engineState)
     {
         // add checks for buffer size
         memcpy(FullTransformArray + curindex * sizeof(mat4), GlobalTransformArrays[i].array, sizeof(mat4) * GlobalTransformArrays[i].count);
+        GlobalTransformArrays[i].renderData.transformStartIndex = curindex;
         curindex += GlobalTransformArrays[i].count;
     }
-    vmaFlushAllocation(engineState->allocator, TransformBuffer.allocation, 0, curindex * sizeof(mat4));
+    int res = vmaFlushAllocation(engineState->allocator, TransformBuffer.allocation, 0, curindex * sizeof(mat4));
+    if (res != VK_SUCCESS) printf("!Failed to flush allocation: %d\n", res);
 }
 
 void Add_TransformArray(InstancedRenderData* data)
@@ -71,16 +84,11 @@ void Add_TransformArray(InstancedRenderData* data)
         GlobalTransformArrays = (TransformArray*)realloc(GlobalTransformArrays, sizeof(TransformArray) * GlobalTransformCap * 2);
         GlobalTransformCap *= 2;
     }
-    
+    GlobalTransformArrays[CurrentArrayIndex-1].renderData = *data;
     CurrentArrayIndex++;
 }
 
-void Destroy_TransformArrays()
-{
-    free(GlobalTransformArrays);
-}
-
-void Add_MeshToRender(InstancedRenderData* data, mat4 trs)
+void Add_InstanceToRender(InstancedRenderData* data, mat4 trs)
 {
     assert(data);
     assert(data->ID > 0);
@@ -90,7 +98,6 @@ void Add_MeshToRender(InstancedRenderData* data, mat4 trs)
 void _add_RenderTransform(TransformArray* array, mat4 matrix)
 {
     assert(array);
-    assert(array->array);
     if (array->cap == 0)
     {
         array->cap = 4;

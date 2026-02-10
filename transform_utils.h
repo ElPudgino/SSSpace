@@ -3,8 +3,9 @@
 
 #include "libs.h"
 #include "render_primitives.h"
-
+ 
 #define TRM_ARRAY_RESIZE_COEF 1.5f
+#define GLOBAL_TRASNFORM_ARRAY_SIZE 640000 
 
 typedef struct _TransformArray
 {
@@ -16,12 +17,14 @@ typedef struct _TransformArray
 
 void Add_TransformArray(InstancedRenderData* mesh);
 
-void Destroy_TransformArrays();
-
-void Add_MeshToRender(InstancedRenderData* mesh, mat4 trs);
+void Add_InstanceToRender(InstancedRenderData* mesh, mat4 trs);
 
 void Upload_Transforms(EngineState* engineState);
 
 int Setup_TransformBuffer(EngineState* engineState, uint32_t size);
+
+void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd);
+
+int Destroy_TransformBuffer(EngineState* engineState);
 
 #endif

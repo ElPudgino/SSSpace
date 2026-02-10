@@ -93,15 +93,15 @@ void Mesh_UploadData(Mesh* mesh)
 
     Command_Immediate_Complete(IC);
     
-    vkDestroyBuffer(mesh->engineState->device, temp.buffer, NULL);
+    vmaDestroyBuffer(mesh->engineState->allocator, temp.buffer, temp.allocation);
 
     if (mesh->g_Vertices.buffer != NULL)
     {
-        vkDestroyBuffer(mesh->engineState->device, mesh->g_Vertices.buffer, NULL);
+        vmaDestroyBuffer(mesh->engineState->allocator, mesh->g_Vertices.buffer, mesh->g_Vertices.allocation);
     }
     if (mesh->g_Indices.buffer != NULL)
     {
-        vkDestroyBuffer(mesh->engineState->device, mesh->g_Indices.buffer, NULL);
+        vmaDestroyBuffer(mesh->engineState->allocator, mesh->g_Indices.buffer, mesh->g_Indices.allocation);
     }
 
     mesh->g_Vertices = vertexbuf;

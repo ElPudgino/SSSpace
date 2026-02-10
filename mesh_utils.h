@@ -9,4 +9,6 @@ void Mesh_UploadData(Mesh* mesh);
 
 void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat);
 
+void Destroy_Mesh(Mesh* mesh);
+
 #endif
