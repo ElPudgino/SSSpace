@@ -129,4 +129,8 @@ int Has_SpecialRender(LogicBlock block);
 
 void Render_Ship(Ship* ship, mat4 tr);
 
+Ship* Create_ShipFromBP(ShipBP* bp);
+
+void Delete_Ship(Ship* ship);
+
 #endif

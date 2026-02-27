@@ -1,4 +1,5 @@
 #include "ship.h"
+#include "mesh_gen.h"
 
 void Set_OwnPartTransform(Part* part, mat4 TRS)
 {
@@ -104,4 +105,61 @@ void Render_Ship(Ship* ship, mat4 tr)
     assert(ship);
     assert(ship->model.rootPart);
     Render_Part(ship->model.rootPart, tr);
+}
+
+void _Create_ShipPart(Part* ship, Part* bp)
+{
+    glm_mat4_copy(bp->baseLocalTransform, ship->baseLocalTransform);
+    glm_mat4_copy(bp->localTransform, ship->localTransform);
+    if (bp->childrenCount > 0) ship->children = (Part*)calloc(bp->childrenCount, sizeof(Part));
+    ship->childrenCount = bp->childrenCount;
+    ship->structure = bp->structure;
+    for (int i = 0; i < bp->childrenCount; i++)
+    {
+        _Create_ShipPart(&ship->children[i],&bp->children[i]);
+    }
+}
+
+Ship* Create_ShipFromBP(ShipBP* bp)
+{
+    Ship* res = (Ship*)calloc(1, sizeof(Ship));
+    res->BP = bp;
+    res->model.rootPart = (Part*)calloc(1, sizeof(Part));
+
+    _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
+    return res;
+}
+
+void Delete_PartStructure(void* structure)
+{
+    PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)structure;
+    switch (p.structureType)
+    {
+        case PART_TYPE_GRID:
+            Destroy_StructureGrid((PartStructureGrid*)structure);
+            break;
+        case PART_TYPE_SIMPLE_MESH:
+            //
+            break;
+        default:
+            break;
+    }
+}
+
+void _Delete_ShipPart(Part* part)
+{
+    for (int i = 0; i < part->childrenCount; i++)
+    {
+        _Delete_ShipPart(&part->children[i]);
+    }
+    Delete_PartStructure(part->structure);
+    free(part->children);
+}
+
+void Delete_Ship(Ship* ship)
+{
+    _Delete_ShipPart(ship->model.rootPart);
+
+    free(ship->model.rootPart);
+    free(ship);
 }

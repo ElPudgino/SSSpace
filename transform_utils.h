@@ -12,6 +12,7 @@ typedef struct _TransformArray
     mat4* array;
     uint32_t count;
     uint32_t cap;
+    int valid;
     InstancedRenderData renderData; 
 } TransformArray;
 
@@ -28,5 +29,7 @@ int Setup_TransformBuffer(EngineState* engineState, uint32_t size);
 void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd);
 
 int Destroy_TransformBuffer(EngineState* engineState);
+
+void Destroy_TransformArray(InstancedRenderData* data);
 
 #endif

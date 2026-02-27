@@ -97,7 +97,21 @@ void Add_TransformArray(InstancedRenderData* data)
         GlobalTransformCap *= 2;
     }
     GlobalTransformArrays[CurrentArrayIndex-1].renderData = *data;
+    GlobalTransformArrays[CurrentArrayIndex-1].valid = 1; 
     CurrentArrayIndex++;
+}
+
+void Destroy_TransformArray(InstancedRenderData* data)
+{
+    assert(data);
+    assert(data->ID > 0);
+    TransformArray* arr = &GlobalTransformArrays[data->ID-1];
+    arr->valid = false;
+    free(arr->array);
+    if (arr->renderData.mesh->deleteWithRenderInstance)
+    {
+        Destroy_Mesh(arr->renderData.mesh);
+    }
 }
 
 void Add_InstanceToRender(InstancedRenderData* data, mat4 trs)
@@ -116,6 +130,7 @@ InstancedRenderData* Create_InstanceData()
 void _add_RenderTransform(TransformArray* array, mat4 matrix)
 {
     assert(array);
+    assert(array->valid);
     if (array->cap == 0)
     {
         array->cap = 4;

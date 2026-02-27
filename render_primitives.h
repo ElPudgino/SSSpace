@@ -110,6 +110,7 @@ typedef struct _Mesh
     Vertex* vertices;
     uint32_t vertexCount;
     uint32_t vertexCap;
+    int deleteWithRenderInstance;
 } Mesh;
 
 /*! @brief Contains data needed to render instances

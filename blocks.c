@@ -11,6 +11,13 @@ void _Init_Cube()
     cube->mat = GetMaterial_Test();
 }
 
+void Destroy_BlockModels()
+{
+    free(cube->indices);
+    free(cube->vertices);
+    free(cube);
+}
+
 BlockModel* Get_CubeModel(uint32_t sides)
 {
     // Reduce vertex count to 8 when everything else works

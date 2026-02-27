@@ -30,4 +30,6 @@ void Add_ModelToPart(PartStructureGrid* grid, BlockModel* bmodel,uint32_t posx,u
 
 PartStructureGrid* Create_PartStructureGrid(EngineState* engineState);
 
+void Destroy_StructureGrid(PartStructureGrid* grid);
+
 #endif

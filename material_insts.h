@@ -3,6 +3,8 @@
 
 void Init_MaterialInstances(EngineState* engineState);
 
+void Destroy_MaterialInstances();
+
 Material* GetMaterial_Test();
 
 #endif

@@ -38,6 +38,7 @@ void Destroy_Mesh(Mesh* mesh)
     {
         vmaDestroyBuffer(mesh->engineState->allocator, mesh->g_Vertices.buffer, mesh->g_Vertices.allocation);
     }
+    free(mesh);
 }
 
 void Mesh_UploadData(Mesh* mesh)
@@ -82,6 +83,7 @@ void Mesh_UploadData(Mesh* mesh)
     vertexCopy.srcOffset = 0;
     vertexCopy.size = ver;
 
+    printf("Started imm cmnd buf\n");
     vkCmdCopyBuffer(IC.buffer, temp.buffer, vertexbuf.buffer, 1, &vertexCopy);
 
     VkBufferCopy indexCopy = {};
@@ -89,9 +91,12 @@ void Mesh_UploadData(Mesh* mesh)
     indexCopy.srcOffset = ver;
     indexCopy.size = ind;
 
+    printf("copied vert buf\n");
     vkCmdCopyBuffer(IC.buffer, temp.buffer, indexbuf.buffer, 1, &indexCopy);
 
+    printf("copied ind buf\n");
     Command_Immediate_Complete(IC);
+    printf("submit imm cmnd\n");
     
     vmaDestroyBuffer(mesh->engineState->allocator, temp.buffer, temp.allocation);
 

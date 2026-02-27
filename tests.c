@@ -2,28 +2,7 @@
 
 ShipBP* shipBp;
 
-void _Create_ShipPart(Part* ship, Part* bp)
-{
-    glm_mat4_copy(bp->baseLocalTransform, ship->baseLocalTransform);
-    glm_mat4_copy(bp->localTransform, ship->localTransform);
-    if (bp->childrenCount > 0) ship->children = (Part*)calloc(bp->childrenCount, sizeof(Part));
-    ship->childrenCount = bp->childrenCount;
-    ship->structure = bp->structure;
-    for (int i = 0; i < bp->childrenCount; i++)
-    {
-        _Create_ShipPart(&ship->children[i],&bp->children[i]);
-    }
-}
 
-Ship* Create_ShipFromBP(ShipBP* bp)
-{
-    Ship* res = (Ship*)calloc(1, sizeof(Ship));
-    res->BP = bp;
-    res->model.rootPart = (Part*)calloc(1, sizeof(Part));
-
-    _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
-    return res;
-}
 
 ShipBP* get_testbp()
 {

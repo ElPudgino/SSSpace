@@ -73,20 +73,21 @@ PipelineBuilder* Start_PipelineBuilder(VkDevice device)
         .lineWidth = 1.0};
     res->colorBlendAttachment = (VkPipelineColorBlendAttachmentState)
     {
-        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT,
+        .colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT, 
     };
     res->multisampling = (VkPipelineMultisampleStateCreateInfo){.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO,.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT};
     res->depthStencil = (VkPipelineDepthStencilStateCreateInfo){
         .sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
         .depthTestEnable = VK_TRUE,
         .depthWriteEnable = VK_TRUE,
-        .depthCompareOp = VK_COMPARE_OP_LESS,
+        .depthCompareOp = VK_COMPARE_OP_GREATER,
         .depthBoundsTestEnable = VK_FALSE};
     //res->renderInfo.colorAttachmentCount = 1;
     res->renderInfo = (VkPipelineRenderingCreateInfo){
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .viewMask = 0,
-        .colorAttachmentCount = 1
+        .colorAttachmentCount = 1,
+        .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT_S8_UINT
     };
     return res;
 }

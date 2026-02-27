@@ -14,7 +14,7 @@ VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
 }
 
 int Create_ImageGeneric(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent,
-                        VkFormat format, VkImageUsageFlags flags )
+                        VkFormat format, VkImageUsageFlags flags, VkImageAspectFlagBits aspects)
 {
     assert(imageData);
 
@@ -51,7 +51,7 @@ int Create_ImageGeneric(VkDevice device, VmaAllocator allocator, ImageData* imag
     ivInfo.subresourceRange.levelCount = 1;
     ivInfo.subresourceRange.baseArrayLayer = 0;
     ivInfo.subresourceRange.layerCount = 1;
-    ivInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    ivInfo.subresourceRange.aspectMask = aspects;
 
     if (vkCreateImageView(device, &ivInfo, NULL, &imageData->imageView) != VK_SUCCESS) return -printf("!!Failed to create image view for allocated image\n");
     return 0;
@@ -62,17 +62,19 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
     return Create_ImageGeneric(device, allocator, imageData, extent, 
                             MAIN_RENDER_IMAGE_FORMAT,
                             VK_IMAGE_USAGE_TRANSFER_SRC_BIT | 
-                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                              VK_IMAGE_USAGE_STORAGE_BIT |
-                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+                            VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_STORAGE_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
+                            VK_IMAGE_ASPECT_COLOR_BIT);
 } 
 
 int Create_DepthImage(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
 {
     return Create_ImageGeneric(device, allocator, imageData, extent, 
                             VK_FORMAT_D32_SFLOAT_S8_UINT,
-                              VK_IMAGE_USAGE_STORAGE_BIT |
-                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+                            VK_IMAGE_USAGE_STORAGE_BIT |
+                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                            VK_IMAGE_ASPECT_DEPTH_BIT);
 } 
 
 

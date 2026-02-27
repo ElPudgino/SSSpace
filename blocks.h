@@ -6,6 +6,8 @@
 
 void _Init_Cube();
 
+void Destroy_BlockModels();
+
 BlockModel* Get_CubeModel(uint32_t sides);
 
 #endif

@@ -117,6 +117,7 @@ void Add_ModelToPart(PartStructureGrid* grid, BlockModel* bmodel,uint32_t posx,u
     d->updateNeeded = 1;
     d->material = bmodel->mat;
     d->mesh = Create_Mesh(grid->engineState);
+    d->mesh->deleteWithRenderInstance = 1;
     assert(d->mesh);
     grid->renderDatas[grid->matCount] = d;
     _addArrays(grid->renderDatas[grid->matCount]->mesh, bmodel, (float)posx-grid->centerOffset[0], (float)posy-grid->centerOffset[1], (float)posz-grid->centerOffset[2], rot);
@@ -171,4 +172,17 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
         Mesh_UploadData(grid->renderDatas[i]->mesh);
     }
     printf("Done generating mesh for grid\n");
+}
+
+void Destroy_StructureGrid(PartStructureGrid* grid)
+{
+    free(grid->grid.array);
+    if (grid->logicBlocks) free(grid->logicBlocks);
+    for (int i = 0; i < grid->matCount; i++)
+    {
+        Destroy_TransformArray(grid->renderDatas[i]);
+    }
+
+    if (grid->renderDatas) free(grid->renderDatas);
+    free(grid);
 }

@@ -340,6 +340,8 @@ int Destroy_MainDrawImage(EngineState* engineState)
 {
     vkDestroyImageView(engineState->device, engineState->frameData.drawImage.imageView, NULL);
     vmaDestroyImage(engineState->allocator, engineState->frameData.drawImage.image, engineState->frameData.drawImage.allocation);
+    vkDestroyImageView(engineState->device, engineState->frameData.depthImage.imageView, NULL);
+    vmaDestroyImage(engineState->allocator, engineState->frameData.depthImage.image, engineState->frameData.depthImage.allocation);
     return 1;
 }
 

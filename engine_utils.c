@@ -11,7 +11,7 @@ ImmediateCommand Command_Immediate_Begin(VkDevice device, VkCommandBuffer cmnd, 
     {
         printf("!Failed to create fence for immediate submit\n");
     }
-
+ 
     VkCommandBufferBeginInfo bInfo = {};
     bInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     bInfo.pNext = NULL;

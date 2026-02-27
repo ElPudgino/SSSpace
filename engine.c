@@ -68,7 +68,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
     // start command buffer
     VkCommandBuffer Cmnd = engineState->commandsHandle.commandBuffers[frame_ind];
-    ImageData DrawImage = engineState->frameData.drawImage;
+    ImageData DrawImage = engineState->frameData.drawImage; // warning we are not changing layout in the original struct
     ImageData ScImage = (ImageData){
         .image = engineState->swapchainState.images[scImageIndex],
         .imageView = engineState->swapchainState.imageViews[scImageIndex],
@@ -93,9 +93,12 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     //Clear image
     Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_GENERAL);
     Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
-    //Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){0.0,0});
-    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_GENERAL);
+    Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){-999.0,0});
+
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
@@ -205,7 +208,9 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-
+    Delete_Ship(testship);
+    Destroy_BlockModels();
+    Destroy_MaterialInstances();
     printf("%ld\n",frameCount);
     printf("Closing\n");
     Cleanup_MainEngine(engineState, allocInfo);
