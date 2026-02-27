@@ -14,11 +14,20 @@ void _add_RenderTransform(TransformArray* array, mat4 matrix);
 void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd)
 {
     // iterate all things that need to be rendered, then upload transforms
-
+    printf("Start render instanced %d\n",CurrentArrayIndex - 1);
     Upload_Transforms(engineState);
     for (int i = 0; i < CurrentArrayIndex - 1; i++)
     {
         InstancedRenderData data = GlobalTransformArrays[i].renderData;
+        assert(data.material);
+        assert(data.ID);
+        assert(data.mesh);
+        /*printf("mesh vertcount %d | indc %d\n",data.mesh->vertexCount, data.mesh->indexCount);
+        for (int i = 0; i < data.mesh->indexCount;i++)
+        {
+            Vertex vert = data.mesh->vertices[data.mesh->indices[i]];
+            printf("vert%d: %f %f %f\n", i, vert.position[0], vert.position[1], vert.position[2]);
+        }*/
         //printf("inst data: %d | %d\n", GlobalTransformArrays[i].count, data.transformStartIndex);
         MeshParameter p =  {.meshAddress = data.mesh->g_Address, .transformAddress = g_Transforms, .transformStartIndex = data.transformStartIndex};
         Material_SetParameter(data.material, 0, &p);
@@ -68,10 +77,13 @@ void Upload_Transforms(EngineState* engineState)
     if (res != VK_SUCCESS) printf("!Failed to flush allocation: %d\n", res);
 }
 
+// render data shouldn be changed after being added
 void Add_TransformArray(InstancedRenderData* data)
 {
     assert(data);
     assert(data->ID == 0);
+    assert(data->material);
+    assert(data->mesh);
     data->ID = CurrentArrayIndex;
 
     if (!GlobalTransformArrays)
@@ -93,6 +105,12 @@ void Add_InstanceToRender(InstancedRenderData* data, mat4 trs)
     assert(data);
     assert(data->ID > 0);
     _add_RenderTransform(&GlobalTransformArrays[data->ID-1], trs);
+}
+
+InstancedRenderData* Create_InstanceData()
+{
+    InstancedRenderData* res = (InstancedRenderData*)calloc(1, sizeof(InstancedRenderData));
+    return res;
 }
 
 void _add_RenderTransform(TransformArray* array, mat4 matrix)

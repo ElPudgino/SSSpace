@@ -2,18 +2,82 @@
 #define GAME_SHIP
 
 #include "libs.h"
+#include "mesh_utils.h"
+#include "transform_utils.h"
+
+enum
+{
+    PART_TYPE_GRID,
+    PART_TYPE_SIMPLE_MESH
+};
+
+typedef struct _PartStructureSimpleMesh
+{
+    uint32_t structureType;
+    uint32_t ID; 
+    InstancedRenderData* renderData;
+} PartStructureSimpleMesh;
+
+// 24-th bit is whether this block has special rendering (only for logic blocks)
+typedef uint32_t BlockType;
+
+// last byte of blocktype is rotation 
+typedef char BlockRotation;
+
+typedef struct _Multiblock
+{
+    BlockType blockType;
+    uint32_t x_size;
+    uint32_t y_size;
+    uint32_t z_size;
+} Multiblock;
+
+typedef struct _Block
+{
+    BlockType blockType;
+} Block;
+
+typedef struct _LogicBlock
+{
+    BlockType blockType;
+    void* data;
+    uint32_t pos[3];
+} LogicBlock;
+
+typedef struct _BlockGrid
+{
+    Block* array;
+    uint32_t x_s;
+    uint32_t y_s;
+    uint32_t z_s;
+} BlockGrid;
+
+typedef struct _PartStructureGrid
+{
+    uint32_t structureType;
+    uint32_t ID; 
+    EngineState* engineState;
+    BlockGrid grid;
+    float centerOffset[3];
+    InstancedRenderData** renderDatas;
+    uint32_t matCount;
+    uint32_t matCap; 
+    LogicBlock* logicBlocks;
+    uint32_t logicBlockCount;
+} PartStructureGrid;
 
 typedef struct _Part
 {
+    void* structure; // shared
+    mat4 baseLocalTransform; // not shared
     mat4 localTransform;
-    uint32_t matrixIndex;
-    _Part* children;
+    struct _Part* children;
+    uint32_t childrenCount;
 } Part;
 
 typedef struct _Model
 {
     Part* rootPart;
-    mat4* globalTransformArray;
 } Model;
 
 // map all parts to an array of matrixes (mapping is persistent for each model)
@@ -38,20 +102,31 @@ typedef struct _Model
 // specific renderers can just add a matrix to one of the arrays to render something
 // adding instance data to the array can be done anytime in the frame (need to wait for copy-to-gpu fence though)
 
-typedef struct _ModelTransform
+// Ship blueprint. Holds shared data like structure of the ship
+// Model is stored the same way as in instances but all localTransforms are identity
+// To create a new ship basically create new parts and copy structures pointers from BP
+// Also cached ship data is stored in BP
+typedef struct _ShipBP 
 {
-    mat4* matrixes;
-} ModelTransform;
-
-typedef struct _ShipSharedData
-{
-    Model* model;
-} ShipSharedData;
+    Model model;
+} ShipBP;
 
 typedef struct _Ship
 {
-    ModelTransform modelTransform;
-    ShipSharedData shared;
+    ShipBP* BP;
+    Model model;
 } Ship;
+
+uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
+
+Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
+
+void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t z);
+
+Part* Create_Part(void* structure);
+
+int Has_SpecialRender(LogicBlock block);
+
+void Render_Ship(Ship* ship, mat4 tr);
 
 #endif

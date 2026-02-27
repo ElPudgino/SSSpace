@@ -6,20 +6,12 @@
 #include "mesh_utils.h"
 #include "transform_utils.h"
 #include "math_util.h"
+#include "tests.h"
 
 // Testing
-Material* gradient = NULL;
-Material* basicmesh = NULL;
-Material* testinstanced = NULL;
 Mesh* testmesh = NULL;
 InstancedRenderData testdata = {};
-
-void setup_mats(EngineState* engineState)
-{
-    gradient = Gradient_Mat_Build(engineState);
-    basicmesh = Basic_Mesh_Mat_Build(engineState);
-    testinstanced = Test_Instanced_Mat_Build(engineState);
-}
+Ship* testship = NULL;
 
 Mesh* get_testmesh(EngineState* engineState)
 {
@@ -45,11 +37,14 @@ Mesh* get_testmesh(EngineState* engineState)
 
 void _Testing(EngineState* engineState)
 {
-    setup_mats(engineState);
-    testmesh = get_testmesh(engineState);
-    testdata.material = testinstanced;
-    testdata.mesh = testmesh;
-    Add_TransformArray(&testdata);
+    Init_MaterialInstances(engineState);
+    printf("Init mat instances\n");
+    _Init_Cube();
+    printf("Init cube\n");
+    create_testshipbp(engineState);
+    printf("Created test ship BP\n");
+    testship = Create_ShipFromBP(get_testbp());
+    printf("Created ship from BP\n");
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -89,7 +84,8 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     bInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;   
 
     VkRenderingAttachmentInfo raInfo = Get_RenderAttachmentInfo(DrawImage.imageView);
-    VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, engineState);
+    VkRenderingAttachmentInfo draInfo = Get_RenderAttachmentInfo(engineState->frameData.depthImage.imageView);
+    VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, &draInfo, engineState);
 
     //Start first render pass
     if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("!Failed to begin command buffer\n");
@@ -97,6 +93,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     //Clear image
     Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_GENERAL);
     Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
+    //Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){0.0,0});
     Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
     //Main rendering
@@ -131,9 +128,10 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
     //printf("%f %f\n",proj[0][0],proj[1][1]);
     float phi = (float)frameCount / 400.0f;
-    glm_mat4_copy((mat4){{cos(phi),-sin(phi),0,0},{sin(phi),cos(phi),0,0},{0,0,1,0},{0,0,0,1}}, mat);
+    glm_mat4_copy((mat4){{cos(phi),0,-sin(phi),0},{0,1,0,0},{sin(phi),0,cos(phi),0},{0,0,15,1}}, mat);
     glm_mat4_mul(proj, mat, mat);
-    Add_InstanceToRender(&testdata, mat);
+    //printf("Start render ship\n");
+    Render_Ship(testship, mat);
     //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
     Render_InstancedMeshes(engineState, Cmnd);
     //RenderMesh(Cmnd, testmesh, basicmesh);
@@ -207,10 +205,6 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-    Destroy_Material(gradient);
-    Destroy_Material(basicmesh);
-    Destroy_Material(testinstanced);
-    Destroy_Mesh(testmesh);
 
     printf("%ld\n",frameCount);
     printf("Closing\n");

@@ -32,6 +32,8 @@ typedef struct _ImageData
 */
 int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent);
 
+int Create_DepthImage(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent);
+
 /*! @brief Record a command to change image layout
 * @param cmnd Used command buffer
 * @param imageData Image information
@@ -47,5 +49,7 @@ int Change_ImageLayout(VkCommandBuffer cmnd, ImageData* imageData, VkImageLayout
 void Copy_ImageToImage(VkCommandBuffer cmnd, ImageData src, ImageData dst);
 
 void Clear_Image(VkCommandBuffer cmnd, ImageData imageData, VkClearColorValue color);
+
+void Clear_Depth(VkCommandBuffer cmnd, ImageData imageData, VkClearDepthStencilValue val);
 
 #endif

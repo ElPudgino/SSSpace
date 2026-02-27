@@ -19,6 +19,8 @@ void Add_TransformArray(InstancedRenderData* mesh);
 
 void Add_InstanceToRender(InstancedRenderData* mesh, mat4 trs);
 
+InstancedRenderData* Create_InstanceData();
+
 void Upload_Transforms(EngineState* engineState);
 
 int Setup_TransformBuffer(EngineState* engineState, uint32_t size);

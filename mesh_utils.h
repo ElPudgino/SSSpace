@@ -5,6 +5,8 @@
 #include "engine_init.h"
 #include "render_primitives.h"
 
+Mesh* Create_Mesh(EngineState* engineState);
+
 void Mesh_UploadData(Mesh* mesh);
 
 void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat);

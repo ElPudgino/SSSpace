@@ -13,14 +13,10 @@ VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
     return subRes;
 }
 
-int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
+int Create_ImageGeneric(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent,
+                        VkFormat format, VkImageUsageFlags flags )
 {
     assert(imageData);
-    VkFormat format = MAIN_RENDER_IMAGE_FORMAT;
-    VkImageUsageFlags flags = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | 
-                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
-                              VK_IMAGE_USAGE_STORAGE_BIT |
-                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
     VkImageCreateInfo iInfo = {};
     iInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -58,15 +54,38 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
     ivInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
 
     if (vkCreateImageView(device, &ivInfo, NULL, &imageData->imageView) != VK_SUCCESS) return -printf("!!Failed to create image view for allocated image\n");
-
-
     return 0;
-}   
+}
+
+int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
+{
+    return Create_ImageGeneric(device, allocator, imageData, extent, 
+                            MAIN_RENDER_IMAGE_FORMAT,
+                            VK_IMAGE_USAGE_TRANSFER_SRC_BIT | 
+                              VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                              VK_IMAGE_USAGE_STORAGE_BIT |
+                              VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+} 
+
+int Create_DepthImage(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
+{
+    return Create_ImageGeneric(device, allocator, imageData, extent, 
+                            VK_FORMAT_D32_SFLOAT_S8_UINT,
+                              VK_IMAGE_USAGE_STORAGE_BIT |
+                              VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT);
+} 
+
 
 void Clear_Image(VkCommandBuffer cmnd, ImageData imageData, VkClearColorValue color)
 {
     VkImageSubresourceRange range = Get_ImageSubresourceRange(VK_IMAGE_ASPECT_COLOR_BIT);
     vkCmdClearColorImage(cmnd, imageData.image, imageData.layout, &color, 1, &range);
+}
+
+void Clear_Depth(VkCommandBuffer cmnd, ImageData imageData, VkClearDepthStencilValue val)
+{
+    VkImageSubresourceRange range = Get_ImageSubresourceRange(VK_IMAGE_ASPECT_DEPTH_BIT);
+    vkCmdClearDepthStencilImage(cmnd, imageData.image, imageData.layout, &val, 1, &range);
 }
 
 void Copy_ImageToImage(VkCommandBuffer cmnd, ImageData src, ImageData dst)

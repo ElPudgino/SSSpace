@@ -45,6 +45,7 @@ typedef struct _FrameData
     VkSemaphore swapchainSemaphore[_BufferCount];
     VkSemaphore computeSemaphore[_BufferCount];
     ImageData drawImage;
+    ImageData depthImage;
 } FrameData;
 
 typedef struct _QueueFamIndices

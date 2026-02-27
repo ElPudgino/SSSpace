@@ -331,7 +331,9 @@ int Add_ToCleanupQueue(AllocInfo** allocInfo, int (*cleanupFunc)(EngineState*))
 // Create image to which everything will be rendered before being copied to swapchain
 int Create_MainDrawImage(EngineState* engineState)
 {
-    return Create_Image(engineState->device, engineState->allocator, &engineState->frameData.drawImage, (VkExtent3D){1200, 800, 1});
+    int res = Create_Image(engineState->device, engineState->allocator, &engineState->frameData.drawImage, (VkExtent3D){1200, 800, 1});
+    res = res || Create_DepthImage(engineState->device, engineState->allocator, &engineState->frameData.depthImage, (VkExtent3D){1200, 800, 1});
+    return res;
 }
 
 int Destroy_MainDrawImage(EngineState* engineState)

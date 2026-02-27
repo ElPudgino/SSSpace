@@ -39,7 +39,7 @@ int Submit_CommandBuffer(EngineState* engineState, int frame_ind, VkCommandBuffe
     return 0;
 }
 
-VkRenderingInfo Get_MainRenderPassInfo(Uint64 frameCount, VkRenderingAttachmentInfo* colorAttachments, EngineState* engineState)
+VkRenderingInfo Get_MainRenderPassInfo(Uint64 frameCount, VkRenderingAttachmentInfo* colorAttachments, VkRenderingAttachmentInfo* depth, EngineState* engineState)
 {
     assert(engineState);
     assert(colorAttachments);
@@ -62,7 +62,7 @@ VkRenderingInfo Get_MainRenderPassInfo(Uint64 frameCount, VkRenderingAttachmentI
     rInfo.colorAttachmentCount = 1;
 
     rInfo.pColorAttachments = colorAttachments;
-    rInfo.pDepthAttachment = NULL;
+    rInfo.pDepthAttachment = depth;
     rInfo.pStencilAttachment = NULL;
     return rInfo;
 }
@@ -74,6 +74,19 @@ VkRenderingAttachmentInfo Get_RenderAttachmentInfo(VkImageView imageView)
     raInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
     raInfo.imageView = imageView; 
     raInfo.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+    raInfo.resolveMode = VK_RESOLVE_MODE_NONE;
+    raInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+    raInfo.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+    return raInfo;
+}
+
+VkRenderingAttachmentInfo Get_DepthRenderAttachmentInfo(VkImageView imageView)
+{
+    VkRenderingAttachmentInfo raInfo = {};
+    raInfo.pNext= NULL;
+    raInfo.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO;
+    raInfo.imageView = imageView; 
+    raInfo.imageLayout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
     raInfo.resolveMode = VK_RESOLVE_MODE_NONE;
     raInfo.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
     raInfo.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;

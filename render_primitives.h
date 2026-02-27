@@ -46,6 +46,7 @@ typedef struct _Material
     VkPipelineLayout pLayout;
     MaterialParameter* parameters;
     uint32_t parameterCount;
+    uint32_t ID;
 } Material;
 
 
@@ -91,9 +92,11 @@ typedef struct _Vertex
 * @param g_Indices Index buffer, created when mesh is uploaded
 * @param g_Address GPU pointer, created when mesh is uploaded
 * @param indices CPU side Index array, set manually
-* @param indexCount length of indices array, set manually
+* @param indexCount Amount of elements in indices array, set manually
+* @param indexCap Capacity of indices array, set manually
 * @param vertices CPU side Vertex array, set manually
-* @param vertexCount Length of vertices array, set manually
+* @param vertexCount Amount of elements in vertices array, set manually
+* @param vertexCap Capacity of vertices array, set manually
 */
 typedef struct _Mesh
 {
@@ -102,9 +105,11 @@ typedef struct _Mesh
     struct _BufferInfo g_Indices;
     VkDeviceAddress g_Address;
     uint32_t* indices;
-    size_t indexCount;
+    uint32_t indexCount;
+    uint32_t indexCap;
     Vertex* vertices;
-    size_t vertexCount;
+    uint32_t vertexCount;
+    uint32_t vertexCap;
 } Mesh;
 
 /*! @brief Contains data needed to render instances
@@ -120,6 +125,7 @@ typedef struct _InstancedRenderData
     Material* material; 
     uint32_t ID;
     uint32_t transformStartIndex;
+    int updateNeeded;
 } InstancedRenderData;
 
 /*! @brief Data passed to the shader when rendering

@@ -2,6 +2,8 @@
 
 #define PUSH_CONSTANTS_MAX_SIZE 128
 
+uint32_t CurrentMatID = 1;
+
 void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType descType)
 {
     assert(builder);
@@ -104,17 +106,20 @@ Material* Finish_MaterialBuilder(MaterialBuilder* builder)
     mat->pLayout = Finish_PipelineLayoutBuilder(builder->pipelineLayoutBuilder);
     PlBuilder_SetLayout(builder->pipelineBuilder, mat->pLayout);
     mat->pipeline = Finish_PipelineBuilder(builder->pipelineBuilder);
+    mat->ID = CurrentMatID++;
     return mat;
 }
 
 void Material_SetParameter(Material* mat, uint32_t index, const void* value)
 {
     assert(value);
+    assert(mat);
     memcpy(mat->parameters[index].value, value, mat->parameters[index].size);
 }
 
 void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 {
+    assert(mat);
     VkDescriptorImageInfo imgInfo = {};
 	imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgInfo.imageView = imageData.imageView;
@@ -134,6 +139,7 @@ void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 
 void Bind_Material(VkCommandBuffer cmnd, Material* material)
 {
+    assert(material);
     assert(material->pLayout);
     assert(material->descSets);
     
@@ -148,6 +154,7 @@ void Bind_Material(VkCommandBuffer cmnd, Material* material)
 
 void Destroy_Material(Material* mat)
 {
+    assert(mat);
     vkDeviceWaitIdle(mat->device); // ! Could cause performance issues if materials are destroyed frequently
                                    // Shouldnt be an issue if materials are created/destroyed on app startup/closing
     vkDestroyPipeline(mat->device, mat->pipeline, NULL);
