@@ -7,6 +7,13 @@
 #define TRM_ARRAY_RESIZE_COEF 1.5f
 #define GLOBAL_TRASNFORM_ARRAY_SIZE 640000 
 
+typedef struct _Transform
+{
+    double pos[3];
+    vec4 rotation; // quaternion
+    struct _Transform* parent;
+} Transform;
+
 typedef struct _TransformArray
 {
     mat4* array;
@@ -15,6 +22,8 @@ typedef struct _TransformArray
     int valid;
     InstancedRenderData renderData; 
 } TransformArray;
+
+void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest);
 
 void Add_TransformArray(InstancedRenderData* mesh);
 

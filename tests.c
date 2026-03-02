@@ -14,8 +14,7 @@ void create_testshipbp(EngineState* engineState)
     shipBp = (ShipBP*)calloc(1,sizeof(ShipBP));
     shipBp->model.rootPart = Create_Part(Create_PartStructureGrid(engineState));
     Part* root = shipBp->model.rootPart;
-    glm_mat4_copy(GLM_MAT4_IDENTITY, root->baseLocalTransform);
-    glm_mat4_copy(GLM_MAT4_IDENTITY, root->localTransform);
+    root->localTransform = (Transform){0.0,0.0,0.0,1.0,0.0,0.0,0.0,0};
 
     PartStructureGrid* grid = (PartStructureGrid*)root->structure;
     grid->grid.array = (Block*)calloc(11*11*11, sizeof(Block));

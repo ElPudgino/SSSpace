@@ -1,9 +1,9 @@
 #include "ship.h"
 #include "mesh_gen.h"
 
-void Set_OwnPartTransform(Part* part, mat4 TRS)
+void Set_PartTransform(Part* part, Transform* tr)
 {
-    glm_mat4_copy(TRS, part->localTransform);
+    part->localTransform = *tr;
     //self.mdoeltransform.matrixes[part.matrixindex] = ...
 }
 
@@ -80,8 +80,8 @@ void Render_Part(Part* part, mat4 prev)
     PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)part->structure;
     printf("got part structure\n");
     mat4 cur;
-    glm_mat4_mul(prev, part->baseLocalTransform, cur);
-    glm_mat4_mul(cur, part->localTransform, cur);
+    Get_LocalRenderTransformMatrix(&part->localTransform, cur);
+    glm_mat4_mul(prev, cur, cur);
     switch (p.structureType)
     {
         case PART_TYPE_GRID:
@@ -109,8 +109,7 @@ void Render_Ship(Ship* ship, mat4 tr)
 
 void _Create_ShipPart(Part* ship, Part* bp)
 {
-    glm_mat4_copy(bp->baseLocalTransform, ship->baseLocalTransform);
-    glm_mat4_copy(bp->localTransform, ship->localTransform);
+    Set_PartTransform(ship, &bp->localTransform);
     if (bp->childrenCount > 0) ship->children = (Part*)calloc(bp->childrenCount, sizeof(Part));
     ship->childrenCount = bp->childrenCount;
     ship->structure = bp->structure;

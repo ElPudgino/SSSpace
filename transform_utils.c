@@ -1,5 +1,6 @@
 #include "transform_utils.h"
 #include "mesh_utils.h"
+#include "math_util.h"
 
 uint32_t CurrentArrayIndex = 1;
 TransformArray* GlobalTransformArrays = NULL;
@@ -10,6 +11,55 @@ BufferInfo TransformBuffer = {};
 mat4* FullTransformArray = NULL;
 
 void _add_RenderTransform(TransformArray* array, mat4 matrix);
+
+// For rendering always keep camera pos at 0
+// apply translation with doubles and not matrices
+// this means substract camera pos from objects that are not parented
+void Get_CameraPosition(double dest[3])
+{
+
+}
+
+void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest)
+{
+    Quaterion_ToMatrix(transform->rotation, dest);
+    mat4 t;
+    if (transform->parent == NULL)
+    {
+        double p[3];
+        Get_CameraPosition(p);
+        p[0] = transform->pos[0] - p[0];
+        p[1] = transform->pos[1] - p[1];
+        p[2] = transform->pos[2] - p[2]; 
+        Translation_Matrix(p, t);
+    }
+    else
+    {
+        Translation_Matrix(transform->pos, t);
+    }
+    glm_mat4_mul(t, dest, dest);
+}
+
+void Get_GlobalPosition(Transform* transform, double res[3])
+{
+    res[0] = transform->pos[0];
+    res[1] = transform->pos[1];
+    res[2] = transform->pos[2];
+    Transform* next = transform->parent;
+    while (next)
+    {
+        Rotate_Position(res, next->rotation);
+        Add_Position(res, next->pos);
+        next = next->parent;
+    }
+}
+
+void Set_LocalPosition(Transform* transform, double pos[3])
+{
+    transform->pos[0] = pos[0];
+    transform->pos[1] = pos[1];
+    transform->pos[2] = pos[2];
+}
 
 void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd)
 {

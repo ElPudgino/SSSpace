@@ -71,8 +71,7 @@ typedef struct _PartStructureGrid
 typedef struct _Part
 {
     void* structure; // shared
-    mat4 baseLocalTransform; // not shared
-    mat4 localTransform;
+    Transform localTransform;
     struct _Part* children;
     uint32_t childrenCount;
 } Part;
