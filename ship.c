@@ -152,7 +152,6 @@ void _Delete_ShipPart(Part* part)
     {
         _Delete_ShipPart(&part->children[i]);
     }
-    Delete_PartStructure(part->structure);
     free(part->children);
 }
 
@@ -162,4 +161,22 @@ void Delete_Ship(Ship* ship)
 
     free(ship->model.rootPart);
     free(ship);
+}
+
+void _Delete_ShipBPPart(Part* part)
+{
+    for (int i = 0; i < part->childrenCount; i++)
+    {
+        _Delete_ShipPart(&part->children[i]);
+    }
+    Delete_PartStructure(part->structure);
+    free(part->children);
+}
+
+void Delete_ShipBP(ShipBP* bp)
+{
+    _Delete_ShipBPPart(bp->model.rootPart);
+
+    free(bp->model.rootPart);
+    free(bp);
 }

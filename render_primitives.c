@@ -38,7 +38,7 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
     builder->poolSizes.sizeCap = 0;
 
     builder->matParams = (MaterialParameter*)calloc(1, sizeof(MaterialParameter));
-
+ 
     builder->descLayoutBuilder = Start_DescriptorLayoutBuilder(device);
     builder->pipelineLayoutBuilder = Start_PipelineLayoutBuilder(device);
     builder->pipelineBuilder = Start_PipelineBuilder(device);
@@ -107,6 +107,7 @@ Material* Finish_MaterialBuilder(MaterialBuilder* builder)
     PlBuilder_SetLayout(builder->pipelineBuilder, mat->pLayout);
     mat->pipeline = Finish_PipelineBuilder(builder->pipelineBuilder);
     mat->ID = CurrentMatID++;
+    free(builder);
     return mat;
 }
 

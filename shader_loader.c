@@ -13,9 +13,11 @@ VkShaderModule Create_ShaderModule(char* data, VkDevice device, uint32_t size)
     VkShaderModule module;
     if (vkCreateShaderModule(device, &cInfo, NULL, &module) != VK_SUCCESS) 
     {
+        free(data);
         printf("!Failed to create shader module\n");
         return NULL;
     }
+    free(data);
     return module;
 }
 

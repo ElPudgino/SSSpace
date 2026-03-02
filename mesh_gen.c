@@ -183,6 +183,13 @@ void Destroy_StructureGrid(PartStructureGrid* grid)
         Destroy_TransformArray(grid->renderDatas[i]);
     }
 
-    if (grid->renderDatas) free(grid->renderDatas);
+    if (grid->renderDatas) 
+    {
+        for (int i = 0; i < grid->matCount; i++)
+        {
+            free(grid->renderDatas[i]);
+        }
+        free(grid->renderDatas);
+    }
     free(grid);
 }

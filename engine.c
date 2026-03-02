@@ -209,9 +209,10 @@ int main(int argc, char** argv)
     }
 
     Delete_Ship(testship);
+    Delete_ShipBP(get_testbp());
     Destroy_BlockModels();
     Destroy_MaterialInstances();
     printf("%ld\n",frameCount);
     printf("Closing\n");
-    Cleanup_MainEngine(engineState, allocInfo);
+    Cleanup_MainEngine(engineState, allocInfo);// EngineState is freed
 }

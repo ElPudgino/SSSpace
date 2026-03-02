@@ -59,7 +59,9 @@ typedef struct _PartStructureGrid
     EngineState* engineState;
     BlockGrid grid;
     float centerOffset[3];
-    InstancedRenderData** renderDatas;
+    InstancedRenderData** renderDatas; // Importnant: these arent pointer to the data in TransformArray
+                                       // These are separate objects. You are not supposed to modify them after adding a trasform array
+                                       // Your copy is just a convenient reference for ID and pointers to mesh and material
     uint32_t matCount;
     uint32_t matCap; 
     LogicBlock* logicBlocks;
@@ -132,5 +134,7 @@ void Render_Ship(Ship* ship, mat4 tr);
 Ship* Create_ShipFromBP(ShipBP* bp);
 
 void Delete_Ship(Ship* ship);
+
+void Delete_ShipBP(ShipBP* bp);
 
 #endif

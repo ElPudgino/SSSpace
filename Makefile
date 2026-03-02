@@ -1,4 +1,4 @@
-CFLAGS = -std=c++17
+CFLAGS = -std=c++17 #-fsanitize=address
 #CFLAGS += -Imaterials
 LDFLAGS = -lSDL3 -lvulkan 
 
