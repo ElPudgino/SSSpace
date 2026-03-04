@@ -2,6 +2,7 @@
 #include <math.h>
 #include "swapchain_init.h"
 #include "transform_utils.h"
+#include "input_registry.h"
 
 
 int Create_VulkanInstance(EngineState* engineState)
@@ -424,9 +425,17 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
     printf("Main draw image created\n");
 
-    if (Setup_TransformBuffer(engineState, GLOBAL_TRASNFORM_ARRAY_SIZE)) {}
+    if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
-    printf("Global transform array created with size: %d\n", GLOBAL_TRASNFORM_ARRAY_SIZE);
+    printf("Global transform buffer created with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE);
+
+    if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_Controls);
+    printf("Controls registered\n");
+
+    if (Init_Camera()) {printf("!!Failed to create camera\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_Camera);
+    printf("Main camera created\n");
 
     *esPointer = engineState;
     return 0;

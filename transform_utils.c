@@ -10,6 +10,9 @@ VkDeviceAddress g_Transforms = 0;
 BufferInfo TransformBuffer = {};
 mat4* FullTransformArray = NULL;
 
+Transform* CameraTransform = NULL;
+double BaseCameraVelocity = 0.015;
+
 void _add_RenderTransform(TransformArray* array, mat4 matrix);
 
 // For rendering always keep camera pos at 0
@@ -17,7 +20,33 @@ void _add_RenderTransform(TransformArray* array, mat4 matrix);
 // this means substract camera pos from objects that are not parented
 void Get_CameraPosition(double dest[3])
 {
+    assert(CameraTransform);
+    Copy_Position(CameraTransform->pos, dest);
+}
 
+void Set_CameraPosition(double pos[3])
+{
+    assert(CameraTransform);
+    Copy_Position(pos,  CameraTransform->pos);
+}
+
+double Get_FreeCameraVelocity()
+{
+    return BaseCameraVelocity;
+}
+
+int Init_Camera()
+{
+    CameraTransform = (Transform*)calloc(1, sizeof(Transform));
+    if (!CameraTransform) return 1;
+    CameraTransform->rotation[0] = 1;
+    return 0;
+}
+
+int Destroy_Camera(EngineState* engineState)
+{
+    free(CameraTransform);
+    return 1;
 }
 
 void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest)
@@ -64,7 +93,7 @@ void Set_LocalPosition(Transform* transform, double pos[3])
 void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd)
 {
     // iterate all things that need to be rendered, then upload transforms
-    printf("Start render instanced %d\n",CurrentArrayIndex - 1);
+    //printf("Start render instanced %d\n",CurrentArrayIndex - 1);
     Upload_Transforms(engineState);
     for (int i = 0; i < CurrentArrayIndex - 1; i++)
     {

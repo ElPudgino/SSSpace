@@ -2,7 +2,7 @@
 
 void Projection_Matrix(mat4 matrix,float aspect_ratio, float near, float far, float view_angle)
 {
-    glm_mat4_copy((mat4){{aspect_ratio/tan(view_angle),0,0,0}, 
+    glm_mat4_copy((mat4){{aspect_ratio/(float)tan(view_angle),0,0,0}, 
                     {0,1.0/tan(view_angle),0,0},
                     {0,0,-near/(far-near),(near*far)/(far-near)}, 
                     {0,0,1.0,0}}, matrix);
@@ -12,6 +12,13 @@ void Projection_Matrix(mat4 matrix,float aspect_ratio, float near, float far, fl
 void Rotate_Position(double pos[3], vec4 qf)
 {
     double qd[4] = {(double)qf[0],(double)qf[1],(double)qf[2],(double)qf[3]};
+}
+
+void Copy_Position(double src[3], double dest[3])
+{
+    dest[0] = src[0];
+    dest[1] = src[1];
+    dest[2] = src[2];
 }
 
 void Add_Position(double pos[3], double add[3])

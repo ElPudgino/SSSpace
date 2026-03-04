@@ -13,4 +13,6 @@ void Add_Position(double pos[3], double add[3]);
 
 void Rotate_Position(double pos[3], vec4 q);
 
+void Copy_Position(double src[3], double dest[3]);
+
 #endif

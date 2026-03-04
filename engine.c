@@ -7,6 +7,7 @@
 #include "transform_utils.h"
 #include "math_util.h"
 #include "tests.h"
+#include "input_registry.h"
 
 // Testing
 Mesh* testmesh = NULL;
@@ -130,11 +131,11 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     mat4 proj;
     Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
     //printf("%f %f\n",proj[0][0],proj[1][1]);
-    float phi = (float)frameCount / 400.0f;
-    glm_mat4_copy((mat4){{cos(phi),0,-sin(phi),0},{0,1,0,0},{sin(phi),0,cos(phi),0},{0,0,15,1}}, mat);
-    glm_mat4_mul(proj, mat, mat);
+    //float phi = (float)frameCount / 400.0f;
+    //glm_mat4_copy((mat4){{cos(phi),0,-sin(phi),0},{0,1,0,0},{sin(phi),0,cos(phi),0},{0,0,15,1}}, mat);
+    //glm_mat4_mul(proj, mat, mat);
     //printf("Start render ship\n");
-    Render_Ship(testship, mat);
+    Render_Ship(testship, proj);
     //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
     Render_InstancedMeshes(engineState, Cmnd);
     //RenderMesh(Cmnd, testmesh, basicmesh);
@@ -178,6 +179,27 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     return 0;
 }
 
+void Process_Events(int* running)
+{
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) // process all input before main update
+    {
+        switch (event.type)
+        {
+            case SDL_EVENT_QUIT:
+                printf("Quit event\n");
+                *running = 0;
+                break;
+            case SDL_EVENT_KEY_UP:
+            case SDL_EVENT_KEY_DOWN:
+                Process_KeyboardInput(event);
+                break;
+            default:
+                break;
+        }
+    }
+}
+
 int main(int argc, char** argv)
 {
     int running = 1;
@@ -188,21 +210,15 @@ int main(int argc, char** argv)
     if ((res = Init_MainEngine(&engineState, &allocInfo))) return -printf("Main engine initialization failed, exit code: %d\n", res);
 
     printf("Starting main loop\n");
-    SDL_Event event;
+
 
     _Testing(engineState);
 
     Uint64 frameCount = 0;
     while (running)
     {
-        while (SDL_PollEvent(&event)) // process all input before main update
-        {
-            if (event.type == SDL_EVENT_QUIT)
-            {
-                printf("Quit event\n");
-                running = 0;
-            }
-        }
+        Process_Events(&running);   
+        Process_PersistentInput();
 
         if (Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
         frameCount++;

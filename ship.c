@@ -50,14 +50,14 @@ void Render_SpecialBlock(LogicBlock* block, mat4 prev)
 void Render_Grid(PartStructureGrid* grid, mat4 prev)
 {
     assert(grid);
-    printf("Start render grid\n");
+    //printf("Start render grid\n");
     for (int i = 0; i < grid->matCount; i++)
     {
         assert(grid->renderDatas[i]->material);
         assert(grid->renderDatas[i]->mesh);
         Add_InstanceToRender(grid->renderDatas[i], prev);
     }
-    printf("Start render grid logic\n");
+    //printf("Start render grid logic\n");
     for (int i = 0; i < grid->logicBlockCount; i++)
     {
         if (Has_SpecialRender(grid->logicBlocks[i]))
@@ -76,9 +76,9 @@ void Render_SimpleMesh(PartStructureSimpleMesh* sm, mat4 prev)
 void Render_Part(Part* part, mat4 prev)
 {
     assert(part);
-    printf("getting part structure\n");
+    //printf("getting part structure\n");
     PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)part->structure;
-    printf("got part structure\n");
+    //printf("got part structure\n");
     mat4 cur;
     Get_LocalRenderTransformMatrix(&part->localTransform, cur);
     glm_mat4_mul(prev, cur, cur);
@@ -97,7 +97,7 @@ void Render_Part(Part* part, mat4 prev)
     {
         Render_Part(&part->children[i], cur);
     }
-    printf("Finish render part\n");
+    //printf("Finish render part\n");
 }
 
 void Render_Ship(Ship* ship, mat4 tr)
