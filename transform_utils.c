@@ -1,6 +1,6 @@
 #include "transform_utils.h"
 #include "mesh_utils.h"
-#include "math_util.h"
+#include "camera_control.h"
 
 uint32_t CurrentArrayIndex = 1;
 TransformArray* GlobalTransformArrays = NULL;
@@ -10,44 +10,7 @@ VkDeviceAddress g_Transforms = 0;
 BufferInfo TransformBuffer = {};
 mat4* FullTransformArray = NULL;
 
-Transform* CameraTransform = NULL;
-double BaseCameraVelocity = 0.015;
-
 void _add_RenderTransform(TransformArray* array, mat4 matrix);
-
-// For rendering always keep camera pos at 0
-// apply translation with doubles and not matrices
-// this means substract camera pos from objects that are not parented
-void Get_CameraPosition(double dest[3])
-{
-    assert(CameraTransform);
-    Copy_Position(CameraTransform->pos, dest);
-}
-
-void Set_CameraPosition(double pos[3])
-{
-    assert(CameraTransform);
-    Copy_Position(pos,  CameraTransform->pos);
-}
-
-double Get_FreeCameraVelocity()
-{
-    return BaseCameraVelocity;
-}
-
-int Init_Camera()
-{
-    CameraTransform = (Transform*)calloc(1, sizeof(Transform));
-    if (!CameraTransform) return 1;
-    CameraTransform->rotation[0] = 1;
-    return 0;
-}
-
-int Destroy_Camera(EngineState* engineState)
-{
-    free(CameraTransform);
-    return 1;
-}
 
 void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest)
 {
@@ -56,7 +19,7 @@ void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest)
     if (transform->parent == NULL)
     {
         double p[3];
-        Get_CameraPosition(p);
+        Get_CameraGlobalPosition(p);
         p[0] = transform->pos[0] - p[0];
         p[1] = transform->pos[1] - p[1];
         p[2] = transform->pos[2] - p[2]; 
@@ -69,6 +32,30 @@ void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest)
     glm_mat4_mul(t, dest, dest);
 }
 
+void Get_TransformForward(Transform* tr, float dest[3])
+{
+    dest[0] = 0;
+    dest[1] = 0;
+    dest[2] = 1;
+    glm_quat_rotatev(tr->rotation, dest, dest);
+}
+
+void Get_TransformUp(Transform* tr, float dest[3])
+{
+    dest[0] = 0;
+    dest[1] = -1;
+    dest[2] = 0;
+    glm_quat_rotatev(tr->rotation, dest, dest);
+}
+
+void Get_TransformRight(Transform* tr, float dest[3])
+{
+    dest[0] = 1;
+    dest[1] = 0;
+    dest[2] = 0;
+    glm_quat_rotatev(tr->rotation, dest, dest);
+}
+
 void Get_GlobalPosition(Transform* transform, double res[3])
 {
     res[0] = transform->pos[0];
@@ -77,8 +64,8 @@ void Get_GlobalPosition(Transform* transform, double res[3])
     Transform* next = transform->parent;
     while (next)
     {
-        Rotate_Position(res, next->rotation);
-        Add_Position(res, next->pos);
+        Rotate_dVec(res, next->rotation);
+        Add_dVec(res, next->pos);
         next = next->parent;
     }
 }

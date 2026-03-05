@@ -46,6 +46,7 @@ void _Testing(EngineState* engineState)
     printf("Created test ship BP\n");
     testship = Create_ShipFromBP(get_testbp());
     printf("Created ship from BP\n");
+    Set_CameraOrbit(&testship->model.rootPart->localTransform);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -130,12 +131,13 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     mat4 mat;
     mat4 proj;
     Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
+    Get_CameraMatrix(mat);
     //printf("%f %f\n",proj[0][0],proj[1][1]);
     //float phi = (float)frameCount / 400.0f;
     //glm_mat4_copy((mat4){{cos(phi),0,-sin(phi),0},{0,1,0,0},{sin(phi),0,cos(phi),0},{0,0,15,1}}, mat);
-    //glm_mat4_mul(proj, mat, mat);
+    glm_mat4_mul(proj, mat, mat);
     //printf("Start render ship\n");
-    Render_Ship(testship, proj);
+    Render_Ship(testship, mat);
     //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
     Render_InstancedMeshes(engineState, Cmnd);
     //RenderMesh(Cmnd, testmesh, basicmesh);
@@ -193,6 +195,9 @@ void Process_Events(int* running)
             case SDL_EVENT_KEY_UP:
             case SDL_EVENT_KEY_DOWN:
                 Process_KeyboardInput(event);
+                break;
+            case SDL_EVENT_MOUSE_MOTION:
+                Process_MouseInput(event);
                 break;
             default:
                 break;

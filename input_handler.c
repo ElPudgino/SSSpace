@@ -26,11 +26,30 @@ void Add_Control(InputAction press, InputAction release, InputAction hold, SDL_K
     controls.keyCount++;
 }
 
+void Process_PositionalInput(float data[4])
+{
+    float a[3] = {};
+    Get_CameraAngles(a);
+    float s = Get_CameraAngularVelocity();
+    a[0] += -data[1] * s; // To rotate camera up and down we use x axis
+    a[1] += data[0] * s;
+    Set_CameraAngles(a);
+}
+
+void Process_MouseInput(SDL_Event event)
+{
+    float vals[4]; // xrel, yrel, xabs, yabs
+    vals[0] = event.motion.xrel;
+    vals[1] = event.motion.yrel;
+    vals[2] = event.motion.x;
+    vals[3] = event.motion.y;
+    Process_PositionalInput(vals);
+}
 
 // A single key could be bound to several controls
 void Process_KeyboardInput(SDL_Event event)
 {
-    for (int i = 0; i < controls.keyCount; i++)
+    for (int i = 0; i < controls.keyCount; i++) 
     {
         ControlKey ck = controls.keys[i];
         if (event.key.key != ck.key) continue;

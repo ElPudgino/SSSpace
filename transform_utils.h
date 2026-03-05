@@ -3,6 +3,7 @@
 
 #include "libs.h"
 #include "render_primitives.h"
+#include "math_util.h"
  
 #define TRM_ARRAY_RESIZE_COEF 1.5f
 #define GLOBAL_TRANSFORM_ARRAY_SIZE 640000 
@@ -25,15 +26,11 @@ typedef struct _TransformArray
 
 void Get_LocalRenderTransformMatrix(Transform* transform, mat4 dest);
 
-int Init_Camera();
+void Get_TransformForward(Transform* tr, float dest[3]);
 
-int Destroy_Camera(EngineState* engineState);
+void Get_TransformUp(Transform* tr, float dest[3]);
 
-void Set_CameraPosition(double pos[3]);
-
-void Get_CameraPosition(double dest[3]);
-
-double Get_FreeCameraVelocity();
+void Get_TransformRight(Transform* tr, float dest[3]);
 
 void Add_TransformArray(InstancedRenderData* mesh);
 

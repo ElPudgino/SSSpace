@@ -1,8 +1,9 @@
 #ifndef INPUT_HANDLER
 #define INPUT_HANDLER
 
-#include "transform_utils.h"
+#include "camera_control.h"
 
+// used for buttons
 typedef void (*InputAction)();
 
 typedef struct _ControlKey
@@ -31,5 +32,7 @@ void Init_Controls();
 void Process_PersistentInput();
 
 void Process_KeyboardInput(SDL_Event event);
+
+void Process_MouseInput(SDL_Event event);
 
 #endif
