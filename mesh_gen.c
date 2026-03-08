@@ -84,6 +84,8 @@ PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
     PartStructureGrid* res = (PartStructureGrid*)calloc(1, sizeof(PartStructureGrid));
     res->matCap = 1;
     res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
+    res->logicBlocks = (LogicBlock*)calloc(8, sizeof(LogicBlock));
+    res->logicBlockCap = 8;
     res->structureType = PART_TYPE_GRID;
     res->engineState = engineState;
     return res;
@@ -124,22 +126,22 @@ void Add_ModelToPart(PartStructureGrid* grid, BlockModel* bmodel,uint32_t posx,u
     grid->matCount++;
 }
 
-uint32_t _Get_Adjacent(BlockGrid g, uint32_t x, uint32_t y, uint32_t z)
+BlockSide Get_Adjacent(BlockGrid g, uint32_t x, uint32_t y, uint32_t z)
 {
-    uint32_t res = 0;
+    int res = 0;
     if (Get_GridBlock(g, x+1, y ,z).blockType != 0) res = res | SIDE_Xp;
     if (Get_GridBlock(g, x-1, y ,z).blockType != 0) res = res | SIDE_Xn;
     if (Get_GridBlock(g, x, y+1 ,z).blockType != 0) res = res | SIDE_Yp;
     if (Get_GridBlock(g, x, y-1 ,z).blockType != 0) res = res | SIDE_Yn;
     if (Get_GridBlock(g, x, y ,z+1).blockType != 0) res = res | SIDE_Zp;
     if (Get_GridBlock(g, x, y ,z-1).blockType != 0) res = res | SIDE_Zn;
-    return res;
+    return (BlockSide)res;
 }
 
 void Generate_MeshForGrid(PartStructureGrid* grid)
 {
     assert(grid);
-    printf("TODO: cleanup transform arrays when changing or deleting structures\n");
+    // TODO: cleanup transform arrays when changing or deleting structures
 
     BlockGrid g = grid->grid;
     printf("Started adding blocks\n");
@@ -150,7 +152,7 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
             for (int z = 0; z < g.z_s; z++)
             {
                 Block b = Get_GridBlock(g, x, y, z);
-                Add_ModelToPart(grid, GetBlockModel(b.blockType, _Get_Adjacent(g, x ,y ,z)), x,y,z, Get_BlockRotation(b.blockType));
+                Add_ModelToPart(grid, GetBlockModel(b.blockType, Get_Adjacent(g, x ,y ,z)), x,y,z, Get_BlockRotation(b.blockType));
             }
         }
     }
@@ -161,7 +163,7 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
         LogicBlock b = grid->logicBlocks[i];
         if (!Has_SpecialRender(b))
         {
-            Add_ModelToPart(grid, GetBlockModel(b.blockType, _Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], Get_BlockRotation(b.blockType));
+            Add_ModelToPart(grid, GetBlockModel(b.blockType, Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], Get_BlockRotation(b.blockType));
         }
     }
 

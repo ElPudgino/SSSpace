@@ -38,10 +38,6 @@ Mesh* get_testmesh(EngineState* engineState)
 
 void _Testing(EngineState* engineState)
 {
-    Init_MaterialInstances(engineState);
-    printf("Init mat instances\n");
-    _Init_Cube();
-    printf("Init cube\n");
     create_testshipbp(engineState);
     printf("Created test ship BP\n");
     testship = Create_ShipFromBP(get_testbp());
@@ -231,8 +227,6 @@ int main(int argc, char** argv)
 
     Delete_Ship(testship);
     Delete_ShipBP(get_testbp());
-    Destroy_BlockModels();
-    Destroy_MaterialInstances();
     printf("%ld\n",frameCount);
     printf("Closing\n");
     Cleanup_MainEngine(engineState, allocInfo);// EngineState is freed

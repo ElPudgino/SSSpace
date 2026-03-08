@@ -4,9 +4,9 @@
 #include "mesh_gen.h"
 #include "material_insts.h"
 
-void _Init_Cube();
+int Init_Blocks();
 
-void Destroy_BlockModels();
+int Destroy_BlockModels(EngineState* engineState);
 
 BlockModel* Get_CubeModel(uint32_t sides);
 

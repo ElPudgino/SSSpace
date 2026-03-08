@@ -3,14 +3,17 @@
 
 Material* test;
 
-void Init_MaterialInstances(EngineState* engineState)
+int Init_MaterialInstances(EngineState* engineState)
 {
     test = Test_Instanced_Mat_Build(engineState);
+    assert(test);
+    return 0;
 }
 
-void Destroy_MaterialInstances()
+int Destroy_MaterialInstances(EngineState* engineState)
 {
     Destroy_Material(test);
+    return 1;
 }
 
 Material* GetMaterial_Test()

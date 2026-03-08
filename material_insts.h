@@ -1,9 +1,9 @@
 #ifndef MATERIAL_INSTANCES
 #define MATERIAL_INSTANCES
 
-void Init_MaterialInstances(EngineState* engineState);
+int Init_MaterialInstances(EngineState* engineState);
 
-void Destroy_MaterialInstances();
+int Destroy_MaterialInstances(EngineState* engineState);
 
 Material* GetMaterial_Test();
 

@@ -11,11 +11,12 @@ void _Init_Cube()
     cube->mat = GetMaterial_Test();
 }
 
-void Destroy_BlockModels()
+int Destroy_BlockModels(EngineState* engineState)
 {
     free(cube->indices);
     free(cube->vertices);
     free(cube);
+    return 1;
 }
 
 BlockModel* Get_CubeModel(uint32_t sides)
@@ -116,4 +117,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
 
     return cube;
+}
+
+int Init_Blocks()
+{
+    _Init_Cube();
+    return 0;
 }

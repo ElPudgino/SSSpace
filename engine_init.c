@@ -3,7 +3,8 @@
 #include "swapchain_init.h"
 #include "transform_utils.h"
 #include "input_registry.h"
-
+#include "blocks.h"
+#include "material_insts.h"
 
 int Create_VulkanInstance(EngineState* engineState)
 {
@@ -428,6 +429,14 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
     printf("Global transform buffer created with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE);
+
+    if (Init_MaterialInstances(engineState)) {printf("!!Failed to init materials\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_MaterialInstances);
+    printf("Initialized material instances\n");
+
+    if (Init_Blocks()) {printf("!!Failed to init blocks\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_BlockModels);
+    printf("Initialized blocks\n");
 
     if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_Controls);

@@ -41,7 +41,7 @@ typedef struct _LogicBlock
 {
     BlockType blockType;
     void* data;
-    uint32_t pos[3];
+    uint32_t pos[3]; 
 } LogicBlock;
 
 typedef struct _BlockGrid
@@ -66,6 +66,7 @@ typedef struct _PartStructureGrid
     uint32_t matCap; 
     LogicBlock* logicBlocks;
     uint32_t logicBlockCount;
+    uint32_t logicBlockCap;
 } PartStructureGrid;
 
 typedef struct _Part
