@@ -1,12 +1,21 @@
 #include "tests.h"
 
 ShipBP* shipBp;
-
-
+Sector* sector;
 
 ShipBP* get_testbp()
 {
     return shipBp; 
+}
+
+Sector* get_testsector()
+{
+    return sector;
+}
+
+void create_testsector()
+{
+    sector = Init_Sector();
 }
 
 void create_testshipbp(EngineState* engineState)
@@ -40,5 +49,6 @@ void create_testshipbp(EngineState* engineState)
     }
 
     Generate_MeshForGrid(grid);
+    Calc_ShipBB(shipBp);
 }
 

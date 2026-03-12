@@ -12,7 +12,7 @@
 // Testing
 Mesh* testmesh = NULL;
 InstancedRenderData testdata = {};
-Ship* testship = NULL;
+Object* testship = NULL;
 
 Mesh* get_testmesh(EngineState* engineState)
 {
@@ -38,11 +38,14 @@ Mesh* get_testmesh(EngineState* engineState)
 
 void _Testing(EngineState* engineState)
 {
+    create_testsector();
     create_testshipbp(engineState);
     printf("Created test ship BP\n");
     testship = Create_ShipFromBP(get_testbp());
     printf("Created ship from BP\n");
-    Set_CameraOrbit(&testship->model.rootPart->localTransform);
+    get_testsector()->rawObjects[0] = testship;
+    get_testsector()->rawObjects_count = 1;
+    Set_CameraOrbit(&((Ship*)(testship+1))->model.rootPart->localTransform);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -123,17 +126,8 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
 	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
 
-    //vkCmdDraw(Cmnd, 3, 1, 0, 0);s
-    mat4 mat;
-    mat4 proj;
-    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
-    Get_CameraMatrix(mat);
-    //printf("%f %f\n",proj[0][0],proj[1][1]);
-    //float phi = (float)frameCount / 400.0f;
-    //glm_mat4_copy((mat4){{cos(phi),0,-sin(phi),0},{0,1,0,0},{sin(phi),0,cos(phi),0},{0,0,15,1}}, mat);
-    glm_mat4_mul(proj, mat, mat);
-    //printf("Start render ship\n");
-    Render_Ship(testship, mat);
+    Render_Sector(engineState, get_testsector());
+
     //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
     Render_InstancedMeshes(engineState, Cmnd);
     //RenderMesh(Cmnd, testmesh, basicmesh);
@@ -225,7 +219,7 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-    Delete_Ship(testship);
+    Delete_Object(testship);
     Delete_ShipBP(get_testbp());
     printf("%ld\n",frameCount);
     printf("Closing\n");

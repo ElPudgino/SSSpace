@@ -1,5 +1,6 @@
 #include "ship.h"
 #include "mesh_gen.h"
+#include "sector.h"
 
 void Set_PartTransform(Part* part, Transform* tr)
 {
@@ -107,6 +108,77 @@ void Render_Ship(Ship* ship, mat4 tr)
     Render_Part(ship->model.rootPart, tr);
 }
 
+// TODO: Take into account rotation constraints on the parts to reduce bb size
+
+void Get_PartStructureBBsize(PartStructureSimpleMesh* part, float bb[3])
+{
+    float a = 0;
+    float b = 0;
+    vec3 vec = {};
+    PartStructureGrid* g = NULL;
+    switch (part->structureType)
+    {
+        case PART_TYPE_GRID:
+            g = (PartStructureGrid*)part;
+            vec[0] = (float)g->grid.x_s - g->centerOffset[0];
+            vec[1] = (float)g->grid.y_s - g->centerOffset[1];
+            vec[2] = (float)g->grid.z_s - g->centerOffset[2];
+            a = glm_vec3_norm(vec);
+            b = glm_vec3_norm(g->centerOffset);
+            a = a > b ? a : b;
+            bb[0] = a;
+            bb[1] = a;
+            bb[2] = a;
+            break;
+        case PART_TYPE_SIMPLE_MESH:
+            a = sqrtf((float)(part->bbsize[0]*part->bbsize[0] + part->bbsize[1]*part->bbsize[1] + part->bbsize[2]*part->bbsize[2]));
+
+            bb[0] = a;
+            bb[1] = a;
+            bb[2] = a;
+            break;
+        
+        default:
+            break;
+    }
+}
+
+void Get_PartBBsize(Part* p, float s[3])
+{
+    s[0] = 0;
+    s[1] = 0;
+    s[2] = 0;
+    vec3 tm;
+    vec3 tr;
+    for (int i = 0; i < p->childrenCount; i++)
+    {
+        Get_PartBBsize(&p->children[i], tm);
+        tr[0] = (float)p->children[i].localTransform.pos[0];
+        tr[1] = (float)p->children[i].localTransform.pos[1];
+        tr[2] = (float)p->children[i].localTransform.pos[2];
+        glm_vec3_abs(tr, tr);
+        glm_vec3_add(tm, tr, tm); 
+        s[0] = tm[0] > s[0] ? tm[0] : s[0];
+        s[1] = tm[1] > s[1] ? tm[1] : s[1]; 
+        s[2] = tm[2] > s[2] ? tm[2] : s[2];  
+    }
+    Get_PartStructureBBsize((PartStructureSimpleMesh*)p->structure, tm);
+    s[0] = tm[0] > s[0] ? tm[0] : s[0];
+    s[1] = tm[1] > s[1] ? tm[1] : s[1]; 
+    s[2] = tm[2] > s[2] ? tm[2] : s[2]; 
+}
+
+// BB vector is in local coords
+void Calc_ShipBB(ShipBP* bp)
+{
+    Get_PartBBsize(bp->model.rootPart, bp->BB);
+}
+
+float Get_ShipBBsize(Ship* ship)
+{
+    return glm_vec3_norm(ship->BP->BB);
+}
+
 void _Create_ShipPart(Part* ship, Part* bp)
 {
     Set_PartTransform(ship, &bp->localTransform);
@@ -119,13 +191,14 @@ void _Create_ShipPart(Part* ship, Part* bp)
     }
 }
 
-Ship* Create_ShipFromBP(ShipBP* bp)
+Object* Create_ShipFromBP(ShipBP* bp)
 {
-    Ship* res = (Ship*)calloc(1, sizeof(Ship));
-    res->BP = bp;
-    res->model.rootPart = (Part*)calloc(1, sizeof(Part));
+    Object* res = (Object*)calloc(1, sizeof(Object) + sizeof(Ship));
+    Ship* s = (Ship*)(res + 1);
+    s->BP = bp;
+    s->model.rootPart = (Part*)calloc(1, sizeof(Part));
 
-    _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
+    _Create_ShipPart(s->model.rootPart, bp->model.rootPart);
     return res;
 }
 
@@ -159,7 +232,6 @@ void Delete_Ship(Ship* ship)
     _Delete_ShipPart(ship->model.rootPart);
 
     free(ship->model.rootPart);
-    free(ship);
 }
 
 void _Delete_ShipBPPart(Part* part)
@@ -178,4 +250,20 @@ void Delete_ShipBP(ShipBP* bp)
 
     free(bp->model.rootPart);
     free(bp);
+}
+
+void Delete_Object(Object* obj)
+{   
+    assert(obj);
+    Object* p = obj + 1;
+    switch (obj->type)
+    {
+        case OBJ_SHIP:
+            Delete_Ship((Ship*)p);
+            break;
+        
+        default:
+            break;
+    }
+    free(obj);
 }

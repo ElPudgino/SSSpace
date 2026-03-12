@@ -11,11 +11,26 @@ enum
     PART_TYPE_SIMPLE_MESH
 };
 
+typedef enum 
+{
+    OBJ_SHIP,
+    OBJ_PROJ
+} ObjType;
+
+// When allocating something, allocate sizeof(Object) + sizeof(something)
+// Store something with offset of sizeof(Object)
+typedef struct _Object
+{
+    ObjType type;
+    uint16_t lastInteractionId;
+} Object;
+
 typedef struct _PartStructureSimpleMesh
 {
     uint32_t structureType;
     uint32_t ID; 
     InstancedRenderData* renderData;
+    float bbsize[3];
 } PartStructureSimpleMesh;
 
 // 24-th bit is whether this block has special rendering (only for logic blocks)
@@ -111,6 +126,7 @@ typedef struct _Model
 typedef struct _ShipBP 
 {
     Model model;
+    float BB[3];
 } ShipBP;
 
 typedef struct _Ship
@@ -131,10 +147,16 @@ int Has_SpecialRender(LogicBlock block);
 
 void Render_Ship(Ship* ship, mat4 tr);
 
-Ship* Create_ShipFromBP(ShipBP* bp);
+Object* Create_ShipFromBP(ShipBP* bp);
 
 void Delete_Ship(Ship* ship);
 
 void Delete_ShipBP(ShipBP* bp);
+
+float Get_ShipBBsize(Ship* ship);
+
+void Calc_ShipBB(ShipBP* bp);
+
+void Delete_Object(Object* obj);
 
 #endif
