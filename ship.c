@@ -33,14 +33,14 @@ Part* Create_Part(void* structure)
 }
 
 // Block may be bigger than 1 by 1
-void Get_LogicBlockCenter(LogicBlock block, vec3 result)
+void Get_LogicBlockCenter(LogicBlock* block, vec3 result)
 {
     
 }
 
-int Has_SpecialRender(LogicBlock block)
+int Has_SpecialRender(LogicBlock* block)
 {
-    return block.blockType & (1 << 23);
+    return block->blockType & (1 << 23);
 }
 
 void Render_SpecialBlock(LogicBlock* block, mat4 prev)
@@ -61,7 +61,7 @@ void Render_Grid(PartStructureGrid* grid, mat4 prev)
     //printf("Start render grid logic\n");
     for (int i = 0; i < grid->logicBlockCount; i++)
     {
-        if (Has_SpecialRender(grid->logicBlocks[i]))
+        if (Has_SpecialRender(&grid->logicBlocks[i]))
         {
             Render_SpecialBlock(&grid->logicBlocks[i], prev);
         }        
