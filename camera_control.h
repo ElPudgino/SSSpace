@@ -2,6 +2,7 @@
 #define CAMERA_CONTROL
 
 #include "transform_utils.h"
+#include "ship.h"
 
 typedef enum
 {
@@ -29,7 +30,11 @@ void Get_CameraGlobalRotation(float q[4]);
 
 void Get_CameraMatrix(mat4 mtrx);
 
-void Set_CameraOrbit(Transform* tr);
+void Set_CameraOrbit(Ship* tr);
+
+Ship* Get_CurrentCameraFocus();
+
+Transform* Get_CameraParent();
 
 double Get_OrbitCameraVelocity();
 

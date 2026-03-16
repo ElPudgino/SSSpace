@@ -161,7 +161,7 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
     for (int i = 0; i < grid->logicBlockCount;i++)
     {
         LogicBlock b = grid->logicBlocks[i];
-        if (!Has_SpecialRender(b))
+        if (!Has_SpecialRender(&b))
         {
             Add_ModelToPart(grid, GetBlockModel(b.blockType, Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], Get_BlockRotation(b.blockType));
         }

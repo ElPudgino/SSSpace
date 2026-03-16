@@ -33,10 +33,10 @@ typedef struct _BaseSectorData
 typedef struct _Sector
 {
     uint32_t* hashtable;
-    Object** objects; // partitioned
+    Ship** objects; // partitioned
     uint32_t objects_count;
     uint32_t objects_cap;
-    Object** rawObjects; // full unsorted array
+    Ship** rawObjects; // full unsorted array
     uint32_t rawObjects_count;
     uint32_t rawObjects_cap;
 } Sector;
@@ -45,8 +45,10 @@ Sector* Init_Sector();
 
 void Render_Sector(EngineState* engineState, Sector* sector);
 
-void Hash_ObjectArray(Sector* sector, Object** objects, uint32_t objcount);
+void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount);
 
 void Get_ObjectArrInPartition(Sector* sector, vec3 pos, uint16_t* ind, uint16_t* cnt);
+
+void Tick_Sector(Sector* sector);
 
 #endif

@@ -41,6 +41,38 @@ void Ctrl_OrbitCamBackward()
     Set_CameraLocalPosition(pos);
 }
 
+void _test_Ctrl_force_direct()
+{
+    Ship* s = Get_CurrentCameraFocus();
+    vec3 p;
+    vec3 dir = {};
+    glm_vec3_zero(p);
+    dir[0] = 8.0;
+    Apply_Impulse(&s->rb, dir, p);
+}
+
+void _test_Ctrl_force_directb()
+{
+    Ship* s = Get_CurrentCameraFocus();
+    vec3 p;
+    vec3 dir = {};
+    glm_vec3_zero(p);
+    dir[0] = -8.0;
+    Apply_Impulse(&s->rb, dir, p);
+}
+
+void _test_Ctrl_force_twist()
+{
+    Ship* s = Get_CurrentCameraFocus();
+    vec3 p = {};
+    vec3 dir = {};
+    p[0] = 3;
+    p[1] = 3;
+    dir[1] = 5.0;
+    Apply_Impulse(&s->rb, dir, p);
+}
+
+
 int Register_Controls()
 {
     Init_Controls();
@@ -52,6 +84,9 @@ int Register_Controls()
     Add_Control(NULL, NULL, Ctrl_FreeCamDown, SDLK_LSHIFT, "Down");
     Add_Control(NULL, NULL, Ctrl_OrbitCamForward, SDLK_W, "OrbitForward");
     Add_Control(NULL, NULL, Ctrl_OrbitCamBackward, SDLK_S, "OrbitBackward");
+    Add_Control(NULL, NULL, _test_Ctrl_force_direct, SDLK_UP, "testForceDirect");
+    Add_Control(NULL, NULL, _test_Ctrl_force_directb, SDLK_DOWN, "testForceDirectB");
+    Add_Control(NULL, NULL, _test_Ctrl_force_twist, SDLK_T, "testForceTwist");
     return 0;
 }
 

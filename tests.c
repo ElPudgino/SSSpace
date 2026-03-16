@@ -48,6 +48,12 @@ void create_testshipbp(EngineState* engineState)
         }
     }
 
+    glm_mat3_copy(GLM_MAT3_IDENTITY, shipBp->rb.baseInertiaTensor);
+    glm_mat3_scale(shipBp->rb.baseInertiaTensor, 1000);
+    glm_mat3_inv(shipBp->rb.baseInertiaTensor, shipBp->rb.invBaseInertiaTensor);
+    shipBp->rb.baseMass = 1000.0;
+    //shipBp->rb.baseCenterOfMass = 
+
     Generate_MeshForGrid(grid);
     Calc_ShipBB(shipBp);
 }

@@ -1,5 +1,6 @@
 #include "camera_control.h"
 
+
 Transform* CameraTransform = NULL;
 double BaseCameraVelocity = 0.015;
 double BaseCameraAngularVelocity = 0.01;
@@ -7,6 +8,7 @@ double BaseCameraAngularVelocity = 0.01;
 // these are euler angles
 float CameraAngles[3] = {0,0,0};
 CameraMode CurrentCameraMode = CAM_MODE_FREE;
+Ship* CurrentFocus;
  
 void Get_CameraMatrix(mat4 mtrx)
 {
@@ -49,14 +51,20 @@ void Get_CameraGlobalPosition(double dest[3])
     }
 }
 
-void Set_CameraOrbit(Transform* tr)
+void Set_CameraOrbit(Ship* tr)
 {
     assert(tr);
-    CameraTransform->parent = tr;
+    CurrentFocus = tr;
+    CameraTransform->parent = &tr->model.rootPart->localTransform;
     CameraTransform->pos[0] = 0;
     CameraTransform->pos[1] = 0;
     CameraTransform->pos[2] = -16;
     CurrentCameraMode = CAM_MODE_ORBIT;
+}
+
+Ship* Get_CurrentCameraFocus()
+{
+    return CurrentFocus;
 }
 
 void Get_CameraGlobalRotation(float q[4])
@@ -150,6 +158,11 @@ double Get_FreeCameraVelocity()
 float Get_CameraAngularVelocity()
 {
     return BaseCameraAngularVelocity;
+}
+
+Transform* Get_CameraParent()
+{
+    return CameraTransform->parent;
 }
 
 int Init_Camera()

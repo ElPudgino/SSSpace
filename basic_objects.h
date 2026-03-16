@@ -5,20 +5,6 @@
 #include "mesh_utils.h"
 #include "transform_utils.h"
 
-typedef enum 
-{
-    OBJ_SHIP,
-    OBJ_PROJ
-} ObjType;
-
-// When allocating something, allocate sizeof(Object) + sizeof(something)
-// Store something with offset of sizeof(Object)
-typedef struct _Object
-{
-    ObjType type;
-    uint16_t lastInteractionId;
-} Object;
-
 enum
 {
     PART_TYPE_GRID,

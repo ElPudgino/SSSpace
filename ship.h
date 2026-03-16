@@ -2,9 +2,7 @@
 #define GAME_SHIP
 
 #include "libs.h"
-#include "physical_body.h"
-
-
+#include "physics.h"
 
 typedef struct _Model
 {
@@ -49,12 +47,14 @@ typedef struct _ShipBP
 {
     Model model;
     float BB[3];
+    RigidBody rb;
 } ShipBP;
 
 typedef struct _Ship
 {
     ShipBP* BP;
     Model model;
+    RigidBody rb;
 } Ship;
 
 uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
@@ -69,7 +69,7 @@ int Has_SpecialRender(LogicBlock* block);
 
 void Render_Ship(Ship* ship, mat4 tr);
 
-Object* Create_ShipFromBP(ShipBP* bp);
+Ship* Create_ShipFromBP(ShipBP* bp);
 
 void Delete_Ship(Ship* ship);
 
@@ -78,7 +78,5 @@ void Delete_ShipBP(ShipBP* bp);
 float Get_ShipBBsize(Ship* ship);
 
 void Calc_ShipBB(ShipBP* bp);
-
-void Delete_Object(Object* obj);
 
 #endif

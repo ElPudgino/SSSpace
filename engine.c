@@ -12,7 +12,7 @@
 // Testing
 Mesh* testmesh = NULL;
 InstancedRenderData testdata = {};
-Object* testship = NULL;
+Ship** testships = NULL;
 
 Mesh* get_testmesh(EngineState* engineState)
 {
@@ -40,12 +40,28 @@ void _Testing(EngineState* engineState)
 {
     create_testsector();
     create_testshipbp(engineState);
-    printf("Created test ship BP\n");
-    testship = Create_ShipFromBP(get_testbp());
-    printf("Created ship from BP\n");
-    get_testsector()->rawObjects[0] = testship;
-    get_testsector()->rawObjects_count = 1;
-    Set_CameraOrbit(&((Ship*)(testship+1))->model.rootPart->localTransform);
+    printf("Created test ship BP\n"); 
+    testships = (Ship**)calloc(9, sizeof(Ship*));
+    int ind = 0;
+    double pos[3] = {};
+    for (int x = -1; x < 2; x++)
+    {
+        for (int y = -1; y < 2; y++)
+        {
+            Ship* s = Create_ShipFromBP(get_testbp());
+            testships[ind] = s;
+            pos[0] = x*30;
+            pos[1] = y*30;
+            printf("calc pos\n");
+            Copy_dVec(pos, s->model.rootPart->localTransform.pos);
+            printf("adding to sector\n");
+            get_testsector()->rawObjects[ind] = s;
+            ind++;
+        }
+    }
+    printf("Created ships from BP\n");
+    get_testsector()->rawObjects_count = 9;
+    Set_CameraOrbit(testships[4]);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -168,6 +184,8 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     */
 	vkQueuePresentKHR(engineState->queueHandles._Present, &presentInfo);
 
+    Tick_Sector(get_testsector());
+
     return 0;
 }
 
@@ -219,7 +237,11 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-    Delete_Object(testship);
+    for (int i = 0; i < 8;i++)
+    {
+        Delete_Ship(testships[i]);
+    }
+    free(testships);
     Delete_ShipBP(get_testbp());
     printf("%ld\n",frameCount);
     printf("Closing\n");

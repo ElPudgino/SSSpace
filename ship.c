@@ -191,14 +191,17 @@ void _Create_ShipPart(Part* ship, Part* bp)
     }
 }
 
-Object* Create_ShipFromBP(ShipBP* bp)
+Ship* Create_ShipFromBP(ShipBP* bp)
 {
-    Object* res = (Object*)calloc(1, sizeof(Object) + sizeof(Ship));
-    Ship* s = (Ship*)(res + 1);
-    s->BP = bp;
-    s->model.rootPart = (Part*)calloc(1, sizeof(Part));
+    Ship* res = (Ship*)calloc(1, sizeof(Ship));
+    res->BP = bp;
+    res->model.rootPart = (Part*)calloc(1, sizeof(Part));
+    res->rb = bp->rb;
 
-    _Create_ShipPart(s->model.rootPart, bp->model.rootPart);
+    _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
+
+    res->rb.root = &res->model.rootPart->localTransform;
+    printf("Created ship from bp\n");
     return res;
 }
 
@@ -232,15 +235,19 @@ void Delete_Ship(Ship* ship)
     _Delete_ShipPart(ship->model.rootPart);
 
     free(ship->model.rootPart);
+    free(ship);
 }
 
 void _Delete_ShipBPPart(Part* part)
 {
+    assert(part);
     for (int i = 0; i < part->childrenCount; i++)
     {
         _Delete_ShipPart(&part->children[i]);
     }
-    Delete_PartStructure(part->structure);
+    // A ship may have mutiple parts of the same type
+    // Cant delete them like this
+    // Delete_PartStructure(part->structure);
     free(part->children);
 }
 
@@ -250,20 +257,4 @@ void Delete_ShipBP(ShipBP* bp)
 
     free(bp->model.rootPart);
     free(bp);
-}
-
-void Delete_Object(Object* obj)
-{   
-    assert(obj);
-    Object* p = obj + 1;
-    switch (obj->type)
-    {
-        case OBJ_SHIP:
-            Delete_Ship((Ship*)p);
-            break;
-        
-        default:
-            break;
-    }
-    free(obj);
 }

@@ -1,5 +1,6 @@
 #include "sector.h"
 #include "camera_control.h"
+#include "physics.h"
 
 #define HASH_CONST_A 3547361
 #define HASH_CONST_B 7165167
@@ -9,9 +10,9 @@ Sector* Init_Sector()
 {
     Sector* s = (Sector*)calloc(1, sizeof(Sector));
     s->hashtable = (uint32_t*)calloc(SECTOR_HT_SIZE, sizeof(uint32_t));
-    s->objects = (Object**)calloc(SECTOR_OBJLIST_BASESIZE, sizeof(Object*));
+    s->objects = (Ship**)calloc(SECTOR_OBJLIST_BASESIZE, sizeof(Ship*));
     s->objects_cap = SECTOR_OBJLIST_BASESIZE;
-    s->rawObjects = (Object**)calloc(SECTOR_OBJLIST_BASESIZE, sizeof(Object*));
+    s->rawObjects = (Ship**)calloc(SECTOR_OBJLIST_BASESIZE, sizeof(Ship*));
     s->rawObjects_cap = SECTOR_OBJLIST_BASESIZE;
     return s;
 }
@@ -23,56 +24,29 @@ Sector* Init_Sector()
 * Important: objects can be in multiple chunks simultaneusly
 */
 
-void Get_ObjectBBsize(Object* obj, double bb[3])
+void _Get_ObjectBBsize(Ship* obj, double bb[3])
 {
     assert(obj);
-    Object* p = obj + 1;
-    float a = 0;
-    switch (obj->type)
-    {
-        case OBJ_SHIP:
-            a = Get_ShipBBsize((Ship*)p);
-            bb[0] = (double)a;
-            bb[1] = (double)a;
-            bb[2] = (double)a;
-            break;
-        
-        default:
-            break;
-    }
+
+    float a = Get_ShipBBsize(obj);
+    bb[0] = (double)a;
+    bb[1] = (double)a;
+    bb[2] = (double)a;
+
 }
 
-void Get_ObjectPos(Object* obj, double pos[3])
+void _Get_ObjectPos(Ship* obj, double pos[3])
 {
     assert(obj);
-    Object* p = obj + 1;
-    switch (obj->type)
-    {
-        case OBJ_SHIP:
-            Copy_dVec(((Ship*)p)->model.rootPart->localTransform.pos, pos);
-            // Get global pos
-            break;
-        
-        default:
-            break;
-    }
+    Copy_dVec((obj)->model.rootPart->localTransform.pos, pos);
+
 }
 
-void Render_Object(Object* obj, mat4 projview, double fwd[3])
+void Render_Object(Ship* obj, mat4 projview, double fwd[3])
 {
     assert(obj);
-    Object* p = obj + 1;
-    switch (obj->type)
-    {
-        case OBJ_SHIP:
-            // Get global pos
-            // Cull in Render_Ship() function
-            Render_Ship((Ship*)p, projview);
-            break;
-        
-        default:
-            break;
-    }
+    // TODO: frustum culling
+    Render_Ship(obj, projview);
 }
 
 void Render_Sector(EngineState* engineState, Sector* sector)
@@ -95,6 +69,10 @@ void Render_Sector(EngineState* engineState, Sector* sector)
 
 void Tick_Sector(Sector* sector)
 {
+    for (int i = 0; i < sector->rawObjects_count; i++)
+    {
+        Apply_Velocities(&sector->rawObjects[i]->rb, 0.003F);
+    }
     Hash_ObjectArray(sector, sector->rawObjects, sector->rawObjects_count);
 }
 
@@ -114,7 +92,7 @@ uint32_t _HashFunc(double pos[3])
     return _HashFuncChunkInt(_PartPos(pos[0]), _PartPos(pos[1]), _PartPos(pos[2]));
 }
 
-void Hash_ObjectArray(Sector* sector, Object** objects, uint32_t objcount)
+void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount)
 {
     assert(sector);
     assert(objects);
@@ -133,8 +111,8 @@ void Hash_ObjectArray(Sector* sector, Object** objects, uint32_t objcount)
     // Can probably be improved
     for (int i = 0; i < objcount; i++)
     {
-        Get_ObjectPos(objects[i], pos);
-        Get_ObjectBBsize(objects[i], bb);
+        _Get_ObjectPos(objects[i], pos);
+        _Get_ObjectBBsize(objects[i], bb);
         corners[0] = _PartPos(pos[0] - bb[0]); 
         corners[1] = _PartPos(pos[1] - bb[1]);
         corners[2] = _PartPos(pos[2] - bb[2]); 
@@ -173,8 +151,8 @@ void Hash_ObjectArray(Sector* sector, Object** objects, uint32_t objcount)
     // add objects to array
     for (int i = 0; i < objcount; i++)
     {
-        Get_ObjectPos(objects[i], pos);
-        Get_ObjectBBsize(objects[i], bb);
+        _Get_ObjectPos(objects[i], pos);
+        _Get_ObjectBBsize(objects[i], bb);
         corners[0] = _PartPos(pos[0] - bb[0]); 
         corners[1] = _PartPos(pos[1] - bb[1]);
         corners[2] = _PartPos(pos[2] - bb[2]); 
