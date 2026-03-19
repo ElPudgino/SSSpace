@@ -49,16 +49,6 @@ BlockSide Get_Adjacent(BlockGrid g, uint32_t x, uint32_t y, uint32_t z);
 */
 void Add_ModelToPart(PartStructureGrid* grid, BlockModel* bmodel,uint32_t posx,uint32_t posy,uint32_t posz,BlockRotation rot);
 
-/*! @brief Creates new instance of PartStructureGrid
-* Internal arrays are allocated
-* @param engineState Main engine state
-*/
-PartStructureGrid* Create_PartStructureGrid(EngineState* engineState);
 
-/*! @brief Destroy PartStructureGrid and its arrays
-* Frees its internal arrays and invalidates TransformArray of its mesh
-* @param grid Target grid
-*/
-void Destroy_StructureGrid(PartStructureGrid* grid);
 
 #endif

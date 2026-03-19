@@ -69,6 +69,7 @@ void _test_Ctrl_force_twist()
     p[0] = 3;
     p[1] = 3;
     dir[1] = 5.0;
+    dir[2] = 3.0;
     Apply_Impulse(&s->rb, dir, p);
 }
 

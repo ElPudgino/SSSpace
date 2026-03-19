@@ -65,8 +65,6 @@ void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t
 
 Part* Create_Part(void* structure);
 
-int Has_SpecialRender(LogicBlock* block);
-
 void Render_Ship(Ship* ship, mat4 tr);
 
 Ship* Create_ShipFromBP(ShipBP* bp);

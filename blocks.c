@@ -11,14 +11,6 @@ void _Init_Cube()
     cube->mat = GetMaterial_Test();
 }
 
-int Destroy_BlockModels(EngineState* engineState)
-{
-    free(cube->indices);
-    free(cube->vertices);
-    free(cube);
-    return 1;
-}
-
 BlockModel* Get_CubeModel(uint32_t sides)
 {
     // Reduce vertex count to 8 when everything else works
@@ -27,10 +19,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
 
     if ((~sides) & SIDE_Xp)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){1.0,0.0,0.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,1.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){1.0,1.0,0.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){1.0,0.0,0.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,1.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){1.0,1.0,0.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -42,10 +34,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
     if ((~sides) & SIDE_Xn)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){0.0,0.0,1.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,0.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){0.0,1.0,1.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){0.0,0.0,1.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,0.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){0.0,1.0,1.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -57,10 +49,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
     if ((~sides) & SIDE_Yp)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,1.0,0.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,1.0,0.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,1.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,1.0,0.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,1.0,0.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,1.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -72,10 +64,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
     if ((~sides) & SIDE_Yn)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,0.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,0.0,1.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,0.0,1.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,0.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,0.0,1.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,0.0,1.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -87,10 +79,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
     if ((~sides) & SIDE_Zp)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,1.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,1.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,1.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,1.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,1.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,1.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,1.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -102,10 +94,10 @@ BlockModel* Get_CubeModel(uint32_t sides)
     }
     if ((~sides) & SIDE_Zn)
     {
-        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0};
-        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,0.0};
-        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,0.0};
-        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,0.0};
+        cube->vertices[0+cube->vertexCount] = (Vertex){0.0,0.0,0.0, 0.0, 0.0,0.0, 0.0,0.0};
+        cube->vertices[1+cube->vertexCount] = (Vertex){1.0,0.0,0.0, 0.0, 0.0,0.0, 1.0,0.0};
+        cube->vertices[2+cube->vertexCount] = (Vertex){0.0,1.0,0.0, 0.0, 0.0,0.0, 0.0,1.0};
+        cube->vertices[3+cube->vertexCount] = (Vertex){1.0,1.0,0.0, 0.0, 0.0,0.0, 1.0,1.0};
         cube->indices[0+cube->indexCount] = 0 + cube->vertexCount;
         cube->indices[1+cube->indexCount] = 1 + cube->vertexCount;
         cube->indices[2+cube->indexCount] = 2 + cube->vertexCount;
@@ -116,6 +108,7 @@ BlockModel* Get_CubeModel(uint32_t sides)
         cube->vertexCount += 4;
     }
 
+
     return cube;
 }
 
@@ -123,4 +116,12 @@ int Init_Blocks()
 {
     _Init_Cube();
     return 0;
+}
+
+int Destroy_BlockModels(EngineState* engineState)
+{
+    free(cube->indices);
+    free(cube->vertices);
+    free(cube);
+    return 1;
 }

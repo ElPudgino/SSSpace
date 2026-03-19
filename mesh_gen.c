@@ -79,18 +79,6 @@ void _addArrays(Mesh* mesh, BlockModel* bmodel, float x, float y, float z, Block
     }    
 }
 
-PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
-{
-    PartStructureGrid* res = (PartStructureGrid*)calloc(1, sizeof(PartStructureGrid));
-    res->matCap = 1;
-    res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
-    res->logicBlocks = (LogicBlock*)calloc(8, sizeof(LogicBlock));
-    res->logicBlockCap = 8;
-    res->structureType = PART_TYPE_GRID;
-    res->engineState = engineState;
-    return res;
-}
-
 void Set_GridToStructure(PartStructureGrid* structure, BlockGrid grid)
 {
     structure->grid = grid;
@@ -174,24 +162,4 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
         Mesh_UploadData(grid->renderDatas[i]->mesh);
     }
     printf("Done generating mesh for grid\n");
-}
-
-void Destroy_StructureGrid(PartStructureGrid* grid)
-{
-    free(grid->grid.array);
-    if (grid->logicBlocks) free(grid->logicBlocks);
-    for (int i = 0; i < grid->matCount; i++)
-    {
-        Destroy_TransformArray(grid->renderDatas[i]);
-    }
-
-    if (grid->renderDatas) 
-    {
-        for (int i = 0; i < grid->matCount; i++)
-        {
-            free(grid->renderDatas[i]);
-        }
-        free(grid->renderDatas);
-    }
-    free(grid);
 }

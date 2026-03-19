@@ -32,48 +32,6 @@ Part* Create_Part(void* structure)
     return res;
 }
 
-// Block may be bigger than 1 by 1
-void Get_LogicBlockCenter(LogicBlock* block, vec3 result)
-{
-    
-}
-
-int Has_SpecialRender(LogicBlock* block)
-{
-    return block->blockType & (1 << 23);
-}
-
-void Render_SpecialBlock(LogicBlock* block, mat4 prev)
-{
-
-}
-
-void Render_Grid(PartStructureGrid* grid, mat4 prev)
-{
-    assert(grid);
-    //printf("Start render grid\n");
-    for (int i = 0; i < grid->matCount; i++)
-    {
-        assert(grid->renderDatas[i]->material);
-        assert(grid->renderDatas[i]->mesh);
-        Add_InstanceToRender(grid->renderDatas[i], prev);
-    }
-    //printf("Start render grid logic\n");
-    for (int i = 0; i < grid->logicBlockCount; i++)
-    {
-        if (Has_SpecialRender(&grid->logicBlocks[i]))
-        {
-            Render_SpecialBlock(&grid->logicBlocks[i], prev);
-        }        
-    }
-}
-
-void Render_SimpleMesh(PartStructureSimpleMesh* sm, mat4 prev)
-{
-    assert(sm);
-    Add_InstanceToRender(sm->renderData, prev);
-}
-
 void Render_Part(Part* part, mat4 prev)
 {
     assert(part);
@@ -90,6 +48,9 @@ void Render_Part(Part* part, mat4 prev)
             break;
         case PART_TYPE_SIMPLE_MESH:
             Render_SimpleMesh((PartStructureSimpleMesh*)part->structure, cur);
+            break;
+        case PART_TYPE_MULTI_MESH:
+            Render_MultiMesh((PartStructureMultiMesh*)part->structure, cur);
             break;
         default:
             break;
@@ -207,14 +168,23 @@ Ship* Create_ShipFromBP(ShipBP* bp)
 
 void Delete_PartStructure(void* structure)
 {
-    PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)structure;
-    switch (p.structureType)
+    uint32_t p = (*(PartStructureSimpleMesh*)structure).structureType;
+    switch (p)
     {
         case PART_TYPE_GRID:
             Destroy_StructureGrid((PartStructureGrid*)structure);
             break;
         case PART_TYPE_SIMPLE_MESH:
-            //
+            Destroy_TransformArray(((PartStructureSimpleMesh*)structure)->renderData);
+            free(structure);
+            break;
+        case PART_TYPE_MULTI_MESH:
+            for (int i = 0; i < ((PartStructureMultiMesh*)structure)->matCount; i++)
+            {
+                Destroy_TransformArray(((PartStructureMultiMesh*)structure)->renderDatas[i]);
+            }
+            free(((PartStructureMultiMesh*)structure)->renderDatas);
+            free(structure);
             break;
         default:
             break;
