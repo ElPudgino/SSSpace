@@ -47,13 +47,15 @@ typedef struct _ShipBP
 {
     Model model;
     float BB[3];
+    size_t logicBlockDataLength;
     RigidBody rb;
 } ShipBP;
 
 typedef struct _Ship
 {
-    ShipBP* BP;
+    ShipBP* BP; 
     Model model;
+    void* logicBlockData;
     RigidBody rb;
 } Ship;
 

@@ -3,6 +3,7 @@
 #include "mesh_utils.h"
 #include "basic_objects.h"
 #include "asset_loader.h"
+#include "dirent.h"
 
 //#include <stb_image.h>
 
@@ -55,6 +56,7 @@ int _Load_Obj(const char* filename, objData* data)
         if (buf[0] == '#' || buf[0] == ' ' || buf[0] == '\n') continue;
         if (buf[0] == 'm' && sscanf(buf, "mtllib %s", data->mtllib)) continue;
         if (buf[0] == 'u' && sscanf(buf, "usemtl %s", sm.matName)) continue;
+        if (buf[0] == 's') continue; // smooth shading; not supported now
         if (buf[0] == 'o' && sscanf(buf, "o %s", data->name))
         {
             sm.len = facecount - sm.startInd;
@@ -204,5 +206,29 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
         ((PartStructureMultiMesh*)part)->matCount = data.submeshCount;
     }
     *partStructure = part;
+}
 
+char* fileNameBuf[256];
+
+int Load_Models(EngineState* engineState)
+{
+    if (Init_ModelTable()) return printf("!Failed to init model table\n"), 1;
+
+    DIR* dr;
+    struct dirent* de;
+
+    dr = opendir("assets/models");
+
+    if (!dr) return printf("!Failed to open meshes directory\n"), 1;
+
+    void* model = NULL;
+    while (de = readdir(dr))
+    {
+        if (de->d_name[0] == '.') continue;
+        snprintf(fileNameBuf, 256, "assets/models/%s", de->d_name);
+        Load_PartModelFromObj(engineState, fileNameBuf, &model);
+        ModelTable_Set_Model(de->d_name, de->d_name);
+    }
+    closedir(dr);
+    
 }

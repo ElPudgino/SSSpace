@@ -3,25 +3,6 @@
 
 #include "ship.h"
 
-typedef enum
-{
-    SIDE_Xp = 1,
-    SIDE_Xn = 2,
-    SIDE_Yp = 4,
-    SIDE_Yn = 8,
-    SIDE_Zp = 16,
-    SIDE_Zn = 32
-} BlockSide;
-
-typedef struct _BlockModel
-{
-    Vertex* vertices;
-    uint32_t vertexCount;
-    uint32_t* indices;
-    uint32_t indexCount;
-    Material* mat;
-} BlockModel;
-
 /*! @brief Uses blocks from grid to generate its mesh
 * Should not be called twice on the same grid without destroying its InstancedRenderDatas
 * Uploads newly generated meshes

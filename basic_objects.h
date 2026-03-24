@@ -48,12 +48,35 @@ typedef struct _Block
     BlockType blockType;
 } Block;
 
+// Any logic is in logic blocks:
+// A turret is logic block, which has a special render
+
 typedef struct _LogicBlock
 {
-    BlockType blockType;
     void* data;
-    uint32_t pos[3]; 
+    short pos[3]; 
+    BlockRotation rot;
+    uint32_t defIndex;
 } LogicBlock;
+
+typedef enum
+{
+    SIDE_Xp = 1,
+    SIDE_Xn = 2,
+    SIDE_Yp = 4,
+    SIDE_Yn = 8,
+    SIDE_Zp = 16,
+    SIDE_Zn = 32
+} BlockSide;
+
+typedef struct _BlockModel
+{
+    Vertex* vertices;
+    uint32_t vertexCount;
+    uint32_t* indices;
+    uint32_t indexCount;
+    Material* mat;
+} BlockModel;
 
 typedef struct _BlockGrid
 {

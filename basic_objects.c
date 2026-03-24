@@ -1,22 +1,24 @@
 #include "basic_objects.h"
+#include "assets.h"
 
 // Block may be bigger than 1 by 1
 // result in local coords
-void Get_LogicBlockCenter(LogicBlock* block, vec3 result)
+void Get_LogicBlockCenter(LogicBlock block, vec3 result)
 {
     
 }
 
 // If block has special render dont add it to ship mesh; 
 // Render it separately instead
-int Has_SpecialRender(LogicBlock* block)
+int Has_SpecialRender(LogicBlock block)
 {
-    return block->blockType & (1 << 23);
+    return !!Get_LogicBlockDef(block.defIndex)->render;
 }
 
-void Render_SpecialBlock(LogicBlock* block, mat4 prev)
+void Render_SpecialBlock(LogicBlock block, mat4 prev)
 {
-
+    LogicBlockDef* def = Get_LogicBlockDef(block.defIndex);
+    def->render(block.data, def->staticData, prev);
 }
 
 PartStructureMultiMesh* Create_PartStructureMultiMesh()
@@ -56,11 +58,14 @@ void Render_Grid(PartStructureGrid* grid, mat4 prev)
         Add_InstanceToRender(grid->renderDatas[i], prev);
     }
     //printf("Start render grid logic\n");
+    mat4 copy;
     for (int i = 0; i < grid->logicBlockCount; i++)
     {
-        if (Has_SpecialRender(&grid->logicBlocks[i]))
+        LogicBlock b = grid->logicBlocks[i];
+        if (Has_SpecialRender(b))
         {
-            Render_SpecialBlock(&grid->logicBlocks[i], prev);
+            glm_mat4_mul(prev,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{(float)b.pos[0],(float)b.pos[1],(float)b.pos[2],1}},copy);
+            Render_SpecialBlock(b, copy);
         }        
     }
 }

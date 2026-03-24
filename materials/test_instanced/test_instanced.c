@@ -15,8 +15,13 @@ Material* Test_Instanced_Mat_Build(EngineState* engineState)
     MatBuilder_SetVertexShader(builder, vertex);
     printf("Set shaders\n");
     MatBuilder_AddParameter(builder, sizeof(MeshParameter), VK_SHADER_STAGE_VERTEX_BIT);
+    MatBuilder_AddImageSlot(builder, 0, VK_SHADER_STAGE_FRAGMENT_BIT);
 
     Material* mat = Finish_MaterialBuilder(builder);
+
+    ImageData tex = {};
+
+    //Material_SetImageSlot(mat, 0, );
     printf("Finished builder\n");
     //float val = 0.5f;
     //Material_SetParameter(mat, 0, &val);

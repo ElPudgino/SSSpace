@@ -2,6 +2,7 @@
 #include "transform_utils.h"
 #include "ship.h"
 #include "blocks.h"
+#include "assets.h"
 
 BlockModel* GetBlockModel(uint32_t type, uint32_t visible_sides)
 {
@@ -149,9 +150,10 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
     for (int i = 0; i < grid->logicBlockCount;i++)
     {
         LogicBlock b = grid->logicBlocks[i];
-        if (!Has_SpecialRender(&b))
+        LogicBlockDef* def = Get_LogicBlockDef(b.defIndex);
+        if (def->modelGetter)
         {
-            Add_ModelToPart(grid, GetBlockModel(b.blockType, Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], Get_BlockRotation(b.blockType));
+            Add_ModelToPart(grid, def->modelGetter(Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], b.rot);
         }
     }
 

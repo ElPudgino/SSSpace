@@ -1,6 +1,7 @@
 #include "ship.h"
 #include "mesh_gen.h"
 #include "sector.h"
+#include "assets.h"
 
 void Set_PartTransform(Part* part, Transform* tr)
 {
@@ -39,7 +40,9 @@ void Render_Part(Part* part, mat4 prev)
     PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)part->structure;
     //printf("got part structure\n");
     mat4 cur;
+    mat4 copy;
     Get_LocalRenderTransformMatrix(&part->localTransform, cur);
+    glm_mat4_copy(cur, copy);
     glm_mat4_mul(prev, cur, cur);
     switch (p.structureType)
     {
@@ -58,6 +61,7 @@ void Render_Part(Part* part, mat4 prev)
     for (int i = 0; i< part->childrenCount; i++)
     {
         Render_Part(&part->children[i], cur);
+        glm_mat4_copy(copy, cur);
     }
     //printf("Finish render part\n");
 }
@@ -152,12 +156,33 @@ void _Create_ShipPart(Part* ship, Part* bp)
     }
 }
 
+// Logic blocks are only stored in BP
+// Their instance data is stored in ship instances
+// void* data in logicblocks are offsets, added to the start of instance data array
+void ShipBP_Add_LogicBlock(ShipBP bp, PartStructureGrid* part, LogicBlockDef* def, short pos[3], BlockRotation rot)
+{
+    if (part->logicBlockCount == part->logicBlockCap)
+    {
+        part->logicBlocks = (LogicBlock*)realloc(part->logicBlocks, 2*part->logicBlockCap*sizeof(LogicBlock));
+    }
+    part->logicBlocks[part->logicBlockCount] = (LogicBlock){.data = def->instanceDataSize ,.defIndex = def->ID, .pos = pos, .rot = rot};
+    bp.logicBlockDataLength += def->instanceDataSize;
+}
+// Slightly cursed, but the main idea is here
+void* Get_LogicBlockData(Ship* ship, LogicBlock block)
+{
+    return (void*)((char*)ship->logicBlockData + (size_t)block.data);
+}
+
+// Create an array to hold logicblock data from the entire ship
 Ship* Create_ShipFromBP(ShipBP* bp)
 {
     Ship* res = (Ship*)calloc(1, sizeof(Ship));
     res->BP = bp;
     res->model.rootPart = (Part*)calloc(1, sizeof(Part));
     res->rb = bp->rb;
+    res->logicBlockData = calloc(1, bp->logicBlockDataLength); 
+    assert(res->logicBlockData);
 
     _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
 

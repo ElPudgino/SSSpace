@@ -32,4 +32,6 @@ typedef struct _objData
     uint32_t submeshCount;
 } objData;
 
+void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStructure);
+
 #endif
