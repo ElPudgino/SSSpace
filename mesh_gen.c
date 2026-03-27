@@ -3,6 +3,7 @@
 #include "ship.h"
 #include "blocks.h"
 #include "assets.h"
+#include "debug.h"
 
 BlockModel* GetBlockModel(uint32_t type, uint32_t visible_sides)
 {
@@ -150,16 +151,18 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
     for (int i = 0; i < grid->logicBlockCount;i++)
     {
         LogicBlock b = grid->logicBlocks[i];
-        LogicBlockDef* def = Get_LogicBlockDef(b.defIndex);
+        const LogicBlockDef* def = Get_LogicBlockDef(b.defIndex);
         if (def->modelGetter)
         {
             Add_ModelToPart(grid, def->modelGetter(Get_Adjacent(g, b.pos[0] ,b.pos[1] ,b.pos[2])),b.pos[0],b.pos[1],b.pos[2], b.rot);
         }
     }
 
+    
     printf("Uploading meshes, %d\n", grid->matCount);
     for (int i = 0; i < grid->matCount; i++)
     {
+        Debug_ValidateAssert_Mesh(grid->renderDatas[i]->mesh);
         Add_TransformArray(grid->renderDatas[i]);
         Mesh_UploadData(grid->renderDatas[i]->mesh);
     }

@@ -14,14 +14,14 @@ struct _hashentry {
 int ht_init(HashTable* ht, size_t cap, hash_func hash,
 							hash_copy copy, hash_equal eq,
 							hash_free free) {
-	HashEntry** table = calloc(cap, sizeof(HashEntry*));
+	HashEntry** table = (HashEntry**)calloc(cap, sizeof(HashEntry*));
 	if ( !table ) return ht_error("Cannot allocate memory %s\n", "err");
 	*ht = (HashTable){cap, 0, 0, hash, copy, eq, free, table};
 	return 0;
 }
 
 static int _rehash(HashTable* ht) {
-	HashEntry** nt = calloc(ht->cap*2, sizeof(HashEntry*));
+	HashEntry** nt = (HashEntry**)calloc(ht->cap*2, sizeof(HashEntry*));
 	if ( !nt ) return ht_error("Cannot allocate new memory\n");
 	size_t cap2 = ht->cap*2;
 	size_t lmax = 0;
@@ -55,7 +55,7 @@ int ht_set(HashTable* ht, const void* kv) {
 			return 0;
 		}
 	}
-	if ( !(*e = malloc(sizeof(HashEntry))))
+	if ( !(*e = (HashEntry*)malloc(sizeof(HashEntry))))
 		return ht_error("Cannot allocate element\n");
 	ht->size++;
 	return **e = (HashEntry){hv, ht->copy(kv), NULL}, 0;

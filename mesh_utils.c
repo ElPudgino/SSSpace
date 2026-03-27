@@ -117,6 +117,7 @@ void Mesh_UploadData(Mesh* mesh)
     //printf("vert: %d %d %d\n", testarr[0], testarr[1], testarr[2]);
 } 
 
+
 void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat)
 {
     assert(mesh);

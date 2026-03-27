@@ -15,10 +15,12 @@ void _Call_Init(LogicBlockDef (*init)())
     blockDefs[def.ID] = def;
 }
 
-void Load_LogicBlockDefs()
+int Load_LogicBlockDefs()
 {
     blockDefs = (LogicBlockDef*)calloc(LOGIC_BLOCK_ID_COUNT, sizeof(LogicBlockDef));
+    if (!blockDefs) return 1;
     _Call_Init(BlockDef_Cannon_Block);
+    return 0;
 }
 
 const LogicBlockDef* Get_LogicBlockDef(uint32_t index)

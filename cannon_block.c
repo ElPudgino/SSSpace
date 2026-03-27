@@ -21,13 +21,15 @@ typedef struct _instance_data
 // !! prev must not be changed
 void _Render(void* instance, void* staticdata, mat4 prev)
 {
+    //printf("rendering b\n");
     static_data* sd = (static_data*)staticdata;
     instance_data* id = (instance_data*)instance;
+    //printf("instdata: %f, %f, %f\n", id->angleX, id->angleY, id->CurRecoil);
     Render_SimpleMesh(sd->base, prev);
     mat4 barrel;
     float angles[3] = {id->angleX, id->angleY, 0};
     glm_euler_xyz(angles, barrel);
-    barrel[1][3] += 1.2; // move up
+    //barrel[3][1] += 1.2; // move up
     glm_mat4_mul(prev, barrel, barrel);
     Render_SimpleMesh(sd->barrelBase, barrel);
     glm_mat4_mul(barrel ,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,-id->CurRecoil,1}}, barrel);
@@ -38,9 +40,12 @@ LogicBlockDef BlockDef_Cannon_Block()
 {
     LogicBlockDef def = {};
     static_data* data = (static_data*)calloc(1, sizeof(static_data));
-    data->base = ModelTable_Get_Model("cannon_base.obj");
-    data->barrel = ModelTable_Get_Model("cannon_barrel.obj");
-    data->barrelBase = ModelTable_Get_Model("cannon_barrelbase.obj");
+    data->base = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_base.obj");
+    data->barrel = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_barrel.obj");
+    data->barrelBase = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_barrelbase.obj");
+    assert(data->base);
+    assert(data->barrel);
+    assert(data->barrelBase);
     def.staticData = data;
 
     //Its mesh is not merged to the ship right now

@@ -48,6 +48,8 @@ void create_testshipbp(EngineState* engineState)
         }
     }
 
+    ShipBP_Add_LogicBlock(shipBp, grid, 1, (short[3]){0, 0, 13}, 0);
+
     glm_mat3_copy(GLM_MAT3_IDENTITY, shipBp->rb.baseInertiaTensor);
     glm_mat3_scale(shipBp->rb.baseInertiaTensor, 10000);
     glm_mat3_inv(shipBp->rb.baseInertiaTensor, shipBp->rb.invBaseInertiaTensor);

@@ -53,7 +53,7 @@ typedef struct _Block
 
 typedef struct _LogicBlock
 {
-    void* data;
+    uint32_t data; //offset
     short pos[3]; 
     BlockRotation rot;
     uint32_t defIndex;
@@ -117,6 +117,8 @@ PartStructureSimpleMesh* Create_PartStructureSimpleMesh();
 
 PartStructureMultiMesh* Create_PartStructureMultiMesh();
 
+void AddUpload_ModelTransformArrays(void* model);
+
 /*! @brief Creates new instance of PartStructureGrid
 * Internal arrays are allocated
 * @param engineState Main engine state
@@ -127,7 +129,7 @@ void Render_SimpleMesh(PartStructureSimpleMesh* sm, mat4 prev);
 
 void Render_MultiMesh(PartStructureMultiMesh* mm, mat4 prev);
 
-void Render_Grid(PartStructureGrid* grid, mat4 prev);
+void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev);
 
 /*! @brief Destroy PartStructureGrid and its arrays
 * Frees its internal arrays and invalidates TransformArray of its mesh

@@ -9,13 +9,13 @@
 HashTable table;
 
 typedef struct _elem{
-	char* str;
+	const char* str;
 	void* model;
 } Elem;
 
 size_t hashfunc(const void* v) {
 	const Elem* cnt =(const Elem*)v;
-	char* str = cnt->str;
+	const char* str = cnt->str;
 	size_t h = 0xf1310ef8e0fe7b01;
 	while(*str) {
 		h += (unsigned)(*str++) * 0x135a482151832101;
@@ -25,7 +25,7 @@ size_t hashfunc(const void* v) {
 }
 
 void* str_copy(const void* v) {
-	Elem* c = malloc(sizeof(Elem));
+	Elem* c = (Elem*)malloc(sizeof(Elem));
 	const Elem* orig = (const Elem*)v;
 	*c = (Elem){strdup(orig->str), orig->model};
 	return c;
@@ -39,7 +39,7 @@ int str_equal(const void* a, const void* b) {
 
 void str_free(void* a) {
 	Elem* x = (Elem*)a;
-	free(x->str);
+	free((void*)x->str);
 	free(x);
 }
 
@@ -52,8 +52,8 @@ int print_counter(HashTable* ht, void* kv, void* data) {
 void* ModelTable_Get_Model(const char* name)
 {
 	Elem k = {name, 0};
-	Elem res;
-	if (!ht_get(&table, &k, &res)) return res.model;
+	Elem* res;
+	if (!ht_get(&table, &k, (void**)&res)) return res->model;
 	return NULL;
 }
 

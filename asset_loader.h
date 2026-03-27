@@ -34,4 +34,6 @@ typedef struct _objData
 
 void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStructure);
 
+int Load_Models(EngineState* engineState);
+
 #endif

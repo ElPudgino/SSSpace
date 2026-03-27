@@ -135,7 +135,7 @@ void Upload_Transforms(EngineState* engineState)
     for (int i = 0;i < CurrentArrayIndex-1;i++)
     {
         // add checks for buffer size
-        memcpy(FullTransformArray + curindex * sizeof(mat4), GlobalTransformArrays[i].array, sizeof(mat4) * GlobalTransformArrays[i].count);
+        memcpy(FullTransformArray + curindex, GlobalTransformArrays[i].array, sizeof(mat4) * GlobalTransformArrays[i].count);
         GlobalTransformArrays[i].renderData.transformStartIndex = curindex;
         curindex += GlobalTransformArrays[i].count;
     }
@@ -184,6 +184,7 @@ void Add_InstanceToRender(InstancedRenderData* data, mat4 trs)
 {
     assert(data);
     assert(data->ID > 0);
+    assert(data->mesh->g_Address); // probably forgot to upload mesh
     _add_RenderTransform(&GlobalTransformArrays[data->ID-1], trs);
 }
 

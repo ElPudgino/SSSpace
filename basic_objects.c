@@ -1,5 +1,6 @@
 #include "basic_objects.h"
 #include "assets.h"
+#include "mesh_utils.h"
 
 // Block may be bigger than 1 by 1
 // result in local coords
@@ -12,13 +13,18 @@ void Get_LogicBlockCenter(LogicBlock block, vec3 result)
 // Render it separately instead
 int Has_SpecialRender(LogicBlock block)
 {
-    return !!Get_LogicBlockDef(block.defIndex)->render;
+    return Get_LogicBlockDef(block.defIndex)->render != NULL;
 }
 
-void Render_SpecialBlock(LogicBlock block, mat4 prev)
+void Render_SpecialBlock(void* shipdata, LogicBlock block, mat4 prev)
 {
-    LogicBlockDef* def = Get_LogicBlockDef(block.defIndex);
-    def->render(block.data, def->staticData, prev);
+    assert(shipdata);
+    assert(block.defIndex); // index 0 is reserved as invalid
+    const LogicBlockDef* def = Get_LogicBlockDef(block.defIndex);
+    assert(def->ID == block.defIndex);
+    assert(def->render);
+    assert(def->staticData);
+    def->render((void*)((char*)shipdata+block.data), def->staticData, prev);
 }
 
 PartStructureMultiMesh* Create_PartStructureMultiMesh()
@@ -47,9 +53,34 @@ PartStructureSimpleMesh* Create_PartStructureSimpleMesh()
     return m;
 }
 
-void Render_Grid(PartStructureGrid* grid, mat4 prev)
+void AddUpload_ModelTransformArrays(void* model)
+{
+    assert(model);
+    PartStructureSimpleMesh* sm = (PartStructureSimpleMesh*)model;
+    if (sm->structureType == PART_TYPE_SIMPLE_MESH)
+    {
+        Mesh_UploadData(sm->renderData->mesh);
+        Add_TransformArray(sm->renderData);
+    }
+    else if (sm->structureType == PART_TYPE_MULTI_MESH)
+    {
+        PartStructureMultiMesh* mm = (PartStructureMultiMesh*)model;
+        for (int i = 0; i < mm->matCount; i++)
+        {
+            Mesh_UploadData(mm->renderDatas[i]->mesh);
+            Add_TransformArray(mm->renderDatas[i]);
+        }
+    }
+    else
+    {
+        assert((printf("!!Called Add_ModelTransformArrays with wrong model type\n"),0));
+    } 
+}
+
+void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
 {
     assert(grid);
+    assert(logicblockdata);
     //printf("Start render grid\n");
     for (int i = 0; i < grid->matCount; i++)
     {
@@ -64,8 +95,8 @@ void Render_Grid(PartStructureGrid* grid, mat4 prev)
         LogicBlock b = grid->logicBlocks[i];
         if (Has_SpecialRender(b))
         {
-            glm_mat4_mul(prev,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{(float)b.pos[0],(float)b.pos[1],(float)b.pos[2],1}},copy);
-            Render_SpecialBlock(b, copy);
+            glm_mat4_mul(prev,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{(float)b.pos[0]-grid->centerOffset[0],(float)b.pos[1]-grid->centerOffset[1],(float)b.pos[2]-grid->centerOffset[2],1}},copy);
+            Render_SpecialBlock(logicblockdata ,b, copy);
         }        
     }
 }
@@ -90,6 +121,7 @@ void Render_MultiMesh(PartStructureMultiMesh* mm, mat4 prev)
 
 void Destroy_StructureGrid(PartStructureGrid* grid)
 {
+    assert(grid);
     free(grid->grid.array);
     if (grid->logicBlocks) free(grid->logicBlocks);
     for (int i = 0; i < grid->matCount; i++)

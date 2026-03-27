@@ -1,6 +1,6 @@
 #ifndef LOGIC_BLOCK_DEFS
 #define LOGIC_BLOCK_DEFS
 
-void BlockDef_Cannon_Block();
+LogicBlockDef BlockDef_Cannon_Block();
 
 #endif

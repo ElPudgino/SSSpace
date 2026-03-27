@@ -4,6 +4,9 @@
 #include "basic_objects.h"
 #include "asset_loader.h"
 #include "dirent.h"
+#include "material_insts.h"
+#include "model_table.h"
+#include "debug.h"
 
 //#include <stb_image.h>
 
@@ -41,24 +44,25 @@ int _Load_Obj(const char* filename, objData* data)
     long size = ftell(f) + 1;
     fseek(f, 0, SEEK_SET);
     
-    data->mtllib = (char*)calloc(64, sizeof(char));
-    data->name = (char*)calloc(64, sizeof(char));
+    char* mtlib = (char*)calloc(64, sizeof(char));
+    char* oname = (char*)calloc(64, sizeof(char));
     char buf[64] = {};
     uint32_t scres = 0;
     float x, y, z ,w;
-    uint32_t v1, t1, n1, v2, t2, n2, v3, t3, n3;
+    int v1, t1, n1, v2, t2, n2, v3, t3, n3;
     subMesh sm = {};
     uint32_t sm_wr = 0;
-    while (1)
+    while (ftell(f) != size - 1)
     {
         fgets(buf, 64, f);
-        if (buf[0] == EOF) break;
+        if (buf[0] == EOF || buf[0] == '\0') break;
         if (buf[0] == '#' || buf[0] == ' ' || buf[0] == '\n') continue;
-        if (buf[0] == 'm' && sscanf(buf, "mtllib %s", data->mtllib)) continue;
+        if (buf[0] == 'm' && sscanf(buf, "mtllib %s", mtlib)) continue;
         if (buf[0] == 'u' && sscanf(buf, "usemtl %s", sm.matName)) continue;
         if (buf[0] == 's') continue; // smooth shading; not supported now
-        if (buf[0] == 'o' && sscanf(buf, "o %s", data->name))
+        if (buf[0] == 'o' && sscanf(buf, "o %s",oname))
         {
+            printf("Loading mesh %s\n", oname);
             sm.len = facecount - sm.startInd;
             if (sm_wr)
             {
@@ -92,6 +96,11 @@ int _Load_Obj(const char* filename, objData* data)
             verts[vertcount] = x * w;
             verts[vertcount+1] = y * w;
             verts[vertcount+2] = z * w;
+
+            assert(x < 10e5);
+            assert(y < 10e5);
+            assert(z < 10e5);
+            
             vertcount += 3;
             continue;
         }
@@ -152,6 +161,33 @@ int _Load_Obj(const char* filename, objData* data)
         printf("Failed to parse obj: %s\n", filename);
         return 1;
     }
+
+    // write last submesh
+    if (sm_wr)
+    {
+        sm.len = facecount - sm.startInd;
+        if (smcount == smcap)
+        {
+            submeshes = (subMesh*)realloc(submeshes, 2 * smcap * sizeof(subMesh));
+            smcap *= 2;
+        }
+        submeshes[smcount] = sm;
+        smcount++;
+    }
+
+    data->facecount = facecount;
+    data->faces = faces;
+    data->normals = normals;
+    data->ncount = ncount;
+    data->submeshes = submeshes;
+    data->submeshCount = smcount;
+    data->uvs = uvs;
+    data->uvcount = uvcount;
+    data->pos = verts;
+    data->pcount = vertcount;
+    data->name = oname;
+    data->mtllib = mtlib;
+
     return 0;
 }
 
@@ -163,6 +199,7 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
     objData data = {};
     int res = _Load_Obj(file, &data);
     if (res) return;
+    if (data.submeshCount == 0) {printf("!File %s contains no mesh definitions\n", file); return;}
 
     void* part = NULL;
     InstancedRenderData** rdatas = (InstancedRenderData**)calloc(data.submeshCount, sizeof(InstancedRenderData*));
@@ -179,18 +216,27 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
         mesh->indexCap = data.submeshes[sm].len / 3;
 
         mesh->deleteWithRenderInstance = 1;
-        for (int i = 0; i < data.submeshes[sm].len; i+=3)
+        for (int i = 0; i < data.submeshes[sm].len; i+=9)
         {
-            ind = i + data.submeshes[sm].startInd;
-            uint32_t pind = ind*3;
-            uint32_t tind = (ind+1)*2;
-            uint32_t nind = (ind+2)*3;
-            mesh->vertices[mesh->vertexCount++] = (Vertex){data.pos[pind],      data.pos[pind+1],     data.pos[pind+2],
-                                                            data.normals[nind], data.normals[nind+1], data.normals[nind+2],
-                                                            data.uvs[tind],     data.uvs[tind+1]}; 
-            mesh->indices[mesh->indexCount] = mesh->indexCount++;
+            for (int k = 0; k < 3; k++)
+            {
+                ind = i + data.submeshes[sm].startInd;
+                uint32_t pind = data.faces[ind + k*3]*3;
+                uint32_t tind = data.faces[ind + k*3 + 1]*2;
+                uint32_t nind = data.faces[ind + k*3 + 2]*3;
+                mesh->vertices[mesh->vertexCount++] = (Vertex){data.pos[pind],      data.pos[pind+1],     data.pos[pind+2],
+                                                                data.normals[nind], data.normals[nind+1], data.normals[nind+2],
+                                                                data.uvs[tind],     data.uvs[tind+1]}; 
+                mesh->indices[mesh->indexCount] = mesh->indexCount;
+                mesh->indexCount++;
+            }
         }
         rdatas[sm]->mesh = mesh;
+
+        rdatas[sm]->material = GetMaterial_Test();
+
+        Debug_Print_Mesh(mesh);
+        Debug_ValidateAssert_Mesh(mesh);
     }
 
     if (data.submeshCount == 1) 
@@ -208,7 +254,7 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
     *partStructure = part;
 }
 
-char* fileNameBuf[256];
+char fileNameBuf[400];
 
 int Load_Models(EngineState* engineState)
 {
@@ -224,11 +270,15 @@ int Load_Models(EngineState* engineState)
     void* model = NULL;
     while (de = readdir(dr))
     {
+        printf("reading dir: %s\n",de->d_name);
         if (de->d_name[0] == '.') continue;
-        snprintf(fileNameBuf, 256, "assets/models/%s", de->d_name);
+        snprintf(fileNameBuf, 320, "assets/models/%s", de->d_name);
         Load_PartModelFromObj(engineState, fileNameBuf, &model);
-        ModelTable_Set_Model(de->d_name, de->d_name);
+
+        AddUpload_ModelTransformArrays(model);
+        
+        ModelTable_Set_Model(de->d_name, model);
     }
     closedir(dr);
-    
+    return 0;
 }

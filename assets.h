@@ -38,4 +38,6 @@ int Load_Models(EngineState* engineState);
 
 const LogicBlockDef* Get_LogicBlockDef(uint32_t index);
 
+int Load_LogicBlockDefs();
+
 #endif

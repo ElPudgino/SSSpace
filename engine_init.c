@@ -5,6 +5,8 @@
 #include "input_registry.h"
 #include "blocks.h"
 #include "material_insts.h"
+#include "assets.h"
+#include "asset_loader.h"
 
 int Create_VulkanInstance(EngineState* engineState)
 {
@@ -437,6 +439,12 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Init_Blocks()) {printf("!!Failed to init blocks\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_BlockModels);
     printf("Initialized blocks\n");
+
+    if (Load_Models(engineState)) {goto Fail;}
+    printf("Loaded models\n");
+
+    if (Load_LogicBlockDefs()) {goto Fail;}
+    printf("Loaded logic block defs\n");
 
     if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_Controls);
