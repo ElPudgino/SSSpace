@@ -235,8 +235,8 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
 
         rdatas[sm]->material = GetMaterial_Test();
 
-        Debug_Print_Mesh(mesh);
-        Debug_ValidateAssert_Mesh(mesh);
+        //Debug_Print_Mesh(mesh);
+        Debug_Validate_Mesh(mesh);
     }
 
     if (data.submeshCount == 1) 
@@ -282,3 +282,10 @@ int Load_Models(EngineState* engineState)
     closedir(dr);
     return 0;
 }
+
+int Unload_Models(EngineState* engineState)
+{
+    CleanUp_ModelTable();
+    return 0;
+}
+

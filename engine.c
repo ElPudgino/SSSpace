@@ -8,6 +8,7 @@
 #include "math_util.h"
 #include "tests.h"
 #include "input_registry.h"
+#include "utests.h"
 
 // Testing
 Mesh* testmesh = NULL;
@@ -215,6 +216,7 @@ void Process_Events(int* running)
 
 int main(int argc, char** argv)
 {
+
     int running = 1;
 
     EngineState* engineState;
@@ -224,6 +226,11 @@ int main(int argc, char** argv)
 
     printf("Starting main loop\n");
 
+    if (argc > 1 && !strcmp(argv[1], "--test")) 
+    {
+        Run_Tests(engineState);
+        running = 0;
+    }
 
     _Testing(engineState);
 

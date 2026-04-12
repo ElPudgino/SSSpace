@@ -1,4 +1,5 @@
 #include "assets.h"
+#include "math_util.h"
 
 typedef struct _static_data
 {
@@ -27,9 +28,11 @@ void _Render(void* instance, void* staticdata, mat4 prev)
     //printf("instdata: %f, %f, %f\n", id->angleX, id->angleY, id->CurRecoil);
     Render_SimpleMesh(sd->base, prev);
     mat4 barrel;
+    mat4 tr;
     float angles[3] = {id->angleX, id->angleY, 0};
     glm_euler_xyz(angles, barrel);
-    //barrel[3][1] += 1.2; // move up
+    Translation_Matrix_s(0, 2.0, 0, tr);
+    glm_mat4_mul(tr, barrel, barrel);
     glm_mat4_mul(prev, barrel, barrel);
     Render_SimpleMesh(sd->barrelBase, barrel);
     glm_mat4_mul(barrel ,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,-id->CurRecoil,1}}, barrel);

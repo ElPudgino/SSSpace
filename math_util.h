@@ -9,6 +9,8 @@ void Quaterion_ToMatrix(vec4 q, mat4 matrix);
 
 void Translation_Matrix(double pos[3], mat4 matrix);
 
+void Translation_Matrix_s(float x, float y, float z, mat4 matrix);
+
 void Add_dVec(double trg[3], double add[3]);
 
 void Rotate_dVec(double vec[3], vec4 q);
@@ -22,5 +24,9 @@ void Copy_Rotation(float src[4], float dest[4]);
 void Scalar_Mult(double vec[3], double s);
 
 void Cast_ToDouble(float a[3], double b[3]);
+
+void BlockRotation_ToDirName(char r, char* up, char* north);
+
+char DirName_ToBlockRotation(char up, char north);
 
 #endif

@@ -9,11 +9,18 @@ SHADERS := $(wildcard $(MATS_DIR)/*/*.c)
 all : CompileApp
 
 CompileApp : $(SOURCES) $(SHADERS)
-	g++ $(CFLAGS) $(SOURCES) $(SHADERS) -o app $(LDFLAGS)
+	g++ -DDEBUG=0 $(CFLAGS) $(SOURCES) $(SHADERS) -o app $(LDFLAGS)
 
 run : CompileApp
 	export VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation
 	./app
+
+debug : $(SOURCES) $(SHADERS)
+	g++ -DDEBUG=1 $(CFLAGS) $(SOURCES) $(SHADERS) -o appd $(LDFLAGS)
 	
+rund : debug
+	export VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation
+	./appd
+
 cleanup :
 	rm -f app 

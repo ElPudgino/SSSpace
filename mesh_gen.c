@@ -4,6 +4,7 @@
 #include "blocks.h"
 #include "assets.h"
 #include "debug.h"
+#include "logger.h"
 
 BlockModel* GetBlockModel(uint32_t type, uint32_t visible_sides)
 {
@@ -134,7 +135,7 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
     // TODO: cleanup transform arrays when changing or deleting structures
 
     BlockGrid g = grid->grid;
-    printf("Started adding blocks\n");
+    LOG_TEXT("Started adding blocks\n");
     for (int x = 0; x < g.x_s; x++)
     {
         for (int y = 0; y < g.y_s; y++)
@@ -147,7 +148,7 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
         }
     }
 
-    printf("Started adding logic blocks\n");
+    LOG_TEXT("Started adding logic blocks\n");
     for (int i = 0; i < grid->logicBlockCount;i++)
     {
         LogicBlock b = grid->logicBlocks[i];
@@ -159,12 +160,19 @@ void Generate_MeshForGrid(PartStructureGrid* grid)
     }
 
     
-    printf("Uploading meshes, %d\n", grid->matCount);
-    for (int i = 0; i < grid->matCount; i++)
+    LOG_INFO("Uploading meshes, %d\n", grid->matCount);
+    if (grid->engineState)
     {
-        Debug_ValidateAssert_Mesh(grid->renderDatas[i]->mesh);
-        Add_TransformArray(grid->renderDatas[i]);
-        Mesh_UploadData(grid->renderDatas[i]->mesh);
+        for (int i = 0; i < grid->matCount; i++)
+        {
+            Add_TransformArray(grid->renderDatas[i]);
+            Mesh_UploadData(grid->renderDatas[i]->mesh);
+        }
     }
-    printf("Done generating mesh for grid\n");
+    else
+    {
+        LOG_TEXT("Grid has null engine state; Skipping graphics\n");
+    }
+    
+    LOG_TEXT("Done generating mesh for grid\n");
 }

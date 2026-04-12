@@ -23,6 +23,19 @@ int Load_LogicBlockDefs()
     return 0;
 }
 
+int Destroy_LogicBlockDefs(EngineState* engineState)
+{
+    for (int i = 0; i < LOGIC_BLOCK_ID_COUNT; i++)
+    {
+        if (blockDefs[i].ID && blockDefs[i].staticData)
+        {
+            free(blockDefs[i].staticData);
+        }
+    }
+    free(blockDefs);
+    return 1;
+}
+
 const LogicBlockDef* Get_LogicBlockDef(uint32_t index)
 {
     assert(index < LOGIC_BLOCK_ID_COUNT);

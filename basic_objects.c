@@ -31,6 +31,7 @@ PartStructureMultiMesh* Create_PartStructureMultiMesh()
 {
     PartStructureMultiMesh* m = (PartStructureMultiMesh*)calloc(1, sizeof(PartStructureMultiMesh));
     m->structureType = PART_TYPE_MULTI_MESH;   
+    
     return m;
 }
 
@@ -140,3 +141,43 @@ void Destroy_StructureGrid(PartStructureGrid* grid)
     free(grid);
 }
 
+void Destroy_PartSimpleMesh(PartStructureSimpleMesh* model)
+{
+    assert(model->structureType == PART_TYPE_SIMPLE_MESH);
+    Destroy_TransformArray(model->renderData);
+    free(model->renderData);
+    free(model);
+}
+
+void Destroy_PartMultiMesh(PartStructureMultiMesh* model)
+{
+    assert(model->structureType == PART_TYPE_MULTI_MESH);
+    for (int i = 0; i < model->matCount; i++)
+    {
+        Destroy_TransformArray(model->renderDatas[i]);
+        free(model->renderDatas[i]);
+    }
+    free(model->renderDatas);
+    free(model);
+}
+
+void Destroy_Model(void* structure)
+{
+    assert(structure);
+    uint32_t p = (*(PartStructureSimpleMesh*)structure).structureType;
+    switch (p)
+    {
+        case PART_TYPE_GRID:
+            Destroy_StructureGrid((PartStructureGrid*)structure);
+            break;
+        case PART_TYPE_SIMPLE_MESH:
+            Destroy_PartSimpleMesh((PartStructureSimpleMesh*)structure);
+            free(structure);
+            break;
+        case PART_TYPE_MULTI_MESH:
+            Destroy_PartMultiMesh((PartStructureMultiMesh*)structure);
+            break;
+        default:
+            break;
+    }
+}

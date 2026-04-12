@@ -39,6 +39,7 @@ int str_equal(const void* a, const void* b) {
 
 void str_free(void* a) {
 	Elem* x = (Elem*)a;
+	Destroy_Model(x);
 	free((void*)x->str);
 	free(x);
 }
@@ -68,4 +69,9 @@ int Init_ModelTable()
 	if (ht_init(&table, MODEL_TABLE_SIZE, hashfunc, str_copy, str_equal, str_free)) 
 		return printf("Cannot initialize\n"), 0;
 	return 0;
+}
+
+void CleanUp_ModelTable()
+{
+	ht_free(&table);
 }

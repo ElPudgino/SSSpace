@@ -15,7 +15,7 @@ enum
 typedef struct _PartStructureSimpleMesh
 {
     uint32_t structureType;
-    uint32_t ID; 
+    uint64_t ID; 
     InstancedRenderData* renderData;
     float bbsize[3];
 } PartStructureSimpleMesh;
@@ -23,13 +23,12 @@ typedef struct _PartStructureSimpleMesh
 typedef struct _PartStructureMultiMesh
 {
     uint32_t structureType;
-    uint32_t ID;
+    uint64_t ID;
     InstancedRenderData** renderDatas;
     uint32_t matCount;
     float bbsize[3];
 } PartStructureMultiMesh;
 
-// 24-th bit is whether this block has special rendering (only for logic blocks)
 typedef uint32_t BlockType;
 
 // last byte of blocktype is rotation 
@@ -89,7 +88,8 @@ typedef struct _BlockGrid
 typedef struct _PartStructureGrid
 {
     uint32_t structureType;
-    uint32_t ID; 
+    uint64_t ID; 
+    uint32_t userCount;
     EngineState* engineState;
     BlockGrid grid;
     float centerOffset[3];
@@ -111,7 +111,7 @@ typedef struct _Part
     uint32_t childrenCount;
 } Part;
 
-int Has_SpecialRender(LogicBlock* block);
+int Has_SpecialRender(LogicBlock block);
 
 PartStructureSimpleMesh* Create_PartStructureSimpleMesh();
 
@@ -136,5 +136,7 @@ void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev);
 * @param grid Target grid
 */
 void Destroy_StructureGrid(PartStructureGrid* grid);
+
+void Destroy_Model(void* model);
 
 #endif

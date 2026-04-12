@@ -112,6 +112,17 @@ void Mesh_UploadData(Mesh* mesh)
     mesh->g_Vertices = vertexbuf;
     mesh->g_Indices = indexbuf;
 
+    // We no longer need mesh data on the CPU
+    // Dont free in debug to check mesh data
+    if (!DEBUG)
+    {
+        free(mesh->indices);
+        mesh->indices = NULL;
+        free(mesh->vertices);
+        mesh->vertices = NULL;
+    }
+    
+
     //uint32_t* testarr = (uint32_t*)calloc(6, sizeof(uint32_t)); 
     //vmaCopyAllocationToMemory(mesh->engineState->allocator, indexbuf.allocation, 0, testarr, ind);
     //printf("vert: %d %d %d\n", testarr[0], testarr[1], testarr[2]);

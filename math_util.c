@@ -65,7 +65,77 @@ void Quaterion_ToMatrix(vec4 q, mat4 matrix)
     glm_quat_mat4(q, matrix);
 }
 
+void Translation_Matrix_s(float x, float y, float z, mat4 matrix)
+{
+    glm_mat4_copy((mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{x,y,z,1}}, matrix);
+}
+
 void Translation_Matrix(double pos[3], mat4 matrix)
 {
     glm_mat4_copy((mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{(float)pos[0],(float)pos[1],(float)pos[2],1}}, matrix);
+}
+
+void BlockRotation_Matrix(char r, mat4 m)
+{
+    
+}
+
+inline void _numToChar(uint32_t n, char* c)
+{
+    switch (n)
+    {
+        case 0:
+            *c = 'u';
+        case 1:
+            *c = 'd';
+        case 2:
+            *c = 'n';
+        case 3:
+            *c = 's';
+        case 4:
+            *c = 'e';
+        case 5:
+            *c = 'w';
+        default:
+            'x';
+    }
+}
+
+inline char _charToNum(char d)
+{
+    switch (d)
+    {
+        case 'u':
+            return 0;
+        case 'd':
+            return 1;
+        case 'n':
+            return 2;
+        case 's':
+            return 3;
+        case 'e':
+            return 4;
+        case 'w':
+            return 5;
+        default:
+            return 15;
+    }
+}
+
+void BlockRotation_ToDirName(char r, char* up, char* north)
+{
+    uint32_t n = (uint32_t)r;
+    n = n >> 4;
+    _numToChar(n, up);
+    n = (uint32_t)r;
+    n = n % 16;
+    _numToChar(n, north);
+}
+
+char DirName_ToBlockRotation(char up, char north)
+{
+    char res = 0;
+    res = res | (_charToNum(up) << 4);
+    res = res | _charToNum(north);
+    return res;
 }

@@ -7,4 +7,6 @@ void ModelTable_Set_Model(const char* name, void* model);
 
 int Init_ModelTable();
 
+void CleanUp_ModelTable();
+
 #endif

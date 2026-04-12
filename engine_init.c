@@ -441,9 +441,11 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     printf("Initialized blocks\n");
 
     if (Load_Models(engineState)) {goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Unload_Models);
     printf("Loaded models\n");
 
     if (Load_LogicBlockDefs()) {goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_LogicBlockDefs);
     printf("Loaded logic block defs\n");
 
     if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}

@@ -46,6 +46,7 @@ typedef struct _CachedStats
 // Also cached ship data is stored in BP
 typedef struct _ShipBP 
 {
+    uint64_t ID;
     Model model;
     float BB[3];
     size_t logicBlockDataLength;
@@ -54,6 +55,7 @@ typedef struct _ShipBP
 
 typedef struct _Ship
 {
+    uint64_t ID;
     ShipBP* BP; 
     Model model;
     void* logicBlockData;

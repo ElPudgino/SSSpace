@@ -1,6 +1,7 @@
 #include "ship.h"
 #include "mesh_gen.h"
 #include "sector.h"
+#include "basic_objects.h"
 
 void Set_PartTransform(Part* part, Transform* tr)
 {
@@ -9,7 +10,7 @@ void Set_PartTransform(Part* part, Transform* tr)
     //self.mdoeltransform.matrixes[part.matrixindex] = ...
 }
 
-uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
+inline uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
 {
     return x + y * grid.x_s + z * grid.x_s * grid.y_s;
 }
@@ -209,32 +210,6 @@ Ship* Create_ShipFromBP(ShipBP* bp)
     res->rb.root = &res->model.rootPart->localTransform;
     printf("Created ship from bp\n");
     return res;
-}
-
-void Delete_PartStructure(void* structure)
-{
-    assert(structure);
-    uint32_t p = (*(PartStructureSimpleMesh*)structure).structureType;
-    switch (p)
-    {
-        case PART_TYPE_GRID:
-            Destroy_StructureGrid((PartStructureGrid*)structure);
-            break;
-        case PART_TYPE_SIMPLE_MESH:
-            Destroy_TransformArray(((PartStructureSimpleMesh*)structure)->renderData);
-            free(structure);
-            break;
-        case PART_TYPE_MULTI_MESH:
-            for (int i = 0; i < ((PartStructureMultiMesh*)structure)->matCount; i++)
-            {
-                Destroy_TransformArray(((PartStructureMultiMesh*)structure)->renderDatas[i]);
-            }
-            free(((PartStructureMultiMesh*)structure)->renderDatas);
-            free(structure);
-            break;
-        default:
-            break;
-    }
 }
 
 void _Delete_ShipPart(Part* part)

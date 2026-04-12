@@ -36,4 +36,6 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
 
 int Load_Models(EngineState* engineState);
 
+int Unload_Models(EngineState* engineState);
+
 #endif
