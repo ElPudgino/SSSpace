@@ -12,6 +12,8 @@
 * @param allocation If image was allocated manually stores allocation, null otherwise
 * @param imageExtent Image size
 * @param imageFormat Format of the image
+* @param allocator Allocator used to create the image
+* @param device Device on which image was allocated
 */
 typedef struct _ImageData
 {
@@ -21,7 +23,12 @@ typedef struct _ImageData
     VmaAllocation allocation;
     VkExtent3D imageExtent;
     VkFormat imageFormat;
+    VmaAllocator allocator;
+    VkDevice device;
 } ImageData;
+
+int Create_ImageGeneric(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent,
+                        VkFormat format, VkImageUsageFlags flags, VkImageAspectFlagBits aspects);
 
 /*! @brief Allocates an image and fills imageData
 * Image must be destroyed later

@@ -6,15 +6,15 @@
 
 #define MODEL_TABLE_SIZE 10000
 
-HashTable table;
+HashTable modeltable;
 
-typedef struct _elem{
+typedef struct _modelelem{
 	const char* str;
 	Model* model;
-} Elem;
+} ModelElem;
 
-size_t hashfunc(const void* v) {
-	const Elem* cnt =(const Elem*)v;
+size_t modelhashfunc(const void* v) {
+	const ModelElem* cnt =(const ModelElem*)v;
 	const char* str = cnt->str;
 	size_t h = 0xf1310ef8e0fe7b01;
 	while(*str) {
@@ -24,54 +24,49 @@ size_t hashfunc(const void* v) {
 	return h;
 }
 
-void* elem_copy(const void* v) {
-	Elem* c = (Elem*)malloc(sizeof(Elem));
-	const Elem* orig = (const Elem*)v;
-	*c = (Elem){strdup(orig->str), orig->model};
+void* modelelem_copy(const void* v) {
+	ModelElem* c = (ModelElem*)malloc(sizeof(ModelElem));
+	const ModelElem* orig = (const ModelElem*)v;
+	*c = (ModelElem){strdup(orig->str), orig->model};
 	return c;
 }
 
-int elem_equal(const void* a, const void* b) {
-	const Elem* x = (const Elem*)a;
-	const Elem* y = (const Elem*)b;
+int modelelem_equal(const void* a, const void* b) {
+	const ModelElem* x = (const ModelElem*)a;
+	const ModelElem* y = (const ModelElem*)b;
 	return !strcmp(x->str, y->str);
 }
 
-void elem_free(void* a) {
-	Elem* x = (Elem*)a;
+// ! Elements are not removed from table, so its fine to Destroy_Model as it will only when table is freed
+void modelelem_free(void* a) {
+	ModelElem* x = (ModelElem*)a;
 	Destroy_Model(x->model);
 	free((void*)x->str);
 	free(x);
 }
 
-int print_counter(HashTable* ht, void* kv, void* data) {
-	Elem* x = (Elem*)kv;
-	printf("%p %s", x->model, x->str);
-	return 0;
-}
-
 Model* ModelTable_Get_Model(const char* name)
 {
-	Elem k = {name, 0};
-	Elem* res;
-	if (!ht_get(&table, &k, (void**)&res)) return res->model;
+	ModelElem k = {name, 0};
+	ModelElem* res;
+	if (!ht_get(&modeltable, &k, (void**)&res)) return res->model;
 	return NULL;
 }
 
 void ModelTable_Set_Model(const char* name, Model* model)
 {
-	Elem k = {name, model};
-	if(ht_set(&table, &k)) printf("!Error while adding model to modeltable\n");
+	ModelElem k = {name, model};
+	if(ht_set(&modeltable, &k)) printf("!Error while adding model to modeltable\n");
 }
 
 int Init_ModelTable()
 {
-	if (ht_init(&table, MODEL_TABLE_SIZE, hashfunc, elem_copy, elem_equal, elem_free)) 
+	if (ht_init(&modeltable, MODEL_TABLE_SIZE, modelhashfunc, modelelem_copy, modelelem_equal, modelelem_free)) 
 		return printf("Cannot initialize\n"), 0;
 	return 0;
 }
 
 void CleanUp_ModelTable()
 {
-	ht_free(&table);
+	ht_free(&modeltable);
 }

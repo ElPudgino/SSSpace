@@ -7,6 +7,8 @@
 #include "material_insts.h"
 #include "assets.h"
 #include "asset_loader.h"
+#include "image_loader.h"
+#include "samplers.h"
 
 int Create_VulkanInstance(EngineState* engineState)
 {
@@ -432,17 +434,25 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
     printf("Global transform buffer created with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE);
 
+    if (Create_Samplers(engineState)) {printf("!!Failed to create samplers\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_Samplers);
+    printf("Created samplers\n");
+
+    if (Load_GameTextures(engineState)) {printf("!!Failed to load textures\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Unload_Textures);
+    printf("Loaded textures\n");
+
     if (Init_MaterialInstances(engineState)) {printf("!!Failed to init materials\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_MaterialInstances);
     printf("Initialized material instances\n");
 
-    if (Init_Blocks()) {printf("!!Failed to init blocks\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_BlockModels);
-    printf("Initialized blocks\n");
-
     if (Load_Models(engineState)) {goto Fail;}
     Add_ToCleanupQueue(allocInfo, Unload_Models);
     printf("Loaded models\n");
+
+    if (Init_Blocks()) {printf("!!Failed to init blocks\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Destroy_BlockModels);
+    printf("Initialized blocks\n");
 
     if (Load_LogicBlockDefs()) {goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_LogicBlockDefs);

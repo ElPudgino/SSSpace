@@ -1,7 +1,7 @@
 #version 450
 #extension GL_EXT_buffer_reference : require
 
-layout (location = 0) out vec3 outColor;
+layout (location = 0) out vec2 uv;
 
 // !!!! vec3 is aligned with 16 bytes !!!!
 struct Vertex {
@@ -31,13 +31,6 @@ layout( push_constant ) uniform constants
 void main() 
 {
 
-	//const array of colors for the triangle
-	const vec3 colors[4] = vec3[4](
-		vec3(1.0f, 0.0f, 0.0f), //red
-		vec3(0.0f, 1.0f, 0.0f), //green
-		vec3(1.0f, 1.0f, 0.0f),  //blue
-		vec3(0.0f, 0.0f, 0.0f)
-	);
 
 	//get vertex base position
 	vec4 pos = vec4(PushConstants.vertexBuffer.vertices[gl_VertexIndex].pos, 1.0f);
@@ -45,5 +38,5 @@ void main()
 	//right now matrix already contains view and projection, may instead use uniform buffer to pass view matrix
 	pos = PushConstants.transformArray.matrixes[PushConstants.firstIndex + gl_InstanceIndex] * pos;
 	gl_Position = pos;
-	outColor = colors[gl_VertexIndex%4];
+	uv = PushConstants.vertexBuffer.vertices[gl_VertexIndex].uv;
 }

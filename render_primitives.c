@@ -69,8 +69,8 @@ void MatBuilder_SetVertexShader(MaterialBuilder* builder, VkShaderModule shader)
 void MatBuilder_AddImageSlot(MaterialBuilder* builder, uint32_t bind, VkShaderStageFlags stage)
 {
     assert(builder);
-    DlBuilder_Add_DescriptorLayoutBinding(builder->descLayoutBuilder, bind, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, stage);
-    _MatBuilder_Increase_PoolSize(builder, VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE);
+    DlBuilder_Add_DescriptorLayoutBinding(builder->descLayoutBuilder, bind, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, stage);
+    _MatBuilder_Increase_PoolSize(builder, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER);
 }
 
 void MatBuilder_AddParameter(MaterialBuilder* builder, uint32_t paramSize, VkShaderStageFlags stage)
@@ -118,12 +118,13 @@ void Material_SetParameter(Material* mat, uint32_t index, const void* value)
     memcpy(mat->parameters[index].value, value, mat->parameters[index].size);
 }
 
-void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
+void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData, VkSampler sampler)
 {
     assert(mat);
     VkDescriptorImageInfo imgInfo = {};
 	imgInfo.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
 	imgInfo.imageView = imageData.imageView;
+    imgInfo.sampler = sampler;
 	
 	VkWriteDescriptorSet drawImageWrite = {};
 	drawImageWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
@@ -132,7 +133,7 @@ void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData)
 	drawImageWrite.dstBinding = bind;
 	drawImageWrite.dstSet = mat->descSets[MATERIAL_DESC_SET_COUNT-1];
 	drawImageWrite.descriptorCount = 1;
-	drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE;
+	drawImageWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 	drawImageWrite.pImageInfo = &imgInfo;
 
 	vkUpdateDescriptorSets(mat->device, 1, &drawImageWrite, 0, NULL);

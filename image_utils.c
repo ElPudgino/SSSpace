@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "image_utils.h"
+#include "engine_init.h"
 
 VkImageSubresourceRange Get_ImageSubresourceRange(VkImageAspectFlags aspectMask)
 {
@@ -54,6 +55,10 @@ int Create_ImageGeneric(VkDevice device, VmaAllocator allocator, ImageData* imag
     ivInfo.subresourceRange.aspectMask = aspects;
 
     if (vkCreateImageView(device, &ivInfo, NULL, &imageData->imageView) != VK_SUCCESS) return -printf("!!Failed to create image view for allocated image\n");
+    
+    imageData->allocator = allocator;
+    imageData->device = device;
+    
     return 0;
 }
 
@@ -153,3 +158,4 @@ int Change_ImageLayout(VkCommandBuffer cmd, ImageData* imageData, VkImageLayout 
 
     return 0;
 }
+

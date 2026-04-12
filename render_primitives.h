@@ -197,8 +197,9 @@ void Material_SetParameter(Material* mat, uint32_t index, const void* value);
 * @param mat Target material
 * @param bind Binding index of the slot
 * @param imageData Image to be bound
+* @param sampler Sampler for the image
 */
-void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData);
+void Material_SetImageSlot(Material* mat, uint32_t bind, ImageData imageData, VkSampler sampler);
 
 /*! @brief Bind material for rendering
 * Binds materials pipeline and descriptors and pushes parameters
