@@ -27,11 +27,9 @@ void Render_SpecialBlock(void* shipdata, LogicBlock block, mat4 prev)
     def->render((void*)((char*)shipdata+block.data), def->staticData, prev);
 }
 
-PartStructureMultiMesh* Create_PartStructureMultiMesh()
+Model* Create_Model()
 {
-    PartStructureMultiMesh* m = (PartStructureMultiMesh*)calloc(1, sizeof(PartStructureMultiMesh));
-    m->structureType = PART_TYPE_MULTI_MESH;   
-    
+    Model* m = (Model*)calloc(1, sizeof(Model));
     return m;
 }
 
@@ -42,40 +40,18 @@ PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
     res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
     res->logicBlocks = (LogicBlock*)calloc(8, sizeof(LogicBlock));
     res->logicBlockCap = 8;
-    res->structureType = PART_TYPE_GRID;
     res->engineState = engineState;
     return res;
 }
 
-PartStructureSimpleMesh* Create_PartStructureSimpleMesh()
+void AddUpload_ModelTransformArrays(Model* mm)
 {
-    PartStructureSimpleMesh* m = (PartStructureSimpleMesh*)calloc(1, sizeof(PartStructureSimpleMesh));
-    m->structureType = PART_TYPE_SIMPLE_MESH;
-    return m;
-}
-
-void AddUpload_ModelTransformArrays(void* model)
-{
-    assert(model);
-    PartStructureSimpleMesh* sm = (PartStructureSimpleMesh*)model;
-    if (sm->structureType == PART_TYPE_SIMPLE_MESH)
+    assert(mm);
+    for (int i = 0; i < mm->matCount; i++)
     {
-        Mesh_UploadData(sm->renderData->mesh);
-        Add_TransformArray(sm->renderData);
+        Mesh_UploadData(mm->renderDatas[i]->mesh);
+        Add_TransformArray(mm->renderDatas[i]);
     }
-    else if (sm->structureType == PART_TYPE_MULTI_MESH)
-    {
-        PartStructureMultiMesh* mm = (PartStructureMultiMesh*)model;
-        for (int i = 0; i < mm->matCount; i++)
-        {
-            Mesh_UploadData(mm->renderDatas[i]->mesh);
-            Add_TransformArray(mm->renderDatas[i]);
-        }
-    }
-    else
-    {
-        assert((printf("!!Called Add_ModelTransformArrays with wrong model type\n"),0));
-    } 
 }
 
 void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
@@ -102,18 +78,10 @@ void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
     }
 }
 
-void Render_SimpleMesh(PartStructureSimpleMesh* sm, mat4 prev)
-{
-    assert(sm);
-    assert(sm->structureType == PART_TYPE_SIMPLE_MESH);
-    Add_InstanceToRender(sm->renderData, prev);
-}
-
-void Render_MultiMesh(PartStructureMultiMesh* mm, mat4 prev)
+void Render_Model(Model* mm, mat4 prev)
 {
     assert(mm);
     assert(mm->renderDatas);
-    assert(mm->structureType == PART_TYPE_MULTI_MESH);
     for (int i = 0; i < mm->matCount; i++)
     {
         Add_InstanceToRender(mm->renderDatas[i], prev);
@@ -141,17 +109,8 @@ void Destroy_StructureGrid(PartStructureGrid* grid)
     free(grid);
 }
 
-void Destroy_PartSimpleMesh(PartStructureSimpleMesh* model)
+void Destroy_Model(Model* model)
 {
-    assert(model->structureType == PART_TYPE_SIMPLE_MESH);
-    Destroy_TransformArray(model->renderData);
-    free(model->renderData);
-    free(model);
-}
-
-void Destroy_PartMultiMesh(PartStructureMultiMesh* model)
-{
-    assert(model->structureType == PART_TYPE_MULTI_MESH);
     for (int i = 0; i < model->matCount; i++)
     {
         Destroy_TransformArray(model->renderDatas[i]);
@@ -159,25 +118,4 @@ void Destroy_PartMultiMesh(PartStructureMultiMesh* model)
     }
     free(model->renderDatas);
     free(model);
-}
-
-void Destroy_Model(void* structure)
-{
-    assert(structure);
-    uint32_t p = (*(PartStructureSimpleMesh*)structure).structureType;
-    switch (p)
-    {
-        case PART_TYPE_GRID:
-            Destroy_StructureGrid((PartStructureGrid*)structure);
-            break;
-        case PART_TYPE_SIMPLE_MESH:
-            Destroy_PartSimpleMesh((PartStructureSimpleMesh*)structure);
-            free(structure);
-            break;
-        case PART_TYPE_MULTI_MESH:
-            Destroy_PartMultiMesh((PartStructureMultiMesh*)structure);
-            break;
-        default:
-            break;
-    }
 }

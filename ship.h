@@ -5,10 +5,10 @@
 #include "physics.h"
 #include "assets.h"
 
-typedef struct _Model
+typedef struct _ShipModel
 {
     Part* rootPart;
-} Model;
+} ShipModel;
 
 typedef struct _CachedStats
 {
@@ -47,7 +47,7 @@ typedef struct _CachedStats
 typedef struct _ShipBP 
 {
     uint64_t ID;
-    Model model;
+    ShipModel model;
     float BB[3];
     size_t logicBlockDataLength;
     RigidBody rb;
@@ -57,7 +57,7 @@ typedef struct _Ship
 {
     uint64_t ID;
     ShipBP* BP; 
-    Model model;
+    ShipModel model;
     void* logicBlockData;
     RigidBody rb;
 } Ship;
@@ -72,7 +72,7 @@ void ShipBP_Add_LogicBlock(ShipBP* bp, PartStructureGrid* part, uint32_t blockID
 
 void* Get_LogicBlockData(Ship* ship, LogicBlock block);
 
-Part* Create_Part(void* structure);
+Part* Create_Part(PartStructureGrid* structure);
 
 void Render_Ship(Ship* ship, mat4 tr);
 

@@ -191,7 +191,7 @@ int _Load_Obj(const char* filename, objData* data)
     return 0;
 }
 
-void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStructure)
+void Load_PartModelFromObj(EngineState* engineState, char* file, Model** partStructure)
 {
     assert(file);
     assert(partStructure);
@@ -201,7 +201,7 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
     if (res) return;
     if (data.submeshCount == 0) {printf("!File %s contains no mesh definitions\n", file); return;}
 
-    void* part = NULL;
+    Model* part = NULL;
     InstancedRenderData** rdatas = (InstancedRenderData**)calloc(data.submeshCount, sizeof(InstancedRenderData*));
     
 
@@ -239,18 +239,10 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, void** partStru
         Debug_Validate_Mesh(mesh);
     }
 
-    if (data.submeshCount == 1) 
-    {
-        part = Create_PartStructureSimpleMesh();
-        ((PartStructureSimpleMesh*)part)->renderData = rdatas[0];
-        free(rdatas);
-    }
-    else 
-    {
-        part = Create_PartStructureMultiMesh();
-        ((PartStructureMultiMesh*)part)->renderDatas = rdatas;
-        ((PartStructureMultiMesh*)part)->matCount = data.submeshCount;
-    }
+    part = Create_Model();
+    part->renderDatas = rdatas;
+    part->matCount = data.submeshCount;
+    
     *partStructure = part;
 }
 
@@ -267,7 +259,7 @@ int Load_Models(EngineState* engineState)
 
     if (!dr) return printf("!Failed to open meshes directory\n"), 1;
 
-    void* model = NULL;
+    Model* model = NULL;
     while (de = readdir(dr))
     {
         printf("reading dir: %s\n",de->d_name);

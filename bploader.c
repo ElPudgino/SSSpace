@@ -1,6 +1,14 @@
 #include "bploader.h"
 #include "math_util.h"
 
+char pline[2048] = {};
+BpLoader loader = {};
+
+void Init_Loader()
+{
+    memset(pline, ' ', 2047);
+    loader.saveLocation = "savedmodels";
+}
 
 ShipBP* Load_BP_FromSBP(FILE* f)
 {
@@ -41,8 +49,6 @@ void _Save_Grid(PartStructureGrid* grid, FILE* f)
     }
     fprintf(f, "\n");
 }
-
-char pline[2048] = {};
 
 void _Write_Part(Part* p, FILE* f, uint32_t depth)
 {   

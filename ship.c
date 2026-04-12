@@ -27,7 +27,7 @@ Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
     return grid.array[Get_IndexFromPos(grid, x, y, z)];
 }
 
-Part* Create_Part(void* structure)
+Part* Create_Part(PartStructureGrid* structure)
 {
     assert(structure);
     Part* res = (Part*)calloc(1, sizeof(Part));
@@ -40,27 +40,14 @@ void Render_Part(Ship* ship, Part* part, mat4 prev)
     assert(ship);
     assert(part);
     //printf("getting part structure\n");
-    PartStructureSimpleMesh p = *(PartStructureSimpleMesh*)part->structure;
-    //printf("got part structure\n");
     mat4 cur;
     //mat4 copy;
     Get_LocalRenderTransformMatrix(&part->localTransform, cur);
     //glm_mat4_copy(cur, copy);
     glm_mat4_mul(prev, cur, cur);
-    switch (p.structureType)
-    {
-        case PART_TYPE_GRID:
-            Render_Grid((PartStructureGrid*)part->structure, ship->logicBlockData, cur);
-            break;
-        case PART_TYPE_SIMPLE_MESH:
-            Render_SimpleMesh((PartStructureSimpleMesh*)part->structure, cur);
-            break;
-        case PART_TYPE_MULTI_MESH:
-            Render_MultiMesh((PartStructureMultiMesh*)part->structure, cur);
-            break;
-        default:
-            break;
-    }
+
+    Render_Grid(part->structure, ship->logicBlockData, cur);
+
     for (int i = 0; i< part->childrenCount; i++)
     {
         Render_Part(ship, &part->children[i], cur);
@@ -78,38 +65,23 @@ void Render_Ship(Ship* ship, mat4 tr)
 
 // TODO: Take into account rotation constraints on the parts to reduce bb size
 
-void Get_PartStructureBBsize(PartStructureSimpleMesh* part, float bb[3])
+void Get_PartStructureBBsize(PartStructureGrid* part, float bb[3])
 {
     assert(part);
     float a = 0;
     float b = 0;
     vec3 vec = {};
-    PartStructureGrid* g = NULL;
-    switch (part->structureType)
-    {
-        case PART_TYPE_GRID:
-            g = (PartStructureGrid*)part;
-            vec[0] = (float)g->grid.x_s - g->centerOffset[0];
-            vec[1] = (float)g->grid.y_s - g->centerOffset[1];
-            vec[2] = (float)g->grid.z_s - g->centerOffset[2];
-            a = glm_vec3_norm(vec);
-            b = glm_vec3_norm(g->centerOffset);
-            a = a > b ? a : b;
-            bb[0] = a;
-            bb[1] = a;
-            bb[2] = a;
-            break;
-        case PART_TYPE_SIMPLE_MESH:
-            a = sqrtf((float)(part->bbsize[0]*part->bbsize[0] + part->bbsize[1]*part->bbsize[1] + part->bbsize[2]*part->bbsize[2]));
+  
+    vec[0] = (float)part->grid.x_s - part->centerOffset[0];
+    vec[1] = (float)part->grid.y_s - part->centerOffset[1];
+    vec[2] = (float)part->grid.z_s - part->centerOffset[2];
+    a = glm_vec3_norm(vec);
+    b = glm_vec3_norm(part->centerOffset);
+    a = a > b ? a : b;
+    bb[0] = a;
+    bb[1] = a;
+    bb[2] = a;
 
-            bb[0] = a;
-            bb[1] = a;
-            bb[2] = a;
-            break;
-        
-        default:
-            break;
-    }
 }
 
 void Get_PartBBsize(Part* p, float s[3])
@@ -132,7 +104,7 @@ void Get_PartBBsize(Part* p, float s[3])
         s[1] = tm[1] > s[1] ? tm[1] : s[1]; 
         s[2] = tm[2] > s[2] ? tm[2] : s[2];  
     }
-    Get_PartStructureBBsize((PartStructureSimpleMesh*)p->structure, tm);
+    Get_PartStructureBBsize(p->structure, tm);
     s[0] = tm[0] > s[0] ? tm[0] : s[0];
     s[1] = tm[1] > s[1] ? tm[1] : s[1]; 
     s[2] = tm[2] > s[2] ? tm[2] : s[2]; 

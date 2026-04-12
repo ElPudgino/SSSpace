@@ -14,7 +14,7 @@ int ShipBP1_Test(EngineState* engineState, ShipBP** bp)
     Part* root = shipBp->model.rootPart;
     root->localTransform = (Transform){0.0,0.0,0.0,1.0,0.0,0.0,0.0,0};
 
-    PartStructureGrid* grid = (PartStructureGrid*)root->structure;
+    PartStructureGrid* grid = root->structure;
     grid->grid.array = (Block*)calloc(11*11*11, sizeof(Block));
     grid->grid.x_s = 11;
     grid->grid.y_s = 6;

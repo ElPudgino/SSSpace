@@ -3,9 +3,9 @@
 
 typedef struct _static_data
 {
-    PartStructureSimpleMesh* base;
-    PartStructureSimpleMesh* barrelBase;
-    PartStructureSimpleMesh* barrel;
+    Model* base;
+    Model* barrelBase;
+    Model* barrel;
 } static_data;
 
 // May need a pool to store these datas
@@ -16,7 +16,7 @@ typedef struct _instance_data
     float angleX; // barrel left/right
     float angleY; // barrel up/down
     float CurRecoil;
-} instance_data;
+} instance_data; 
 
 // instance is block instance data
 // !! prev must not be changed
@@ -26,7 +26,7 @@ void _Render(void* instance, void* staticdata, mat4 prev)
     static_data* sd = (static_data*)staticdata;
     instance_data* id = (instance_data*)instance;
     //printf("instdata: %f, %f, %f\n", id->angleX, id->angleY, id->CurRecoil);
-    Render_SimpleMesh(sd->base, prev);
+    Render_Model(sd->base, prev);
     mat4 barrel;
     mat4 tr;
     float angles[3] = {id->angleX, id->angleY, 0};
@@ -34,18 +34,18 @@ void _Render(void* instance, void* staticdata, mat4 prev)
     Translation_Matrix_s(0, 2.0, 0, tr);
     glm_mat4_mul(tr, barrel, barrel);
     glm_mat4_mul(prev, barrel, barrel);
-    Render_SimpleMesh(sd->barrelBase, barrel);
+    Render_Model(sd->barrelBase, barrel);
     glm_mat4_mul(barrel ,(mat4){{1,0,0,0},{0,1,0,0},{0,0,1,0},{0,0,-id->CurRecoil,1}}, barrel);
-    Render_SimpleMesh(sd->barrel, barrel);
+    Render_Model(sd->barrel, barrel);
 }
 
 LogicBlockDef BlockDef_Cannon_Block()
 {
     LogicBlockDef def = {};
     static_data* data = (static_data*)calloc(1, sizeof(static_data));
-    data->base = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_base.obj");
-    data->barrel = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_barrel.obj");
-    data->barrelBase = (PartStructureSimpleMesh*)ModelTable_Get_Model("cannon_barrelbase.obj");
+    data->base = ModelTable_Get_Model("cannon_base.obj");
+    data->barrel = ModelTable_Get_Model("cannon_barrel.obj");
+    data->barrelBase = ModelTable_Get_Model("cannon_barrelbase.obj");
     assert(data->base);
     assert(data->barrel);
     assert(data->barrelBase);

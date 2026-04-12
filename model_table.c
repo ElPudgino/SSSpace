@@ -10,7 +10,7 @@ HashTable table;
 
 typedef struct _elem{
 	const char* str;
-	void* model;
+	Model* model;
 } Elem;
 
 size_t hashfunc(const void* v) {
@@ -24,22 +24,22 @@ size_t hashfunc(const void* v) {
 	return h;
 }
 
-void* str_copy(const void* v) {
+void* elem_copy(const void* v) {
 	Elem* c = (Elem*)malloc(sizeof(Elem));
 	const Elem* orig = (const Elem*)v;
 	*c = (Elem){strdup(orig->str), orig->model};
 	return c;
 }
 
-int str_equal(const void* a, const void* b) {
+int elem_equal(const void* a, const void* b) {
 	const Elem* x = (const Elem*)a;
 	const Elem* y = (const Elem*)b;
 	return !strcmp(x->str, y->str);
 }
 
-void str_free(void* a) {
+void elem_free(void* a) {
 	Elem* x = (Elem*)a;
-	Destroy_Model(x);
+	Destroy_Model(x->model);
 	free((void*)x->str);
 	free(x);
 }
@@ -50,7 +50,7 @@ int print_counter(HashTable* ht, void* kv, void* data) {
 	return 0;
 }
 
-void* ModelTable_Get_Model(const char* name)
+Model* ModelTable_Get_Model(const char* name)
 {
 	Elem k = {name, 0};
 	Elem* res;
@@ -58,7 +58,7 @@ void* ModelTable_Get_Model(const char* name)
 	return NULL;
 }
 
-void ModelTable_Set_Model(const char* name, void* model)
+void ModelTable_Set_Model(const char* name, Model* model)
 {
 	Elem k = {name, model};
 	if(ht_set(&table, &k)) printf("!Error while adding model to modeltable\n");
@@ -66,7 +66,7 @@ void ModelTable_Set_Model(const char* name, void* model)
 
 int Init_ModelTable()
 {
-	if (ht_init(&table, MODEL_TABLE_SIZE, hashfunc, str_copy, str_equal, str_free)) 
+	if (ht_init(&table, MODEL_TABLE_SIZE, hashfunc, elem_copy, elem_equal, elem_free)) 
 		return printf("Cannot initialize\n"), 0;
 	return 0;
 }

@@ -22,5 +22,9 @@
 * When saving logicblocks in BP, we can just save their offset directly and use it 
 */
 
+typedef struct _BpLoader
+{
+    char* saveLocation; 
+} BpLoader;
 
 #endif

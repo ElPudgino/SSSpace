@@ -12,22 +12,13 @@ enum
     PART_TYPE_MULTI_MESH
 };
 
-typedef struct _PartStructureSimpleMesh
+typedef struct _Model
 {
-    uint32_t structureType;
-    uint64_t ID; 
-    InstancedRenderData* renderData;
-    float bbsize[3];
-} PartStructureSimpleMesh;
-
-typedef struct _PartStructureMultiMesh
-{
-    uint32_t structureType;
     uint64_t ID;
     InstancedRenderData** renderDatas;
     uint32_t matCount;
     float bbsize[3];
-} PartStructureMultiMesh;
+} Model;
 
 typedef uint32_t BlockType;
 
@@ -87,7 +78,6 @@ typedef struct _BlockGrid
 
 typedef struct _PartStructureGrid
 {
-    uint32_t structureType;
     uint64_t ID; 
     uint32_t userCount;
     EngineState* engineState;
@@ -105,7 +95,7 @@ typedef struct _PartStructureGrid
 
 typedef struct _Part
 {
-    void* structure; // shared
+    PartStructureGrid* structure; // shared
     Transform localTransform;
     struct _Part* children;
     uint32_t childrenCount;
@@ -113,11 +103,9 @@ typedef struct _Part
 
 int Has_SpecialRender(LogicBlock block);
 
-PartStructureSimpleMesh* Create_PartStructureSimpleMesh();
+Model* Create_Model();
 
-PartStructureMultiMesh* Create_PartStructureMultiMesh();
-
-void AddUpload_ModelTransformArrays(void* model);
+void AddUpload_ModelTransformArrays(Model* model);
 
 /*! @brief Creates new instance of PartStructureGrid
 * Internal arrays are allocated
@@ -125,9 +113,7 @@ void AddUpload_ModelTransformArrays(void* model);
 */
 PartStructureGrid* Create_PartStructureGrid(EngineState* engineState);
 
-void Render_SimpleMesh(PartStructureSimpleMesh* sm, mat4 prev);
-
-void Render_MultiMesh(PartStructureMultiMesh* mm, mat4 prev);
+void Render_Model(Model* mm, mat4 prev);
 
 void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev);
 
@@ -137,6 +123,6 @@ void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev);
 */
 void Destroy_StructureGrid(PartStructureGrid* grid);
 
-void Destroy_Model(void* model);
+void Destroy_Model(Model* structure);
 
 #endif
