@@ -226,10 +226,9 @@ int main(int argc, char** argv)
 
     printf("Starting main loop\n");
 
-    if (argc > 1 && !strcmp(argv[1], "--test")) 
+    if (argc > 1 && !strcmp(argv[1], "--tests")) 
     {
         Run_Tests(engineState);
-        running = 0;
     }
 
     _Testing(engineState);

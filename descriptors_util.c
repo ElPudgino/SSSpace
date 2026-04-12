@@ -20,7 +20,7 @@ void DlBuilder_Add_DescriptorLayoutBinding(DescriptorLayoutBuilder* builder, uns
     builder->bindings[builder->bCount].descriptorCount = 1;
     builder->bindings[builder->bCount].descriptorType = type;
     builder->bindings[builder->bCount].stageFlags = shaderStages;
-    
+
     builder->bCount++;
 }
 

@@ -159,6 +159,7 @@ int _Load_Obj(const char* filename, objData* data)
         }      
 
         printf("Failed to parse obj: %s\n", filename);
+        fclose(f);
         return 1;
     }
 
@@ -187,6 +188,8 @@ int _Load_Obj(const char* filename, objData* data)
     data->pcount = vertcount;
     data->name = oname;
     data->mtllib = mtlib;
+
+    fclose(f);
 
     return 0;
 }

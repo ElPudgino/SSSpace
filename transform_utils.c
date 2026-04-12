@@ -1,6 +1,7 @@
 #include "transform_utils.h"
 #include "mesh_utils.h"
 #include "camera_control.h"
+#include "logger.h"
 
 uint32_t CurrentArrayIndex = 1;
 TransformArray* GlobalTransformArrays = NULL;
@@ -131,6 +132,7 @@ int Destroy_TransformBuffer(EngineState* engineState)
 
 void Upload_Transforms(EngineState* engineState)
 {
+    //LOG_TEXT("_uploading trs\n");
     uint32_t curindex = 0;
     for (int i = 0;i < CurrentArrayIndex-1;i++)
     {
@@ -141,6 +143,7 @@ void Upload_Transforms(EngineState* engineState)
     }
     int res = vmaFlushAllocation(engineState->allocator, TransformBuffer.allocation, 0, curindex * sizeof(mat4));
     if (res != VK_SUCCESS) printf("!Failed to flush allocation: %d\n", res);
+    //LOG_TEXT("_uploaded trs\n");
 }
 
 // render data shouldn be changed after being added
@@ -151,17 +154,22 @@ void Add_TransformArray(InstancedRenderData* data)
     assert(data->material);
     assert(data->mesh);
     data->ID = CurrentArrayIndex;
-
+    //LOG_INFO("data id: %d\n", CurrentArrayIndex);
     if (!GlobalTransformArrays)
     {
+        //LOG_TEXT("gltrarr created\n");
         GlobalTransformArrays = (TransformArray*)calloc(4, sizeof(TransformArray));
         GlobalTransformCap = 4;
     }
-    else if (GlobalTransformCap == CurrentArrayIndex - 1)
+    else if (GlobalTransformCap == CurrentArrayIndex)
     {
+        //LOG_TEXT("gltrarr expanded\n");
         GlobalTransformArrays = (TransformArray*)realloc(GlobalTransformArrays, sizeof(TransformArray) * GlobalTransformCap * 2);
         GlobalTransformCap *= 2;
     }
+    GlobalTransformArrays[CurrentArrayIndex-1].count = 0;
+    GlobalTransformArrays[CurrentArrayIndex-1].cap = 0;
+    GlobalTransformArrays[CurrentArrayIndex-1].array = NULL;
     GlobalTransformArrays[CurrentArrayIndex-1].renderData = *data;
     GlobalTransformArrays[CurrentArrayIndex-1].valid = 1; 
     CurrentArrayIndex++;
@@ -185,7 +193,9 @@ void Add_InstanceToRender(InstancedRenderData* data, mat4 trs)
     assert(data);
     assert(data->ID > 0);
     assert(data->mesh->g_Address); // probably forgot to upload mesh
+    //LOG_INFO("_adding render tr %d / %d\n", data->ID, GlobalTransformCap);
     _add_RenderTransform(&GlobalTransformArrays[data->ID-1], trs);
+    //LOG_TEXT("_added render tr\n");
 }
 
 InstancedRenderData* Create_InstanceData()
@@ -200,15 +210,18 @@ void _add_RenderTransform(TransformArray* array, mat4 matrix)
     assert(array->valid);
     if (array->cap == 0)
     {
+        //LOG_TEXT("new arr\n");
         array->cap = 4;
         array->array = (mat4*)calloc(4, sizeof(mat4));
     }
     else if (array->cap == array->count)
     {
+        //LOG_TEXT("resize arr\n");
         uint32_t newsize = (uint32_t)((float)array->cap * TRM_ARRAY_RESIZE_COEF);
         array->array = (mat4*)realloc(array->array, sizeof(mat4) * newsize);
         array->cap = newsize;
     }
+    //LOG_INFO("_mt copy %d\n",array->count);
     glm_mat4_copy(matrix, array->array[array->count]);
     array->count++;
 }

@@ -27,4 +27,6 @@ typedef struct _BpLoader
     char* saveLocation; 
 } BpLoader;
 
+void Save_ShipBlueprint(ShipBP* bp, char* filename);
+
 #endif
