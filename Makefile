@@ -9,6 +9,7 @@ SHADERS := $(wildcard $(MATS_DIR)/*/*.c)
 all : CompileApp
 
 CompileApp : $(SOURCES) $(SHADERS)
+	bash materials/CompileShaders.sh
 	g++ -DDEBUG=0 $(CFLAGS) $(SOURCES) $(SHADERS) -o app $(LDFLAGS)
 
 run : CompileApp
@@ -16,6 +17,7 @@ run : CompileApp
 	./app
 
 debug : $(SOURCES) $(SHADERS)
+	bash materials/CompileShaders.sh
 	g++ -DDEBUG=1 $(CFLAGS) $(SOURCES) $(SHADERS) -o appd $(LDFLAGS)
 	
 rund : debug
