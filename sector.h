@@ -47,7 +47,7 @@ void Render_Sector(EngineState* engineState, Sector* sector);
 
 void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount);
 
-void Get_ObjectArrInPartition(Sector* sector, vec3 pos, uint16_t* ind, uint16_t* cnt);
+void Get_ObjectArrInPartition(Sector* sector, double pos[3], uint16_t* ind, uint16_t* cnt);
 
 void Tick_Sector(Sector* sector);
 
