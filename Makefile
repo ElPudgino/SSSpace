@@ -1,6 +1,6 @@
-#CFLAGS = -std=c++17 #-fsanitize=address
+#CFLAGS = -std=c11 #-fsanitize=address
 #CFLAGS += -Imaterials
-LDFLAGS = -lSDL3 -lvulkan 
+LDFLAGS = -lSDL3 -lvulkan -lstdc++ -lm
 
 MATS_DIR := materials
 SOURCES := $(wildcard *.c)
@@ -8,9 +8,12 @@ SHADERS := $(wildcard $(MATS_DIR)/*/*.c)
 
 all : CompileApp
 
-CompileApp : $(SOURCES) $(SHADERS)
+vma.o : vma.cpp
+	g++ $(CFLAGS) -c vma.cpp -o vma.o $(LDFLAGS)
+
+CompileApp : vma.o $(SOURCES) $(SHADERS)
 	bash materials/CompileShaders.sh
-	gcc -DDEBUG=0 $(CFLAGS) $(SOURCES) $(SHADERS) -o app $(LDFLAGS)
+	gcc -DDEBUG=0 $(CFLAGS) $(SOURCES) $(SHADERS) vma.o -o app $(LDFLAGS)
 
 run : CompileApp
 	export VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation
@@ -18,7 +21,7 @@ run : CompileApp
 
 debug : $(SOURCES) $(SHADERS)
 	bash materials/CompileShaders.sh
-	gcc -DDEBUG=1 $(CFLAGS) $(SOURCES) $(SHADERS) -o appd $(LDFLAGS)
+	gcc -DDEBUG=1 $(CFLAGS) vma.o $(SOURCES) $(SHADERS) -o appd $(LDFLAGS)
 	
 rund : debug
 	export VK_INSTANCE_LAYERS=VK_LAYER_KHRONOS_validation

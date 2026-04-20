@@ -243,7 +243,7 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-    for (int i = 0; i < 8;i++)
+    for (int i = 0; i < 9;i++)
     {
         Delete_Ship(testships[i]);
     }

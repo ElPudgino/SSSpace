@@ -2,6 +2,7 @@
 #include "mesh_gen.h"
 #include "sector.h"
 #include "basic_objects.h"
+#include "part_table.h"
 
 void Set_PartTransform(Part* part, Transform* tr)
 {
@@ -27,11 +28,13 @@ Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
     return grid.array[Get_IndexFromPos(grid, x, y, z)];
 }
 
+// Only for creating ship BPs
 Part* Create_Part(PartStructureGrid* structure)
 {
     assert(structure);
     Part* res = (Part*)calloc(1, sizeof(Part));
     res->structure = structure;
+    structure->userCount++;
     return res;
 }
 
@@ -131,6 +134,7 @@ void _Create_ShipPart(Part* ship, Part* bp)
     if (bp->childrenCount > 0) ship->children = (Part*)calloc(bp->childrenCount, sizeof(Part));
     ship->childrenCount = bp->childrenCount;
     ship->structure = bp->structure;
+    bp->structure->userCount++;
     for (int i = 0; i < bp->childrenCount; i++)
     {
         _Create_ShipPart(&ship->children[i],&bp->children[i]);
@@ -187,6 +191,7 @@ Ship* Create_ShipFromBP(ShipBP* bp)
 void _Delete_ShipPart(Part* part)
 {
     assert(part);
+    part->structure->userCount--;
     for (int i = 0; i < part->childrenCount; i++)
     {
         _Delete_ShipPart(&part->children[i]);
@@ -206,6 +211,7 @@ void Delete_Ship(Ship* ship)
 void _Delete_ShipBPPart(Part* part)
 {
     assert(part);
+    part->structure->userCount--;
     for (int i = 0; i < part->childrenCount; i++)
     {
         _Delete_ShipPart(&part->children[i]);

@@ -13,6 +13,8 @@ void Init_Loader()
     loader.saveLocation = "savedmodels";
 }
 
+
+
 ShipBP* Load_BP_FromSBP(FILE* f)
 {
     fseek(f, 0, SEEK_END);
@@ -22,7 +24,7 @@ ShipBP* Load_BP_FromSBP(FILE* f)
 
 void _Save_Grid(PartStructureGrid* grid, FILE* f)
 {
-    fprintf(f, "GRID: ID-%ld\n", grid->ID);
+    fprintf(f, "GRID: ID:%ld\n", grid->ID);
     fprintf(f, "GRIDSIZE: %d %d %d\n", grid->grid.x_s, grid->grid.y_s, grid->grid.z_s);
     fprintf(f, "LOGICBLOCKS:\n");
 
@@ -96,7 +98,7 @@ void _Save_PartGrids(Part* p, FILE* f)
 void _Save_BP_ToSBP(ShipBP* bp, FILE* f)
 {
     assert(bp);
-    fprintf(f, "SHIP_BLUEPRINT: ID-%ld\n", bp->ID);
+    fprintf(f, "SHIP_BLUEPRINT: ID:%ld\n", bp->ID);
     _Write_Part(bp->model.rootPart, f, 0);
     fprintf(f, "\n");
     _Save_PartGrids(bp->model.rootPart, f);

@@ -11,7 +11,7 @@ Each player can have their own fleet.
 Controlling your ships with Lua scripts.
 Parallel processing of different sectors.
 ## Technical details
-Libraries used: Vulkan, SDL3, libuv
+Libraries used: Vulkan, SDL3, libuv, VMA, stb_image
 
 #### Graphics:
 Currently main renderer uses double buffering.
@@ -29,5 +29,4 @@ Or
 `make run`
 
 ##### WIP Notes:
-Currently throws an error at shutdown.
 Test controls: Up&Down arrow, T key

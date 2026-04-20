@@ -1,6 +1,7 @@
 #include "basic_objects.h"
 #include "assets.h"
 #include "mesh_utils.h"
+#include "part_table.h"
 
 // Block may be bigger than 1 by 1
 // result in local coords
@@ -40,7 +41,9 @@ PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
     res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
     res->logicBlocks = (LogicBlock*)calloc(8, sizeof(LogicBlock));
     res->logicBlockCap = 8;
+    res->ID = rand() * rand(); // TODO: use a proper UUID. Chance of collision is already abysmal though
     res->engineState = engineState;
+    PartTable_Set_Part(res);
     return res;
 }
 

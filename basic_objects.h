@@ -78,7 +78,7 @@ typedef struct _BlockGrid
 
 typedef struct _PartStructureGrid
 {
-    uint64_t ID; 
+    uint64_t ID; // todo use a string UUID
     uint32_t userCount;
     EngineState* engineState;
     BlockGrid grid;

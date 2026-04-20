@@ -9,6 +9,7 @@
 #include "asset_loader.h"
 #include "image_loader.h"
 #include "samplers.h"
+#include "part_table.h"
 
 int Create_VulkanInstance(EngineState* engineState)
 {
@@ -73,18 +74,64 @@ int Get_PhysicalDevice(EngineState* engineState)
         return -2;
     }
 
+    int flag = 0;
     VkPhysicalDeviceProperties props = {};
     for (int ind = 0; ind < deviceCount; ind++)
     {
         vkGetPhysicalDeviceProperties(physDevices[ind], &props);
-
         printf("%s - device available\n", props.deviceName);
     }
 
-    engineState->physicalDevice = physDevices[0];
+    for (int ind = 0; ind < deviceCount && !flag; ind++)
+    {
+        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
+        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
+        {
+            engineState->physicalDevice = physDevices[ind];
+            flag = 1;
+            printf("%s - device (Dedicated GPU) SELECTED\n", props.deviceName);
+        }
+    }
 
-    vkGetPhysicalDeviceProperties(physDevices[0], &props);
-    printf("%s - device SELECTED\n", props.deviceName);
+    for (int ind = 0; ind < deviceCount && !flag; ind++)
+    {
+        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
+        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+        {
+            engineState->physicalDevice = physDevices[ind];
+            flag = 1;
+            printf("%s - device (Integrated GPU) SELECTED\n", props.deviceName);
+        }
+    }
+
+    for (int ind = 0; ind < deviceCount && !flag; ind++)
+    {
+        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
+        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU)
+        {
+            engineState->physicalDevice = physDevices[ind];
+            flag = 1;
+            printf("%s - device (Virtual GPU) SELECTED\n", props.deviceName);
+        }
+    }
+
+    for (int ind = 0; ind < deviceCount && !flag; ind++)
+    {
+        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
+        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
+        {
+            engineState->physicalDevice = physDevices[ind];
+            flag = 1;
+            printf("%s - device (CPU) SELECTED\n", props.deviceName);
+            printf("!This may not work correctly\n");
+        }
+    }
+
+    if (!flag) 
+    {
+        printf("Failed to find suitable device\n");
+        return -3;
+    }
 
     free(physDevices);
     return res;
@@ -429,6 +476,10 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
     printf("Main draw image created\n");
+
+    if (Init_PartTable()) {printf("!!Failed to init part table\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, CleanUp_PartTable);
+    printf("Part table created\n");
 
     if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
