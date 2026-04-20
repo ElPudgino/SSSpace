@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <math.h>
 #include "engine_init.h"
-#define VMA_IMPLEMENTATION
 #include "vk_mem_alloc.h"
 
 

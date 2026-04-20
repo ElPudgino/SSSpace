@@ -80,7 +80,7 @@ void BlockRotation_Matrix(char r, mat4 m)
     
 }
 
-inline void _numToChar(uint32_t n, char* c)
+void _numToChar(uint32_t n, char* c)
 {
     switch (n)
     {
@@ -101,7 +101,7 @@ inline void _numToChar(uint32_t n, char* c)
     }
 }
 
-inline char _charToNum(char d)
+char _charToNum(char d)
 {
     switch (d)
     {
