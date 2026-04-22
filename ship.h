@@ -51,6 +51,7 @@ typedef struct _ShipBP
     float BB[3];
     size_t logicBlockDataLength;
     RigidBody rb;
+    char LbInit;
 } ShipBP;
 
 typedef struct _Ship
@@ -68,13 +69,17 @@ Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
 
 void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t z);
 
-void ShipBP_Add_LogicBlock(ShipBP* bp, PartStructureGrid* part, uint32_t blockID, short pos[3], BlockRotation rot);
+void Grid_Add_LogicBlock(PartStructureGrid* part, uint32_t blockID, short pos[3], BlockRotation rot);
 
 void* Get_LogicBlockData(Ship* ship, LogicBlock block);
 
-Part* Create_Part(PartStructureGrid* structure);
+Part* Create_Part(PartStructureGrid* structure, Part* apointer);
 
 void Render_Ship(Ship* ship, mat4 tr);
+
+void ShipBP_Init_LogicBlocks(ShipBP* bp);
+
+ShipBP* Create_ShipBP(uint64_t id);
 
 Ship* Create_ShipFromBP(ShipBP* bp);
 

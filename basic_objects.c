@@ -37,11 +37,20 @@ Model* Create_Model()
 PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
 {
     PartStructureGrid* res = (PartStructureGrid*)calloc(1, sizeof(PartStructureGrid));
-    res->matCap = 1;
-    res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
-    res->logicBlocks = (LogicBlock*)calloc(8, sizeof(LogicBlock));
-    res->logicBlockCap = 8;
-    res->ID = rand() * rand(); // TODO: use a proper UUID. Chance of collision is already abysmal though
+    //res->matCap = 1;
+    //res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
+    res->ID = (uint64_t)rand() + (((uint64_t)rand()) << 32); // TODO: use a proper UUID. Chance of collision is already abysmal though
+    res->engineState = engineState;
+    PartTable_Set_Part(res);
+    return res;
+}
+
+PartStructureGrid* Create_PartStructureGrid_ID(EngineState* engineState, uint64_t id)
+{
+    PartStructureGrid* res = (PartStructureGrid*)calloc(1, sizeof(PartStructureGrid));
+    //res->matCap = 1;
+    //res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
+    res->ID = id;
     res->engineState = engineState;
     PartTable_Set_Part(res);
     return res;
@@ -50,6 +59,7 @@ PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
 void AddUpload_ModelTransformArrays(Model* mm)
 {
     assert(mm);
+    assert(mm->renderDatas);
     for (int i = 0; i < mm->matCount; i++)
     {
         Mesh_UploadData(mm->renderDatas[i]->mesh);
@@ -60,6 +70,7 @@ void AddUpload_ModelTransformArrays(Model* mm)
 void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
 {
     assert(grid);
+    assert(grid->renderDatas);
     assert(logicblockdata);
     //printf("Start render grid\n");
     for (int i = 0; i < grid->matCount; i++)

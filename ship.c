@@ -29,9 +29,17 @@ Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
 }
 
 // Only for creating ship BPs
-Part* Create_Part(PartStructureGrid* structure)
+Part* Create_Part(PartStructureGrid* structure, Part* apointer)
 {
     assert(structure);
+    if (apointer)
+    {
+        assert(!apointer->structure);
+        assert(!apointer->children);
+        apointer->structure = structure;
+        structure->userCount++;
+        return apointer;
+    }
     Part* res = (Part*)calloc(1, sizeof(Part));
     res->structure = structure;
     structure->userCount++;
@@ -141,28 +149,56 @@ void _Create_ShipPart(Part* ship, Part* bp)
     }
 }
 
-// Logic blocks are only stored in BP
-// Their instance data is stored in ship instances
-// void* data in logicblocks are offsets, added to the start of instance data array
-void ShipBP_Add_LogicBlock(ShipBP* bp, PartStructureGrid* part, uint32_t blockID, short pos[3], BlockRotation rot)
+// Just an easy way to add blocks
+void Grid_Add_LogicBlock(PartStructureGrid* part, uint32_t blockID, short pos[3], BlockRotation rot)
 {
-    assert(bp);
     assert(part);
     assert(blockID); // ID 0 is reserved as invalid
-    const LogicBlockDef* def = Get_LogicBlockDef(blockID);
+    if (part->logicBlockCap == 0)
+    {
+        part->logicBlocks = (LogicBlock*)calloc(1, sizeof(LogicBlock));
+        part->logicBlockCap = 1;
+    }
     if (part->logicBlockCount == part->logicBlockCap)
     {
         part->logicBlocks = (LogicBlock*)realloc(part->logicBlocks, 2*part->logicBlockCap*sizeof(LogicBlock));
         part->logicBlockCap *= 2;
     }
-    LogicBlock b = (LogicBlock){.data = def->instanceDataSize, .rot = rot,.defIndex = def->ID};
+    LogicBlock b = (LogicBlock){.rot = rot, .defIndex = blockID};
     b.pos[0] = pos[0];
     b.pos[1] = pos[1];
     b.pos[2] = pos[2];
     part->logicBlocks[part->logicBlockCount] = b;
     part->logicBlockCount++;
-    bp->logicBlockDataLength += def->instanceDataSize;
 }
+
+void _ShipBp_Init_Part_LogicBlocks(ShipBP* bp, Part* p)
+{
+    assert(bp);
+    assert(p);
+    assert(p->structure);
+
+    for (int i = 0; i < p->childrenCount; i++)
+    {
+        _ShipBp_Init_Part_LogicBlocks(bp, p->children + i);
+    }
+
+    PartStructureGrid* grid = p->structure;
+    const LogicBlockDef* def = NULL;
+    for (int i = 0; i < grid->logicBlockCount; i++)
+    {
+        def = Get_LogicBlockDef(grid->logicBlocks[i].defIndex);
+        grid->logicBlocks[i].data = bp->logicBlockDataLength;
+        bp->logicBlockDataLength += def->instanceDataSize;
+    }
+}
+
+void ShipBP_Init_LogicBlocks(ShipBP* bp)
+{
+    _ShipBp_Init_Part_LogicBlocks(bp, bp->model.rootPart);
+    bp->LbInit = 1;
+}
+
 // Slightly cursed, but the main idea is here
 void* Get_LogicBlockData(Ship* ship, LogicBlock block)
 {
@@ -170,10 +206,20 @@ void* Get_LogicBlockData(Ship* ship, LogicBlock block)
     return (void*)((char*)ship->logicBlockData + block.data);
 }
 
+// If id is 0 generate it
+ShipBP* Create_ShipBP(uint64_t id)
+{
+    ShipBP* res = (ShipBP*)calloc(1, sizeof(ShipBP));
+    if (id == 0) id = (uint64_t)rand() << 32 + (uint64_t)rand();
+    res->ID = id;
+    return res;
+}
+
 // Create an array to hold logicblock data from the entire ship
 Ship* Create_ShipFromBP(ShipBP* bp)
 {
     assert(bp);
+    assert(bp->LbInit);
     Ship* res = (Ship*)calloc(1, sizeof(Ship));
     res->BP = bp;
     res->model.rootPart = (Part*)calloc(1, sizeof(Part));

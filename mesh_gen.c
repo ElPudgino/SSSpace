@@ -99,6 +99,11 @@ void Add_ModelToPart(PartStructureGrid* grid, BlockModel* bmodel,uint32_t posx,u
             return;
         }
     }
+    if (grid->matCap == 0)
+    {
+        grid->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
+        grid->matCap = 1;
+    }
     if (grid->matCap == grid->matCount)
     {
         grid->renderDatas = (InstancedRenderData**)realloc(grid->renderDatas, sizeof(InstancedRenderData*)*grid->matCap*2);

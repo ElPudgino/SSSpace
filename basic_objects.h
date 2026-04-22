@@ -40,7 +40,9 @@ typedef struct _Block
 
 // Any logic is in logic blocks:
 // A turret is logic block, which has a special render
-
+// Logic blocks are only stored in BP
+// Their instance data is stored in ship instances
+// void* data in logicblocks are offsets, added to the start of instance data array
 typedef struct _LogicBlock
 {
     uint32_t data; //offset
@@ -112,6 +114,8 @@ void AddUpload_ModelTransformArrays(Model* model);
 * @param engineState Main engine state
 */
 PartStructureGrid* Create_PartStructureGrid(EngineState* engineState);
+
+PartStructureGrid* Create_PartStructureGrid_ID(EngineState* engineState, uint64_t id);
 
 void Render_Model(Model* mm, mat4 prev);
 
