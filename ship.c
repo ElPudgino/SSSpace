@@ -210,7 +210,7 @@ void* Get_LogicBlockData(Ship* ship, LogicBlock block)
 ShipBP* Create_ShipBP(uint64_t id)
 {
     ShipBP* res = (ShipBP*)calloc(1, sizeof(ShipBP));
-    if (id == 0) id = (uint64_t)rand() << 32 + (uint64_t)rand();
+    if (id == 0) id = Gen_ID64();
     res->ID = id;
     return res;
 }

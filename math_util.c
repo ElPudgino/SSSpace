@@ -139,3 +139,8 @@ char DirName_ToBlockRotation(char up, char north)
     res = res | _charToNum(north);
     return res;
 }
+
+uint64_t Gen_ID64()
+{
+    return(uint64_t)rand() << 32 + (uint64_t)rand();
+}

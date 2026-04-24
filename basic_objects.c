@@ -39,7 +39,7 @@ PartStructureGrid* Create_PartStructureGrid(EngineState* engineState)
     PartStructureGrid* res = (PartStructureGrid*)calloc(1, sizeof(PartStructureGrid));
     //res->matCap = 1;
     //res->renderDatas = (InstancedRenderData**)calloc(1, sizeof(InstancedRenderData*));
-    res->ID = (uint64_t)rand() + (((uint64_t)rand()) << 32); // TODO: use a proper UUID. Chance of collision is already abysmal though
+    res->ID = Gen_ID64(); // TODO: use a proper UUID. Chance of collision is already abysmal though
     res->engineState = engineState;
     PartTable_Set_Part(res);
     return res;

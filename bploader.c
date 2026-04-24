@@ -252,6 +252,7 @@ ShipBP* Load_BP_FromSBP(FILE* f, EngineState* engineState)
         return NULL;
     }
 
+    // if id == 0 then it will be generated
     ShipBP* res = Create_ShipBP(id);
     res->model.rootPart = (Part*)calloc(1, sizeof(Part));
     if (Load_Part_FromSBP(f, res->model.rootPart))

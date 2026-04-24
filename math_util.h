@@ -29,4 +29,6 @@ void BlockRotation_ToDirName(char r, char* up, char* north);
 
 char DirName_ToBlockRotation(char up, char north);
 
+uint64_t Gen_ID64();
+
 #endif
