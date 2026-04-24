@@ -50,6 +50,7 @@ void _Testing(EngineState* engineState)
         for (int y = -1; y < 2; y++)
         {
             Ship* s = Create_ShipFromBP(get_testbp());
+            assert(s);
             testships[ind] = s;
             pos[0] = x*30;
             pos[1] = y*30;

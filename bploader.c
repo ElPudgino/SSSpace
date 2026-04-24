@@ -6,8 +6,9 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-char pline[2048] = {};
-BpLoader loader = {};
+static char pline[2048] = {};
+static char fline[256] = {};
+static BpLoader loader = {};
 
 void Init_Loader()
 {
@@ -15,8 +16,16 @@ void Init_Loader()
     loader.saveLocation = "savedmodels";
 }
 
+char* To_SaveLocation(char* fname)
+{
+    snprintf(fline, 255, "%s/%s.sbp", loader.saveLocation, fname);
+    return fline;
+}
+
 int Load_GridLogicBlocks(FILE* f, PartStructureGrid* grid)
 {
+    assert(f);
+    assert(grid);
     uint32_t lstart = ftell(f);
     uint32_t mxlen = 10000;
     char buf[128];
@@ -47,6 +56,9 @@ int Load_GridLogicBlocks(FILE* f, PartStructureGrid* grid)
 
 int Load_GridBlocks(FILE* f, PartStructureGrid* grid)
 {
+    assert(f);
+    assert(grid);
+
     uint32_t lsize = (8 + 1 + 7 + 1) * grid->grid.x_s + 32;
     char* line = (char*)calloc(lsize, sizeof(char));
     grid->grid.array = (Block*)calloc(grid->grid.x_s * grid->grid.y_s * grid->grid.z_s, sizeof(Block));
@@ -89,22 +101,28 @@ int Load_GridBlocks(FILE* f, PartStructureGrid* grid)
 
 int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
 {
+    assert(f);
     assert(grid);
     char buf[128];
     uint32_t mxlen = 2000;
     uint32_t scannedsize = 0;
     uint32_t scannedlgblocks = 0;
     uint32_t scannedbloks = 0;
-    uint32_t gsize[3];
+    uint32_t gsize[3] = {};
+    char nl = 0;
+
+    int test = 0;
 
     while (mxlen--)
     {
         fgets(buf, 127, f);
+        LOG_INFO("%d %s\n", buf[0], buf);
         if (buf[0] == ' ' || buf[0] == '\n') continue;
-        if (buf[0] = '\0') break;
-        if (!strcmp(buf, "GRIDEND\n")) break;
-        if (sscanf(buf, "GRIDSIZE: %d %d %d", gsize, gsize+1, gsize+2) == 3) 
+        if (buf[0] == '\0') break;
+        if (sscanf(buf, "GRIDEND%c",&nl) == 1) break;
+        if ((test = sscanf(buf, "GRIDSIZE: %u %u %u", gsize, gsize+1, gsize+2)) == 3) 
         {
+            LOG_TEXT("Got gridsize\n");
             if (!scannedsize) 
             {
                 scannedsize = 1; 
@@ -113,20 +131,21 @@ int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
                 grid->grid.z_s = gsize[2];
             }
             else {LOG_TEXT("Error parsing sbp grid: GRIDSIZE declared second time\n"); return 1;}
-            continue;;
+            continue;
         }
+        LOG_INFO("%d; %d %d %d\n",test, gsize[0], gsize[1], gsize[2]);
         if (!strcmp(buf, "LOGICBLOCKS:\n"))
         {
-            if (!scannedlgblocks) {scannedlgblocks = 1; Load_GridLogicBlocks(f, grid);}
+            if (!scannedlgblocks) {scannedlgblocks = 1; Load_GridLogicBlocks(f, grid); continue;}
             else {LOG_TEXT("Error parsing sbp grid: LOGICBLOCKS declared second time\n"); return 2;}
         }
         if (!strcmp(buf, "BLOCKS:\n"))
         {
-            if (!scannedbloks && scannedsize) {scannedbloks = 1; Load_GridBlocks(f, grid);}
+            if (!scannedbloks && scannedsize) {scannedbloks = 1; Load_GridBlocks(f, grid); continue;}
             else if (scannedsize){LOG_TEXT("Error parsing sbp grid: BLOCKS declared second time\n"); return 3;}
             else {LOG_TEXT("Error parsing sbp grid: BLOCKS declared before GRIDSIZE\n"); return 8;}
         }
-        LOG_TEXT("Encountered an unexpected line GRID definition; stopping\n");
+        LOG_INFO("Encountered an unexpected line GRID definition: %s\n", buf);
         return 4;
     }
     if (!scannedsize) {LOG_TEXT("Error parsing sbp grid: GRIDSIZE not declared\n"); return 5;}
@@ -153,6 +172,7 @@ int Load_AllGrids_FromBP(FILE* f, EngineState* engineState)
     {
         if (sscanf(line, "GRID: ID: %lu", &id) == 1)
         {
+            LOG_INFO("%s\n",line);
             if (PartTable_Get_Part(id) == NULL)
             {
                 PartStructureGrid* grid = Create_PartStructureGrid_ID(engineState, id);
@@ -165,6 +185,9 @@ int Load_AllGrids_FromBP(FILE* f, EngineState* engineState)
 
 int Load_Part_FromSBP(FILE* f, Part* root)
 {
+    assert(f);
+    assert(root);
+
     uint64_t id = 0;
     double pos[3] = {};
     vec4 rot = {};
@@ -201,7 +224,7 @@ int Load_Part_FromSBP(FILE* f, Part* root)
         fgets(line, 127, f);
         if (sscanf(line ," {%c", &nl) != 1 || nl != '\n') {LOG_TEXT("Failed to load part from sbp: invalid CHILDREN field\n"); return 1;}  
         root->childrenCount = ch;
-        root->children = (Part*)calloc(2, sizeof(Part));
+        root->children = (Part*)calloc(ch, sizeof(Part));
         for (int i = 0; i < ch; i++)
         {
             Load_Part_FromSBP(f, root->children + i);
@@ -217,7 +240,7 @@ int Load_Part_FromSBP(FILE* f, Part* root)
 
 ShipBP* Load_BP_FromSBP(FILE* f, EngineState* engineState)
 {
-    if (Load_AllGrids_FromBP(f, engineState)) LOG_TEXT("!Failed to load sbp\n");
+    if (Load_AllGrids_FromBP(f, engineState)) {LOG_TEXT("!Failed to load sbp grids\n"); return NULL;}
 
     fseek(f, 0, SEEK_SET);
     uint64_t id = 0;
@@ -230,6 +253,7 @@ ShipBP* Load_BP_FromSBP(FILE* f, EngineState* engineState)
     }
 
     ShipBP* res = Create_ShipBP(id);
+    res->model.rootPart = (Part*)calloc(1, sizeof(Part));
     if (Load_Part_FromSBP(f, res->model.rootPart))
     {
         Delete_ShipBP(res);
@@ -246,6 +270,20 @@ ShipBP* Load_BP_FromSBP(FILE* f, EngineState* engineState)
     ShipBP_Init_LogicBlocks(res);
     LOG_TEXT("Successfuly loaded a ShipBP from sbp file\n");
     return res;
+}
+
+ShipBP* Load_BP_FromSBP_File(char* fname, EngineState* engineState)
+{
+    char* fn = To_SaveLocation(fname);
+    FILE* f = fopen(fn, "r");
+    if (!f) 
+    {
+        LOG_INFO("Failed to find sbp file: %s\n", fn);
+        return NULL;
+    }
+    ShipBP* bp = Load_BP_FromSBP(f, engineState);
+    fclose(f);
+    return bp;
 }
 
 void _Save_Grid(PartStructureGrid* grid, FILE* f)
@@ -331,13 +369,11 @@ void _Save_BP_ToSBP(ShipBP* bp, FILE* f)
     _Save_PartGrids(bp->model.rootPart, f);
 }
 
-char fname[256] = {};
-
 void Save_ShipBlueprint(ShipBP* bp, char* filename)
 {
     Init_Loader();
     mkdir("savedmodels", 0777);
-    snprintf(fname, 255, "%s/%s.sbp", loader.saveLocation, filename);
+    char* fname = To_SaveLocation(filename);
     FILE* f = fopen(fname, "w");
     if (!f) {LOG_INFO("!Failed to create/open file: %s\n", fname); return;}
     _Save_BP_ToSBP(bp, f);

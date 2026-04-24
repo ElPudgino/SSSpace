@@ -29,4 +29,6 @@ typedef struct _BpLoader
 
 void Save_ShipBlueprint(ShipBP* bp, char* filename);
 
+ShipBP* Load_BP_FromSBP_File(char* fname, EngineState* engineState);
+
 #endif

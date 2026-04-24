@@ -5,12 +5,14 @@
 #include "debug.h"
 #include "logger.h"
 #include "bploader.h"
+#include "bploader.h"
 
 int ShipBP1_Test(EngineState* engineState, ShipBP** bp)
 {
     int res = 0;
+    LOG_TEXT("Starting shipBP create test 1\n");
 
-    ShipBP* shipBp = (ShipBP*)calloc(1,sizeof(ShipBP));
+    ShipBP* shipBp = Create_ShipBP(0);
     shipBp->model.rootPart = Create_Part(Create_PartStructureGrid(engineState), NULL);
     Part* root = shipBp->model.rootPart;
     root->localTransform = (Transform){0.0,0.0,0.0,1.0,0.0,0.0,0.0,0};
@@ -65,8 +67,9 @@ int ShipBP1_Test(EngineState* engineState, ShipBP** bp)
 int ShipBP2_Test(EngineState* engineState, ShipBP** bp)
 {
     int res = 0;
+    LOG_TEXT("Starting shipBP create test 2\n");
 
-    ShipBP* shipBp = (ShipBP*)calloc(1,sizeof(ShipBP));
+    ShipBP* shipBp = Create_ShipBP(0);
     shipBp->model.rootPart = Create_Part(Create_PartStructureGrid(engineState), NULL);
     Part* root = shipBp->model.rootPart;
     root->localTransform = (Transform){0.0,0.0,0.0,1.0,0.0,0.0,0.0,0};
@@ -173,15 +176,44 @@ int ShipBP2_Test(EngineState* engineState, ShipBP** bp)
     return res;
 }
 
+int ShipBP1_LoadTest(EngineState* engineState, ShipBP** bp)
+{
+    assert(bp);
+    LOG_TEXT("Starting shipBP load test 1\n");
+    ShipBP* b = Load_BP_FromSBP_File("loadtest_1", engineState);
+    if (!b) return 1;
+    *bp = b;
+    return 0;
+}
+
+int Run_ShipTest(int (*test)(EngineState* es, ShipBP** bprint), EngineState* engineState)
+{
+    int res = 0;
+    ShipBP* bp = NULL;
+    res += test(engineState, &bp);
+    if (!bp)
+    {
+        res++;
+        LOG_TEXT("Failed test: shipBP created was NULL\n");
+        return res;
+    }
+    Ship* ship = Create_ShipFromBP(bp);
+    if (ship) Delete_Ship(ship);
+    else
+    {
+        res++;
+        LOG_TEXT("Failed test: ship created was NULL\n");
+    }
+    if (bp) Delete_ShipBP(bp);
+    return res;
+}
+
 void Test_ShipBPs(EngineState* engineState)
 {
     int res = 0;
-    ShipBP* bp1 = NULL;
-    ShipBP* bp2 = NULL;
-    res += ShipBP1_Test(engineState, &bp1);
-    res += ShipBP2_Test(engineState, &bp2);
-    Delete_ShipBP(bp1);
-    Delete_ShipBP(bp2);
+    res += !!Run_ShipTest(ShipBP1_Test, engineState);
+    res += !!Run_ShipTest(ShipBP2_Test, engineState);
+    res += !!Run_ShipTest(ShipBP1_LoadTest, engineState);
 
     LOG_INFO("Failed %d ShipBP tests\n", res);
 }

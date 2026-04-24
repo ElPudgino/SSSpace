@@ -1,4 +1,5 @@
 #include "tests.h"
+#include "bploader.h"
 
 ShipBP* shipBp;
 Sector* sector;
@@ -20,7 +21,13 @@ void create_testsector()
 
 void create_testshipbp(EngineState* engineState)
 {
-    shipBp = (ShipBP*)calloc(1,sizeof(ShipBP));
+    shipBp = Load_BP_FromSBP_File("preview", engineState);
+    assert(shipBp);
+}
+
+void create_testshipbp_1(EngineState* engineState)
+{
+    shipBp = Create_ShipBP(0);
     shipBp->model.rootPart = Create_Part(Create_PartStructureGrid(engineState), NULL);
     Part* root = shipBp->model.rootPart;
     root->localTransform = (Transform){0.0,0.0,0.0,1.0,0.0,0.0,0.0,0};
