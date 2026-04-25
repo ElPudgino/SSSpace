@@ -31,4 +31,8 @@ void Save_ShipBlueprint(ShipBP* bp, char* filename);
 
 ShipBP* Load_BP_FromSBP_File(char* fname, EngineState* engineState);
 
+int Init_Loader();
+
+int Deinit_Loader(EngineState* engineState);
+
 #endif

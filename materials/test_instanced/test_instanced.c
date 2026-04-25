@@ -5,8 +5,8 @@
 Material* Test_Instanced_Mat_Build(EngineState* engineState)
 {
     printf("Starting mat building\n");
-    VkShaderModule fragment = Read_SpirvFile("spvs/test_instanced_frag.spv", engineState->device);
-    VkShaderModule vertex = Read_SpirvFile("spvs/test_instanced_vert.spv", engineState->device);
+    VkShaderModule fragment = Read_SpirvFile("spvs/test_instanced.frag.spv", engineState->device);
+    VkShaderModule vertex = Read_SpirvFile("spvs/test_instanced.vert.spv", engineState->device);
     printf("Read spirv\n");
 
     MaterialBuilder* builder = Start_MaterialBuilder(engineState->device);

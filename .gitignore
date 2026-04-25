@@ -5,4 +5,5 @@ objs
 spvs
 app
 appd
-savedmodels
+utest1_bp.sbp
+utest2_bp.sbp

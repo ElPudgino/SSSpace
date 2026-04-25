@@ -8,6 +8,7 @@
 #include "assets.h"
 #include "asset_loader.h"
 #include "image_loader.h"
+#include "bploader.h"
 #include "samplers.h"
 #include "part_table.h"
 
@@ -488,6 +489,10 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Create_Samplers(engineState)) {printf("!!Failed to create samplers\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_Samplers);
     printf("Created samplers\n");
+
+    if (Init_Loader()) {printf("!!Failed to init sbp loader\n"); goto Fail;}
+    Add_ToCleanupQueue(allocInfo, Deinit_Loader);
+    printf("Init sbp loader\n");
 
     if (Load_GameTextures(engineState)) {printf("!!Failed to load textures\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Unload_Textures);

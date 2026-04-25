@@ -3,8 +3,8 @@
 Material* Basic_Mesh_Mat_Build(EngineState* engineState)
 {
     printf("Starting mat building\n");
-    VkShaderModule fragment = Read_SpirvFile("spvs/basic_mesh_frag.spv", engineState->device);
-    VkShaderModule vertex = Read_SpirvFile("spvs/basic_mesh_vert.spv", engineState->device);
+    VkShaderModule fragment = Read_SpirvFile("spvs/basic_mesh.frag.spv", engineState->device);
+    VkShaderModule vertex = Read_SpirvFile("spvs/basic_mesh.vert.spv", engineState->device);
     printf("Read spirv\n");
 
     MaterialBuilder* builder = Start_MaterialBuilder(engineState->device);

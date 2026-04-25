@@ -10,10 +10,16 @@ static char pline[2048] = {};
 static char fline[256] = {};
 static BpLoader loader = {};
 
-void Init_Loader()
+int Init_Loader()
 {
     memset(pline, ' ', 2047);
     loader.saveLocation = "savedmodels";
+    return 0;
+}
+
+int Deinit_Loader(EngineState* engineState)
+{
+    return 0;
 }
 
 char* To_SaveLocation(char* fname)
@@ -104,11 +110,13 @@ int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
     assert(f);
     assert(grid);
     char buf[128];
-    uint32_t mxlen = 2000;
-    uint32_t scannedsize = 0;
-    uint32_t scannedlgblocks = 0;
-    uint32_t scannedbloks = 0;
+    int mxlen = 2000;
+    int scannedsize = 0;
+    int scannedlgblocks = 0;
+    int scannedbloks = 0;
+    int scannedcenter = 0;
     uint32_t gsize[3] = {};
+    float gcenter[3] = {};
     char nl = 0;
 
     int test = 0;
@@ -116,13 +124,13 @@ int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
     while (mxlen--)
     {
         fgets(buf, 127, f);
-        LOG_INFO("%d %s\n", buf[0], buf);
+        //LOG_INFO("%d %s\n", buf[0], buf);
         if (buf[0] == ' ' || buf[0] == '\n') continue;
         if (buf[0] == '\0') break;
         if (sscanf(buf, "GRIDEND%c",&nl) == 1) break;
         if ((test = sscanf(buf, "GRIDSIZE: %u %u %u", gsize, gsize+1, gsize+2)) == 3) 
         {
-            LOG_TEXT("Got gridsize\n");
+            //LOG_TEXT("Got gridsize\n");
             if (!scannedsize) 
             {
                 scannedsize = 1; 
@@ -133,7 +141,18 @@ int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
             else {LOG_TEXT("Error parsing sbp grid: GRIDSIZE declared second time\n"); return 1;}
             continue;
         }
-        LOG_INFO("%d; %d %d %d\n",test, gsize[0], gsize[1], gsize[2]);
+        if ((test = sscanf(buf, "GRIDCENTER: %f %f %f", gcenter, gcenter+1, gcenter+2)) == 3) 
+        {
+            if (!scannedcenter) 
+            {
+                scannedcenter = 1; 
+                glm_vec3_copy(gcenter, grid->centerOffset);
+            }
+            else {LOG_TEXT("Error parsing sbp grid: GRIDCENTER declared second time\n"); return 1;}
+            continue;
+        }
+   
+        //LOG_INFO("%d; %d %d %d\n",test, gsize[0], gsize[1], gsize[2]);
         if (!strcmp(buf, "LOGICBLOCKS:\n"))
         {
             if (!scannedlgblocks) {scannedlgblocks = 1; Load_GridLogicBlocks(f, grid); continue;}
@@ -151,6 +170,7 @@ int Load_Grid_FromBP(FILE* f, PartStructureGrid* grid)
     if (!scannedsize) {LOG_TEXT("Error parsing sbp grid: GRIDSIZE not declared\n"); return 5;}
     if (!scannedlgblocks) {LOG_TEXT("Error parsing sbp grid: LOGICBLOCKS not declared\n"); return 6;}
     if (!scannedbloks) {LOG_TEXT("Error parsing sbp grid: BLOCKS not declared\n"); return 7;}
+    if (!scannedcenter) {LOG_TEXT("Error parsing sbp grid: GRIDCENTER not declared\n"); return 8;}
 
     Generate_MeshForGrid(grid);
 
@@ -291,6 +311,7 @@ void _Save_Grid(PartStructureGrid* grid, FILE* f)
 {
     fprintf(f, "GRID: ID: %ld\n", grid->ID);
     fprintf(f, "GRIDSIZE: %d %d %d\n", grid->grid.x_s, grid->grid.y_s, grid->grid.z_s);
+    fprintf(f, "GRIDCENTER: %f %f %f\n", grid->centerOffset[0], grid->centerOffset[1], grid->centerOffset[2]);
     fprintf(f, "LOGICBLOCKS:\n");
 
     char up = 0;
@@ -372,7 +393,6 @@ void _Save_BP_ToSBP(ShipBP* bp, FILE* f)
 
 void Save_ShipBlueprint(ShipBP* bp, char* filename)
 {
-    Init_Loader();
     mkdir("savedmodels", 0777);
     char* fname = To_SaveLocation(filename);
     FILE* f = fopen(fname, "w");
