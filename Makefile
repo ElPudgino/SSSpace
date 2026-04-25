@@ -40,9 +40,9 @@ Debug: DEBUG = 1
 Debug: $(TARGET) $(SPV_TARGETS)
 
 # ---- Linking ----
-# Link with g++ because vma.o is C++ and may need libstdc++
+# Link with gcc, vma supports it
 $(TARGET): $(OBJS)
-	$(CXX) -DDEBUG=$(DEBUG) $^ -o $@ $(LDFLAGS)
+	$(CC) -DDEBUG=$(DEBUG) $^ -o $@ $(LDFLAGS)
 
 # ---- C compilation ----
 # Pattern rule for every .c -> .o (works for root and materials/ subdirs)
