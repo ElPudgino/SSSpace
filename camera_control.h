@@ -30,6 +30,8 @@ void Get_CameraGlobalRotation(float q[4]);
 
 void Get_CameraMatrix(mat4 mtrx);
 
+void Get_ProjViewMatrix(mat4 trg, VkExtent3D _drawExtent);
+
 void Set_CameraOrbit(Ship* tr);
 
 Ship* Get_CurrentCameraFocus();
@@ -50,15 +52,21 @@ void Camera_RotateBy(float q[4]);
 
 void Get_CameraForward(float dest[3]);
 
+void Get_CameraGlobalForward(float dest[3]);
+
 void Get_CameraForwardD(double dest[3]);
 
 void Get_CameraUp(float dest[3]);
+
+void Get_CameraGlobalUp(float dest[3]);
 
 void Get_CameraUpD(double dest[3]);
 
 void Get_CameraRight(float dest[3]);
 
 void Get_CameraRightD(double dest[3]);
+
+float Get_ViewAngle();
 
 
 #endif

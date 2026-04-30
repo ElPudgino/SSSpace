@@ -92,6 +92,28 @@ PipelineBuilder* Start_PipelineBuilder(VkDevice device)
     return res;
 }
 
+void PlBuilder_Set_ColorBlending(PipelineBuilder* builder, VkBlendOp color, VkBlendFactor source, VkBlendFactor target)
+{
+    builder->colorBlendAttachment.blendEnable = VK_TRUE;
+    builder->colorBlendAttachment.colorBlendOp = color;
+    builder->colorBlendAttachment.srcColorBlendFactor = source;
+    builder->colorBlendAttachment.dstColorBlendFactor = target;
+}
+
+void PlBuilder_Set_AlphaBlending(PipelineBuilder* builder, VkBlendOp alpha, VkBlendFactor source, VkBlendFactor target)
+{
+    builder->colorBlendAttachment.blendEnable = VK_TRUE;
+    builder->colorBlendAttachment.alphaBlendOp = alpha;
+    builder->colorBlendAttachment.srcAlphaBlendFactor = source;
+    builder->colorBlendAttachment.dstAlphaBlendFactor = target;
+}
+
+void PlBuilder_Set_DepthTest(PipelineBuilder* builder, VkBool32 state)
+{
+    assert(builder);
+    builder->depthStencil.depthTestEnable = state;
+}
+
 void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shader)
 {
     assert(builder);

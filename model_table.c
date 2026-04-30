@@ -47,6 +47,7 @@ void modelelem_free(void* a) {
 
 Model* ModelTable_Get_Model(const char* name)
 {
+	if (SERVER) return NULL;
 	ModelElem k = {name, 0};
 	ModelElem* res;
 	if (!ht_get(&modeltable, &k, (void**)&res)) return res->model;
@@ -55,6 +56,7 @@ Model* ModelTable_Get_Model(const char* name)
 
 void ModelTable_Set_Model(const char* name, Model* model)
 {
+	if (SERVER) return;
 	ModelElem k = {name, model};
 	if(ht_set(&modeltable, &k)) printf("!Error while adding model to modeltable\n");
 }

@@ -86,16 +86,22 @@ void _numToChar(uint32_t n, char* c)
     {
         case 0:
             *c = 'u';
+            break;
         case 1:
             *c = 'd';
+            break;
         case 2:
             *c = 'n';
+            break;
         case 3:
             *c = 's';
+            break;
         case 4:
             *c = 'e';
+            break;
         case 5:
             *c = 'w';
+            break;
         default:
             'x';
     }
@@ -142,5 +148,5 @@ char DirName_ToBlockRotation(char up, char north)
 
 uint64_t Gen_ID64()
 {
-    return(uint64_t)rand() << 32 + (uint64_t)rand();
+    return ((uint64_t)rand() << 32) + (uint64_t)rand();
 }

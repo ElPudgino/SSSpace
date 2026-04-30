@@ -11,35 +11,12 @@
 #include "utests.h"
 
 // Testing
-Mesh* testmesh = NULL;
-InstancedRenderData testdata = {};
 Ship** testships = NULL;
-
-Mesh* get_testmesh(EngineState* engineState)
-{
-    Mesh* mesh = (Mesh*)calloc(1, sizeof(Mesh));
-    mesh->engineState = engineState;
-    mesh->vertices = (Vertex*)calloc(4, sizeof(Vertex));
-    mesh->vertexCount = 4;
-    mesh->indexCount = 6;
-    mesh->indices = (uint32_t*)calloc(6, sizeof(uint32_t));
-    mesh->vertices[0] = (Vertex){-1.0f,-0.5f,2.0f};
-    mesh->vertices[1] = (Vertex){0.0f,0.5f,2.0f};
-    mesh->vertices[2] = (Vertex){0.0f,-0.5f,2.0f};
-    mesh->vertices[3] = (Vertex){1.0f,0.5f,2.0f};
-    mesh->indices[0] = 0;
-    mesh->indices[1] = 1;
-    mesh->indices[2] = 2;
-    mesh->indices[3] = 3;
-    mesh->indices[4] = 1;
-    mesh->indices[5] = 2;
-    Mesh_UploadData(mesh);
-    return mesh;
-}
 
 void _Testing(EngineState* engineState)
 {
     create_testsector();
+    Load_SectorVisualData(engineState, get_testsector());
     create_testshipbp(engineState);
     printf("Created test ship BP\n"); 
     testships = (Ship**)calloc(9, sizeof(Ship*));
@@ -103,21 +80,21 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     bInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;   
 
     VkRenderingAttachmentInfo raInfo = Get_RenderAttachmentInfo(DrawImage.imageView);
-    VkRenderingAttachmentInfo draInfo = Get_RenderAttachmentInfo(engineState->frameData.depthImage.imageView);
+    VkRenderingAttachmentInfo draInfo = Get_DepthRenderAttachmentInfo(engineState->frameData.depthImage.imageView);
     VkRenderingInfo rInfo = Get_MainRenderPassInfo(frameCount, &raInfo, &draInfo, engineState);
 
     //Start first render pass
     if (vkBeginCommandBuffer(Cmnd, &bInfo) != VK_SUCCESS) return -printf("!Failed to begin command buffer\n");
 
     //Clear image
-    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_GENERAL);
-    Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.4f,0.0f,0.0f,1.0f});
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT);
+    Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.001f,0.001f,0.001f,1.0f});
 
-    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_GENERAL);
+    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_DEPTH_BIT);
     Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){-999.0,0});
 
-    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
-    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL);
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+    Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);
     //Main rendering
     vkCmdBeginRendering(Cmnd, &rInfo);
 
@@ -144,7 +121,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 
 	vkCmdSetScissor(Cmnd, 0, 1, &scissor);
 
-    Render_Sector(engineState, get_testsector());
+    Render_Sector(engineState, get_testsector(), Cmnd);
 
     //printf("%f %f %f %f\n",vec[0],vec[1],vec[2],vec[3]);
     Render_InstancedMeshes(engineState, Cmnd);
@@ -153,12 +130,12 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     vkCmdEndRendering(Cmnd);
 
     //Copy draw image to swapchain
-    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
     Copy_ImageToImage(Cmnd, DrawImage, ScImage);
     
     //Prepare image for presentation
-    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
+    Change_ImageLayout(Cmnd, &ScImage, VK_IMAGE_LAYOUT_PRESENT_SRC_KHR, VK_IMAGE_ASPECT_COLOR_BIT);
 
     vkEndCommandBuffer(Cmnd);
 
@@ -186,8 +163,12 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     */
 	vkQueuePresentKHR(engineState->queueHandles._Present, &presentInfo);
 
-    Tick_Sector(get_testsector());
+    return 0;
+}
 
+int Run_LogicLoop(EngineState* engineState, float dt)
+{
+    Tick_Sector(get_testsector());
     return 0;
 }
 
@@ -234,13 +215,15 @@ int main(int argc, char** argv)
 
     _Testing(engineState);
 
+    printf("Started\n");
     Uint64 frameCount = 0;
     while (running)
     {
         Process_Events(&running);   
         Process_PersistentInput();
 
-        if (Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
+        if (!SERVER && Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
+        if (Run_LogicLoop(engineState, 0.001)) running = 0;
         frameCount++;
     }
 
@@ -250,6 +233,7 @@ int main(int argc, char** argv)
     }
     free(testships);
     Delete_ShipBP(get_testbp());
+    Unload_SectorVisualData(engineState ,get_testsector()); // temp
     printf("%ld\n",frameCount);
     printf("Closing\n");
     Cleanup_MainEngine(engineState, allocInfo);// EngineState is freed

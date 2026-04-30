@@ -433,78 +433,90 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (!SDL_Init(SDL_INIT_VIDEO)) goto Fail;
     Add_ToCleanupQueue(allocInfo, Quit_SDL);
 
-    if (Create_MainWindow(engineState)) goto Fail;
-    Add_ToCleanupQueue(allocInfo, Destroy_MainWindow);
-    printf("Main window created\n");
+    if (!SERVER)
+    {
 
-    if (Create_VulkanInstance(engineState)) {printf("!!Vulkan Instance failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_VulkanInstance);
-    printf("Vulkan instance created\n");
+        if (Create_MainWindow(engineState)) goto Fail;
+        Add_ToCleanupQueue(allocInfo, Destroy_MainWindow);
+        printf("Main window created\n");
 
-    if (Get_PhysicalDevice(engineState)) {printf("!!Physical Device failed\n"); goto Fail;}
-    printf("Physical device acquired\n");
+        if (Create_VulkanInstance(engineState)) {printf("!!Vulkan Instance failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_VulkanInstance);
+        printf("Vulkan instance created\n");
 
-    if (Create_MainSurface(engineState)) {printf("!!Main Surface failed\n"); printf("%s\n",SDL_GetError()); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_MainSurface);
-    printf("Main surface created\n");
+        if (Get_PhysicalDevice(engineState)) {printf("!!Physical Device failed\n"); goto Fail;}
+        printf("Physical device acquired\n");
 
-    if (Select_QueueFamilies(engineState)) {printf("!!QueueFamilies failed\n"); goto Fail;}
-    printf("Queue families selected\n");
+        if (Create_MainSurface(engineState)) {printf("!!Main Surface failed\n"); printf("%s\n",SDL_GetError()); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_MainSurface);
+        printf("Main surface created\n");
 
-    if (Create_LogicalDevice(engineState)) {printf("!!Logical Device failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_LogicalDevice);
-    printf("Logical device created\n");
+        if (Select_QueueFamilies(engineState)) {printf("!!QueueFamilies failed\n"); goto Fail;}
+        printf("Queue families selected\n");
 
-    if (Get_QueueHandles(engineState)) {printf("!!Queue handles failed\n"); goto Fail;}
-    printf("Queue handles acquired\n");
+        if (Create_LogicalDevice(engineState)) {printf("!!Logical Device failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_LogicalDevice);
+        printf("Logical device created\n");
 
-    if (Create_CommandsHandle(engineState)) {printf("!!Commands handle failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_CommandsHandles);
-    printf("Command buffers created\n");
+        if (Get_QueueHandles(engineState)) {printf("!!Queue handles failed\n"); goto Fail;}
+        printf("Queue handles acquired\n");
 
-    if (Create_SyncStructures(engineState)) {printf("!!Sync structs failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_SyncStructures);
-    printf("Sync structs created\n");
+        if (Create_CommandsHandle(engineState)) {printf("!!Commands handle failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_CommandsHandles);
+        printf("Command buffers created\n");
 
-    if (Create_Allocator(engineState)) {printf("!!Allocator failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_Allocator);
-    printf("Allocator created\n");
+        if (Create_SyncStructures(engineState)) {printf("!!Sync structs failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_SyncStructures);
+        printf("Sync structs created\n");
 
-    if (Create_Swapchain(engineState)) {printf("!!Swapchain failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Cleanup_Swapchain);
-    printf("Swapchain created\n");
+        if (Create_Allocator(engineState)) {printf("!!Allocator failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_Allocator);
+        printf("Allocator created\n");
 
-    if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
-    printf("Main draw image created\n");
+        if (Create_Swapchain(engineState)) {printf("!!Swapchain failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Cleanup_Swapchain);
+        printf("Swapchain created\n");
+
+        if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
+        printf("Main draw image created\n");
+
+        if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
+        printf("Global transform buffer created with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE);
+
+        if (Create_Samplers(engineState)) {printf("!!Failed to create samplers\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_Samplers);
+        printf("Created samplers\n");
+
+        if (Load_GameTextures(engineState)) {printf("!!Failed to load textures\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Unload_Textures);
+        printf("Loaded textures\n");
+
+        if (Init_MaterialInstances(engineState)) {printf("!!Failed to init materials\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_MaterialInstances);
+        printf("Initialized material instances\n");
+
+        if (Load_Models(engineState)) {goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Unload_Models);
+        printf("Loaded models\n");
+
+        if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_Controls);
+        printf("Controls registered\n");
+
+        if (Init_Camera()) {printf("!!Failed to create camera\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_Camera);
+        printf("Main camera created\n");
+    }
 
     if (Init_PartTable()) {printf("!!Failed to init part table\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, CleanUp_PartTable);
     printf("Part table created\n");
 
-    if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
-    printf("Global transform buffer created with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE);
-
-    if (Create_Samplers(engineState)) {printf("!!Failed to create samplers\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_Samplers);
-    printf("Created samplers\n");
-
     if (Init_Loader()) {printf("!!Failed to init sbp loader\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Deinit_Loader);
     printf("Init sbp loader\n");
-
-    if (Load_GameTextures(engineState)) {printf("!!Failed to load textures\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Unload_Textures);
-    printf("Loaded textures\n");
-
-    if (Init_MaterialInstances(engineState)) {printf("!!Failed to init materials\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_MaterialInstances);
-    printf("Initialized material instances\n");
-
-    if (Load_Models(engineState)) {goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Unload_Models);
-    printf("Loaded models\n");
 
     if (Init_Blocks()) {printf("!!Failed to init blocks\n"); goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_BlockModels);
@@ -513,14 +525,6 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
     if (Load_LogicBlockDefs()) {goto Fail;}
     Add_ToCleanupQueue(allocInfo, Destroy_LogicBlockDefs);
     printf("Loaded logic block defs\n");
-
-    if (Register_Controls()) {printf("!!Failed to register controls\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_Controls);
-    printf("Controls registered\n");
-
-    if (Init_Camera()) {printf("!!Failed to create camera\n"); goto Fail;}
-    Add_ToCleanupQueue(allocInfo, Destroy_Camera);
-    printf("Main camera created\n");
 
     *esPointer = engineState;
     return 0;
@@ -535,7 +539,7 @@ int Cleanup_MainEngine(EngineState* engineState, AllocInfo* allocInfo)
     assert(engineState);
     assert(allocInfo);
     printf("Starting cleanup\n");
-    vkDeviceWaitIdle(engineState->device);
+    if (!SERVER) vkDeviceWaitIdle(engineState->device);
     Destroy_FromQueue(allocInfo, engineState);
     return 0;
 }

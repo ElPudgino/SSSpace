@@ -7,7 +7,7 @@ void _Init_Cube()
     cube = (BlockModel*)calloc(1, sizeof(BlockModel));
     cube->vertices = (Vertex*)calloc(24, sizeof(Vertex)); // max size
     cube->indices = (uint32_t*)calloc(36, sizeof(uint32_t));
-    assert(GetMaterial_Test());
+    assert(SERVER || GetMaterial_Test());
     cube->mat = GetMaterial_Test();
 }
 

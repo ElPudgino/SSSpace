@@ -10,8 +10,10 @@ LDFLAGS  := -lm -lSDL3 -lvulkan -lstdc++ -lm  # example; add Vulkan libs etc.
 
 # Target executable name
 TARGET := app
+S_TARGET := server
 
 DEBUG := 0
+SERVER := 0
 
 # ---- Source files ----
 # All .c files in the project root
@@ -39,19 +41,28 @@ all: $(TARGET) $(SPV_TARGETS)
 Debug: DEBUG = 1
 Debug: $(TARGET) $(SPV_TARGETS)
 
+server: DEBUG = 0
+server: s_target
+
+server_D: DEBUG = 1
+server_D: s_target
+
 # ---- Linking ----
 # Link with gcc, vma supports it
 $(TARGET): $(OBJS)
-	$(CC) -DDEBUG=$(DEBUG) $^ -o $@ $(LDFLAGS)
+	$(CC) -DDEBUG=$(DEBUG) -DSERVER=0 $^ -o $@ $(LDFLAGS)
+
+s_target: $(OBJS)
+	$(CC) -DDEBUG=$(DEBUG) -DSERVER=1 $^ -o $(S_TARGET) $(LDFLAGS)
 
 # ---- C compilation ----
 # Pattern rule for every .c -> .o (works for root and materials/ subdirs)
 %.o: %.c
-	$(CC) -DDEBUG=$(DEBUG) -c $(CFLAGS) $< -o $@
+	$(CC) -DDEBUG=$(DEBUG) -DSERVER=$(SERVER) -c $(CFLAGS) $< -o $@
 
 # ---- C++ compilation (vma.cpp only) ----
 vma.o: vma.cpp
-	$(CXX) -DDEBUG=$(DEBUG) -c $(CXXFLAGS) $< -o $@
+	$(CXX) -DDEBUG=$(DEBUG) -DSERVER=$(SERVER) -c $(CXXFLAGS) $< -o $@
 
 # ---- Shader rules ----
 # Ensure spvs/ directory exists (order-only prerequisite)

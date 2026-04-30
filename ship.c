@@ -48,6 +48,7 @@ Part* Create_Part(PartStructureGrid* structure, Part* apointer)
 
 void Render_Part(Ship* ship, Part* part, mat4 prev)
 {
+    if (SERVER) return;
     assert(ship);
     assert(part);
     //printf("getting part structure\n");
@@ -69,6 +70,7 @@ void Render_Part(Ship* ship, Part* part, mat4 prev)
 
 void Render_Ship(Ship* ship, mat4 tr)
 {
+    if (SERVER) return;
     assert(ship);
     assert(ship->model.rootPart);
     Render_Part(ship, ship->model.rootPart, tr);
@@ -249,7 +251,8 @@ void Delete_Ship(Ship* ship)
 {
     assert(ship);
     _Delete_ShipPart(ship->model.rootPart);
-
+    
+    free(ship->logicBlockData);
     free(ship->model.rootPart);
     free(ship);
 }

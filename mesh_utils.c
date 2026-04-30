@@ -3,6 +3,7 @@
 
 Mesh* Create_Mesh(EngineState* engineState)
 {
+    if (SERVER) return NULL;
     assert(engineState);
     Mesh* mesh = (Mesh*)calloc(1, sizeof(Mesh));
     mesh->engineState = engineState;
@@ -27,6 +28,7 @@ void Mesh_SetIndices(Mesh* mesh, uint32_t* indices, uint32_t count)
 
 void Destroy_Mesh(Mesh* mesh)
 {
+    if (SERVER) return;
     assert(mesh);
     if (mesh->indices) free(mesh->indices);
     if (mesh->vertices) free(mesh->vertices);
@@ -43,6 +45,7 @@ void Destroy_Mesh(Mesh* mesh)
 
 void Mesh_UploadData(Mesh* mesh)
 {
+    if (SERVER) return;
     assert(mesh);
     assert(mesh->indices);
     assert(mesh->vertices);
@@ -54,7 +57,7 @@ void Mesh_UploadData(Mesh* mesh)
         VMA_MEMORY_USAGE_CPU_ONLY, 
         (VmaAllocationCreateFlagBits)(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT ), 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    printf("Created a temp buffer\n");
+    printf("Created a temp buffer\n"); 
     BufferInfo vertexbuf = CreateBuffer(mesh->engineState->allocator, ver, 
         VMA_MEMORY_USAGE_CPU_ONLY,
         (VmaAllocationCreateFlagBits)0, 
@@ -131,6 +134,7 @@ void Mesh_UploadData(Mesh* mesh)
 
 void RenderMesh(VkCommandBuffer cmnd, Mesh* mesh, Material* mat)
 {
+    if (SERVER) return;
     assert(mesh);
     assert(mat);
 

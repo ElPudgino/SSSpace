@@ -43,6 +43,7 @@ void texelem_free(void* a) {
 	TexElem* x = (TexElem*)a;
 	vkDestroyImageView(x->tex->device, x->tex->imageView, NULL);
 	vmaDestroyImage(x->tex->allocator, x->tex->image, x->tex->allocation);
+	free(x->tex);
 	free((void*)x->str);
 	free(x);
 }

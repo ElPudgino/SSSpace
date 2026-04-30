@@ -1,6 +1,8 @@
 #include "sector.h"
 #include "camera_control.h"
 #include "physics.h"
+#include "material_insts.h"
+#include "logger.h"
 
 #define HASH_CONST_A 3547361
 #define HASH_CONST_B 7165167
@@ -49,22 +51,91 @@ void Render_Object(Ship* obj, mat4 projview, double fwd[3])
     Render_Ship(obj, projview);
 }
 
-void Render_Sector(EngineState* engineState, Sector* sector)
+// Upload sky stars data etc.
+// will need more parameters to generate the data
+void Load_SectorVisualData(EngineState* engineState, Sector* sector)
 {
-    mat4 mat;
-    mat4 proj;
-    VkExtent3D _drawExtent = engineState->frameData.drawImage.imageExtent;
-    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, GLM_PI * 0.3f);
-    Get_CameraMatrix(mat);
-    glm_mat4_mul(proj, mat, mat);
+    if (SERVER) return;
+    sector->visuals = (SectorVisualData*)calloc(1, sizeof(SectorVisualData));
+    SkyStar st = {};
+
+    // Temporary --
+    sector->visuals->starCount = 5000;
+    sector->visuals->stars = (SkyStar*)calloc(5000, sizeof(SkyStar));
+    for (int i = 0; i < 5000; i++)
+    {
+        st.magn = (float)(rand() % 15) / 2000.0;
+        st.type = 0;
+        st.spos[0] = (float)((rand() % 90) - (rand() % 90)) * GLM_PI / 180.0;
+        st.spos[1] = (float)((rand() % 360) -  180) * GLM_PI / 180.0;
+        sector->visuals->stars[i] = st;
+    }
+    VkDeviceAddress addr = 0;
+    BufferInfo info = {};
+    if (Upload_Buffer(engineState, sector->visuals->stars, 5000 * sizeof(SkyStar), &addr, &info)) LOG_TEXT("!Failed to upload sector star data\n");
+
+    sector->visuals->starBufferAddr = addr;
+    sector->visuals->starBufferInfo = info;
+    // --
+}
+
+void Unload_SectorVisualData(EngineState* engineState, Sector* sector)
+{
+    if (SERVER) return;
+    assert(sector);
+    assert(sector->visuals);
+
+    if (sector->visuals->stars) free(sector->visuals->stars);
+    if (sector->visuals->starBufferAddr) 
+    {
+        vmaDestroyBuffer(engineState->allocator,sector->visuals->starBufferInfo.buffer ,sector->visuals->starBufferInfo.allocation);
+    }
+    free(sector->visuals);
+
+}
+
+void Render_Sky(VkCommandBuffer bf, mat4 pv, Sector* sector)
+{
+    assert(!SERVER);
+    assert(sector);
+    assert(sector->visuals);
+    assert(sector->visuals->starBufferAddr);
+
+    Material* skymat = GetMaterial_Sky();
+
+    mat4 m;
+    glm_mat4_copy(pv, m);
+    Material_SetParameter(skymat, 0, &m);
+    Material_SetParameter(skymat, 1, &sector->visuals->starBufferAddr);
+
+    Bind_Material(bf, skymat);
+    
+    vkCmdDraw(bf, 6, sector->visuals->starCount, 0, 0);
+
+    return;
+}
+
+void Render_SectorObjects(EngineState* engineState, Sector* sector, mat4 pv)
+{
+    if (SERVER) return;
     double fwd[3];
     Get_CameraForwardD(fwd);
 
     for (int i = 0; i < sector->rawObjects_count; i++)
     {
-        Render_Object(sector->rawObjects[i], mat, fwd);
+        Render_Object(sector->rawObjects[i], pv, fwd);
     }
 
+}
+
+void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmnd)
+{
+    mat4 mat;
+    Get_ProjViewMatrix(mat, engineState->frameData.drawImage.imageExtent);
+    mat4 cpy;
+    glm_mat4_copy(mat, cpy);
+    Render_SectorObjects(engineState, sector, cpy);
+    Render_Sky(cmnd, mat, sector);
 }
 
 void Tick_Sector(Sector* sector)
@@ -140,12 +211,14 @@ void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount)
 
     // calculate indexes in array for objects
     uint32_t curind = 0;
+    uint32_t temp = 0;
     for (int i = 0; i < SECTOR_HT_SIZE; i++)
     {
+        temp = sector->hashtable[i];
         sector->hashtable[i] += (sector->hashtable[i] << 16) + curind;
         // high 16 bits: count
         // low 16 bits: endindex
-        curind += sector->hashtable[i];
+        curind += temp;
     }
 
     // add objects to array

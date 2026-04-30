@@ -52,7 +52,7 @@ void Apply_Velocities(RigidBody* rb, float dt)
     double ddp[3] = {(double)dp[0], (double)dp[1], (double)dp[2]};
     Add_dVec(rb->root->pos, ddp);
 
-    glm_vec3_normalize_to(rb->angularVelocity, temp);
+    if (glm_vec3_norm2(rb->angularVelocity) > 0) glm_vec3_normalize_to(rb->angularVelocity, temp);
     versor q;
     glm_quat(q, angle, temp[0], temp[1], temp[2]);
     glm_quat_mul(q, rb->root->rotation, rb->root->rotation);

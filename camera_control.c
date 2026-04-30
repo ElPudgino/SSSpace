@@ -4,6 +4,7 @@
 Transform* CameraTransform = NULL;
 double BaseCameraVelocity = 0.015;
 double BaseCameraAngularVelocity = 0.01;
+float BaseViewAngle = GLM_PI * 0.3f;
 // usually we dont want to rotate camera around the forward axis, 
 // these are euler angles
 float CameraAngles[3] = {0,0,0};
@@ -12,6 +13,7 @@ Ship* CurrentFocus;
  
 void Get_CameraMatrix(mat4 mtrx)
 {
+    assert(!SERVER);
     float q[4];
     Get_CameraGlobalRotation(q);
     glm_quat_inv(q, q);
@@ -23,6 +25,7 @@ void Get_CameraMatrix(mat4 mtrx)
 // this means substract camera pos from objects that are not parented
 void Get_CameraGlobalPosition(double dest[3])
 {
+    assert(!SERVER);
     assert(CameraTransform);
     if (CurrentCameraMode == CAM_MODE_FREE)
     {
@@ -51,8 +54,24 @@ void Get_CameraGlobalPosition(double dest[3])
     }
 }
 
+// TODO: make drawExtent global
+void Get_ProjViewMatrix(mat4 trg, VkExtent3D _drawExtent)
+{
+    mat4 mat;
+    mat4 proj;
+    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, Get_ViewAngle());
+    Get_CameraMatrix(mat);
+    glm_mat4_mul(proj, mat, trg);
+}
+
+float Get_ViewAngle()
+{
+    return BaseViewAngle;
+}
+
 void Set_CameraOrbit(Ship* tr)
 {
+    if (SERVER) return;
     assert(tr);
     CurrentFocus = tr;
     CameraTransform->parent = &tr->model.rootPart->localTransform;
@@ -64,11 +83,13 @@ void Set_CameraOrbit(Ship* tr)
 
 Ship* Get_CurrentCameraFocus()
 {
+    assert(!SERVER);
     return CurrentFocus;
 }
 
 void Get_CameraGlobalRotation(float q[4])
 {
+    assert(!SERVER);
     Copy_Rotation(CameraTransform->rotation, q);
     Transform* next = CameraTransform->parent;
     while (next)
@@ -80,6 +101,7 @@ void Get_CameraGlobalRotation(float q[4])
 
 void Get_CameraAngles(float a[3])
 {   
+    assert(!SERVER);
     a[0] = CameraAngles[1];
     a[1] = CameraAngles[0];
     a[2] = CameraAngles[2];
@@ -87,6 +109,7 @@ void Get_CameraAngles(float a[3])
 
 void Set_CameraAngles(float a[2])
 {
+    if (SERVER) return;
     if (a[0] > GLM_PIf/2.01F) a[0] = GLM_PIf/2.01F;
     if (a[0] < -GLM_PIf/2.01F) a[0] = -GLM_PIf/2.01F;
 
@@ -98,11 +121,24 @@ void Set_CameraAngles(float a[2])
 
 void Get_CameraForward(float dest[3])
 {
+    assert(!SERVER);
     Get_TransformForward(CameraTransform, dest);
+}
+
+void Get_CameraGlobalForward(float dest[3])
+{
+    assert(!SERVER);
+    float q[4] = {};
+    Get_CameraGlobalRotation(q);
+    dest[0] = 0;
+    dest[1] = 0;
+    dest[2] = 1;
+    glm_quat_rotatev(q, dest, dest);
 }
 
 void Get_CameraForwardD(double dest[3])
 {
+    assert(!SERVER);
     float p[3];
     Get_CameraForward(p);
     Cast_ToDouble(p, dest);
@@ -110,11 +146,24 @@ void Get_CameraForwardD(double dest[3])
 
 void Get_CameraUp(float dest[3])
 {
+    assert(!SERVER);
     Get_TransformUp(CameraTransform, dest);
+}
+
+void Get_CameraGlobalUp(float dest[3])
+{
+    assert(!SERVER);
+    float q[4] = {};
+    Get_CameraGlobalRotation(q);
+    dest[0] = 0;
+    dest[1] = -1;
+    dest[2] = 0;
+    glm_quat_rotatev(q, dest, dest);
 }
 
 void Get_CameraUpD(double dest[3])
 {
+    assert(!SERVER);
     float p[3];
     Get_CameraUp(p);
     Cast_ToDouble(p, dest);
@@ -122,11 +171,13 @@ void Get_CameraUpD(double dest[3])
 
 void Get_CameraRight(float dest[3])
 {
+    assert(!SERVER);
     Get_TransformRight(CameraTransform, dest);
 }
 
 void Get_CameraRightD(double dest[3])
 {
+    assert(!SERVER);
     float p[3];
     Get_CameraRight(p);
     Cast_ToDouble(p, dest);
@@ -134,34 +185,40 @@ void Get_CameraRightD(double dest[3])
 
 void Set_CameraLocalPosition(double pos[3])
 {
+    if (SERVER) return;
     assert(CameraTransform);
     Copy_dVec(pos,  CameraTransform->pos);
 }
 
 void Get_CameraLocalPosition(double pos[3])
 {
+    assert(!SERVER);
     Copy_dVec(CameraTransform->pos, pos);
 }
 
 double Get_OrbitCameraVelocity()
 {
+    assert(!SERVER);
     if (CurrentCameraMode != CAM_MODE_ORBIT) return 0;
     return BaseCameraVelocity*2.0;
 }
 
 double Get_FreeCameraVelocity()
 {
+    assert(!SERVER);
     if (CurrentCameraMode != CAM_MODE_FREE) return 0;
     return BaseCameraVelocity;
 }
 
 float Get_CameraAngularVelocity()
 {
+    assert(!SERVER);
     return BaseCameraAngularVelocity;
 }
 
 Transform* Get_CameraParent()
 {
+    assert(!SERVER);
     return CameraTransform->parent;
 }
 

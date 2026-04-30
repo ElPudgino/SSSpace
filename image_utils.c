@@ -130,7 +130,7 @@ void Copy_ImageToImage(VkCommandBuffer cmnd, ImageData src, ImageData dst)
     vkCmdBlitImage2(cmnd, &iInfo);
 }
 
-int Change_ImageLayout(VkCommandBuffer cmd, ImageData* imageData, VkImageLayout newLayout)
+int Change_ImageLayout(VkCommandBuffer cmd, ImageData* imageData, VkImageLayout newLayout, VkImageAspectFlags aspect)
 {
     VkImageMemoryBarrier2 imageBarrier = {.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER_2};
     imageBarrier.pNext = NULL;
@@ -144,7 +144,7 @@ int Change_ImageLayout(VkCommandBuffer cmd, ImageData* imageData, VkImageLayout 
     imageBarrier.newLayout = newLayout;
     imageData->layout = newLayout;
 
-    VkImageAspectFlags aspectMask = (newLayout == VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL) ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageAspectFlags aspectMask = aspect;
     imageBarrier.subresourceRange = Get_ImageSubresourceRange(aspectMask);
     imageBarrier.image = imageData->image;
 

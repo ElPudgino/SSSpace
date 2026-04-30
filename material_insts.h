@@ -7,4 +7,6 @@ int Destroy_MaterialInstances(EngineState* engineState);
 
 Material* GetMaterial_Test();
 
+Material* GetMaterial_Sky();
+
 #endif

@@ -45,8 +45,9 @@ int Create_DepthImage(VkDevice device, VmaAllocator allocator, ImageData* imageD
 * @param cmnd Used command buffer
 * @param imageData Image information
 * @param newLayout Target layout
+* @param aspect Image aspect (Color / Depth / Stencil)
 */
-int Change_ImageLayout(VkCommandBuffer cmnd, ImageData* imageData, VkImageLayout newLayout);
+int Change_ImageLayout(VkCommandBuffer cmd, ImageData* imageData, VkImageLayout newLayout, VkImageAspectFlags aspect);
 
 /*! @brief Copy image to image with rescaling
 * @param cmnd Used command buffer

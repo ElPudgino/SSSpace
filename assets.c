@@ -4,7 +4,7 @@
 
 #define LOGIC_BLOCK_ID_COUNT 1000
 
-LogicBlockDef* blockDefs;
+static LogicBlockDef* blockDefs;
 
 void _Call_Init(LogicBlockDef (*init)())
 {

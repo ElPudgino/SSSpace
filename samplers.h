@@ -9,4 +9,6 @@ int Destroy_Samplers(EngineState* engineState);
 
 VkSampler Get_PixelSampler();
 
+VkSampler Get_LinearSampler();
+
 #endif

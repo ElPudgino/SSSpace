@@ -46,9 +46,9 @@ LogicBlockDef BlockDef_Cannon_Block()
     data->base = ModelTable_Get_Model("cannon_base.obj");
     data->barrel = ModelTable_Get_Model("cannon_barrel.obj");
     data->barrelBase = ModelTable_Get_Model("cannon_barrelbase.obj");
-    assert(data->base);
-    assert(data->barrel);
-    assert(data->barrelBase);
+    assert(SERVER || data->base);
+    assert(SERVER || data->barrel);
+    assert(SERVER || data->barrelBase);
     def.staticData = data;
 
     //Its mesh is not merged to the ship right now

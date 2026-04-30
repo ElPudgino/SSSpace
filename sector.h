@@ -4,6 +4,7 @@
 #include "libs.h"
 #include "math_util.h"
 #include "ship.h"
+#include "vfx_params.h"
 
 #define SECTOR_HT_SIZE 2048
 #define SECTOR_HT_MASK (SECTOR_HT_SIZE - 1)
@@ -22,6 +23,13 @@ typedef struct _BaseSectorData
 
 } BaseSectorData;
  
+typedef struct _SectorVisualData
+{
+    SkyStar* stars;
+    uint32_t starCount;
+    VkDeviceAddress starBufferAddr;
+    BufferInfo starBufferInfo;
+} SectorVisualData;
 
 /*!
 * Exists when the sector is active:
@@ -39,11 +47,16 @@ typedef struct _Sector
     Ship** rawObjects; // full unsorted array
     uint32_t rawObjects_count;
     uint32_t rawObjects_cap;
+    SectorVisualData* visuals;
 } Sector;
 
 Sector* Init_Sector();
 
-void Render_Sector(EngineState* engineState, Sector* sector);
+void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmnd);
+
+void Load_SectorVisualData(EngineState* engineState, Sector* sector);
+
+void Unload_SectorVisualData(EngineState* engineState, Sector* sector);
 
 void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount);
 

@@ -154,6 +154,30 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device);
 */
 void MatBuilder_SetFragmentShader(MaterialBuilder* builder, VkShaderModule shader);
 
+/*! @brief Enable or disable depth test
+* Depth test is enabled by default
+* @param state Target state (1 for enable, 0 for disable)
+*/
+void MatBuilder_SetDepthTest(MaterialBuilder* builder, VkBool32 state);
+
+/*! @brief Set alpha blending
+* Blending is disabled by default
+* Calling this function enables it
+* @param alpha Blend operation
+* @param source Source factor
+* @param target Targte factor
+*/
+void MatBuilder_SetAlphaBlending(MaterialBuilder* builder, VkBlendOp alpha, VkBlendFactor source, VkBlendFactor target);
+
+/*! @brief Set color blending
+* Blending is disabled by default
+* Calling this function enables it
+* @param color Blend operation
+* @param source Source factor
+* @param target Targte factor
+*/
+void MatBuilder_SetColorBlending(MaterialBuilder* builder, VkBlendOp color, VkBlendFactor source, VkBlendFactor target);
+
 /*! @brief Set vertex shader of the materials pipeline
 * Shader module should not be destroyed until builder is finished
 * @param builder Target builder

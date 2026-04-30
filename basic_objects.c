@@ -19,6 +19,7 @@ int Has_SpecialRender(LogicBlock block)
 
 void Render_SpecialBlock(void* shipdata, LogicBlock block, mat4 prev)
 {
+    if (SERVER) return;
     assert(shipdata);
     assert(block.defIndex); // index 0 is reserved as invalid
     const LogicBlockDef* def = Get_LogicBlockDef(block.defIndex);
@@ -69,6 +70,7 @@ void AddUpload_ModelTransformArrays(Model* mm)
 
 void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
 {
+    if (SERVER) return;
     assert(grid);
     assert(grid->renderDatas);
     assert(logicblockdata);
@@ -94,6 +96,7 @@ void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
 
 void Render_Model(Model* mm, mat4 prev)
 {
+    if (SERVER) return;
     assert(mm);
     assert(mm->renderDatas);
     for (int i = 0; i < mm->matCount; i++)
@@ -104,6 +107,7 @@ void Render_Model(Model* mm, mat4 prev)
 
 void Destroy_StructureGrid(PartStructureGrid* grid)
 {
+    if (SERVER) return;
     assert(grid);
     free(grid->grid.array);
     if (grid->logicBlocks) free(grid->logicBlocks);
@@ -125,6 +129,7 @@ void Destroy_StructureGrid(PartStructureGrid* grid)
 
 void Destroy_Model(Model* model)
 {
+    if (SERVER) return;
     for (int i = 0; i < model->matCount; i++)
     {
         Destroy_TransformArray(model->renderDatas[i]);

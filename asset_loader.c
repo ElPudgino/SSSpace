@@ -40,6 +40,7 @@ int _Load_Obj(const char* filename, objData* data)
 
 
     FILE* f = fopen(filename, "r");
+    if (!f) {printf("Failed to open file while loading objs: %s\n", filename); return 1;}
     fseek(f, 0, SEEK_END);
     long size = ftell(f) + 1;
     fseek(f, 0, SEEK_SET);
@@ -194,15 +195,15 @@ int _Load_Obj(const char* filename, objData* data)
     return 0;
 }
 
-void Load_PartModelFromObj(EngineState* engineState, char* file, Model** partStructure)
+int Load_PartModelFromObj(EngineState* engineState, char* file, Model** partStructure)
 {
     assert(file);
     assert(partStructure);
 
     objData data = {};
     int res = _Load_Obj(file, &data);
-    if (res) return;
-    if (data.submeshCount == 0) {printf("!File %s contains no mesh definitions\n", file); return;}
+    if (res) return 1;
+    if (data.submeshCount == 0) {printf("!File %s contains no mesh definitions\n", file); return 1;}
 
     Model* part = NULL;
     InstancedRenderData** rdatas = (InstancedRenderData**)calloc(data.submeshCount, sizeof(InstancedRenderData*));
@@ -247,6 +248,8 @@ void Load_PartModelFromObj(EngineState* engineState, char* file, Model** partStr
     part->matCount = data.submeshCount;
     
     *partStructure = part;
+
+    return 0;
 }
 
 char fileNameBuf[400];
@@ -268,7 +271,7 @@ int Load_Models(EngineState* engineState)
         printf("reading dir: %s\n",de->d_name);
         if (de->d_name[0] == '.') continue;
         snprintf(fileNameBuf, 320, "assets/models/%s", de->d_name);
-        Load_PartModelFromObj(engineState, fileNameBuf, &model);
+        if (Load_PartModelFromObj(engineState, fileNameBuf, &model)) break;
 
         AddUpload_ModelTransformArrays(model);
         

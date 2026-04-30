@@ -23,7 +23,7 @@ void _MatBuilder_Increase_PoolSize(MaterialBuilder* builder, VkDescriptorType de
             return;
         }
     }
-    if (builder->poolSizes.sizesCount = builder->poolSizes.sizeCap)
+    if (builder->poolSizes.sizesCount == builder->poolSizes.sizeCap)
     {
         builder->poolSizes.sizesPerSet = (VkDescriptorPoolSize*)realloc(builder->poolSizes.sizesPerSet, sizeof(VkDescriptorPoolSize)*builder->poolSizes.sizeCap*2);
         builder->poolSizes.sizeCap *= 2;
@@ -52,6 +52,24 @@ MaterialBuilder* Start_MaterialBuilder(VkDevice device)
     //MatBuilder_AddParameter(builder, sizeof(MeshParameter), VK_SHADER_STAGE_VERTEX_BIT);
 
     return builder;
+}
+
+void MatBuilder_SetColorBlending(MaterialBuilder* builder, VkBlendOp color, VkBlendFactor source, VkBlendFactor target)
+{
+    assert(builder);
+    PlBuilder_Set_ColorBlending(builder->pipelineBuilder, color, source, target);
+}
+
+void MatBuilder_SetAlphaBlending(MaterialBuilder* builder, VkBlendOp alpha, VkBlendFactor source, VkBlendFactor target)
+{
+    assert(builder);
+    PlBuilder_Set_AlphaBlending(builder->pipelineBuilder, alpha, source, target);
+}
+
+void MatBuilder_SetDepthTest(MaterialBuilder* builder, VkBool32 state)
+{
+    assert(builder);
+    PlBuilder_Set_DepthTest(builder->pipelineBuilder, state);
 }
 
 void MatBuilder_SetFragmentShader(MaterialBuilder* builder, VkShaderModule shader)

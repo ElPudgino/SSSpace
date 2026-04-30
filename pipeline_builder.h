@@ -40,6 +40,12 @@ VkPipelineLayout Finish_PipelineLayoutBuilder(PipelineLayoutBuilder* builder);
 
 PipelineBuilder* Start_PipelineBuilder(VkDevice device);
 
+void PlBuilder_Set_ColorBlending(PipelineBuilder* builder, VkBlendOp color, VkBlendFactor source, VkBlendFactor target);
+
+void PlBuilder_Set_AlphaBlending(PipelineBuilder* builder, VkBlendOp alpha, VkBlendFactor source, VkBlendFactor target);
+
+void PlBuilder_Set_DepthTest(PipelineBuilder* builder, VkBool32 state);
+
 void PlBuilder_Set_FragmentShader(PipelineBuilder* builder, VkShaderModule shader);
 
 void PlBuilder_Set_VertexShader(PipelineBuilder* builder, VkShaderModule shader);

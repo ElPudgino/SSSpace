@@ -75,7 +75,7 @@ void _addArrays(Mesh* mesh, BlockModel* bmodel, float x, float y, float z, Block
             mesh->vertexCap *= 2;
         }
         Vertex vert = bmodel->vertices[i];
-        Rotate_BlockVertex(&bmodel->vertices[i],rot);
+        Rotate_BlockVertex(&vert,rot);
         glm_vec3_add(vert.position,offset,vert.position);
         mesh->vertices[mesh->vertexCount] = vert;
         mesh->vertexCount++;
@@ -136,6 +136,7 @@ BlockSide Get_Adjacent(BlockGrid g, uint32_t x, uint32_t y, uint32_t z)
 
 void Generate_MeshForGrid(PartStructureGrid* grid)
 {
+    if (SERVER) return;
     assert(grid);
     // TODO: cleanup transform arrays when changing or deleting structures
 

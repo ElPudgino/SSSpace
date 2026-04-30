@@ -21,9 +21,10 @@ Material* Test_Instanced_Mat_Build(EngineState* engineState)
 
     Material* mat = Finish_MaterialBuilder(builder);
 
-    ImageData tex = {};
-    tex = *TextureTable_Get_Texture("blast_furnace_top.png");
-    Material_SetImageSlot(mat, 0, tex, Get_PixelSampler());
+    ImageData* tex = NULL;
+    tex = TextureTable_Get_Texture("blast_furnace_top.png");
+    if (tex) Material_SetImageSlot(mat, 0, *tex, Get_PixelSampler());
+    else printf("!Texture not found for instanced mat\n");
     printf("Finished builder\n");
     //float val = 0.5f;
     //Material_SetParameter(mat, 0, &val);
