@@ -35,3 +35,13 @@ Material* Test_Instanced_Mat_Build(EngineState* engineState)
     
     return mat;
 }
+
+Material* Ship_Mat_Build(EngineState* engineState)
+{
+    Material* mat = Test_Instanced_Mat_Build(engineState);
+    ImageData* tex = NULL;
+    tex = TextureTable_Get_Texture("hull.png");
+    if (tex) Material_SetImageSlot(mat, 0, *tex, Get_PixelSampler());
+    else printf("!Texture not found for hull mat\n");
+    return mat;
+}

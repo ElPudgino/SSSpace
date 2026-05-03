@@ -1,8 +1,14 @@
 #include "tests.h"
 #include "bploader.h"
+#include "asteroid_gen.h"
+#include "logger.h"
 
-ShipBP* shipBp;
-Sector* sector;
+static ShipBP* shipBp;
+static Sector* sector;
+static ShipBP** asteroidtypes;
+static Ship** asteroids;
+static uint32_t asttypecount = 6;
+static uint32_t astcount = 200; 
 
 ShipBP* get_testbp()
 {
@@ -14,9 +20,41 @@ Sector* get_testsector()
     return sector;
 }
 
-void create_testsector()
+void create_testsector(EngineState* engineState)
 {
     sector = Init_Sector();
+    asteroidtypes = (ShipBP**)calloc(6, sizeof(ShipBP*));
+    for (int i = 0; i < asttypecount; i++)
+    {
+        asteroidtypes[i] = Gen_AsteroidType(engineState, rand() % 4 + 1, (float)(rand() % 35 + 15));
+    }
+    asteroids = (Ship**)calloc(astcount, sizeof(Ship*));
+    double pos[3] = {};
+    for (int i = 0; i < astcount; i++)
+    {
+        asteroids[i] = Create_ShipFromBP(asteroidtypes[rand()%asttypecount]);
+        Gen_RandomQuat(asteroids[i]->model.rootPart->localTransform.rotation);
+        pos[0] = (double)(rand()%500 - 250);
+        pos[1] = (double)(rand()%500 - 250);
+        pos[2] = (double)(rand()%500 - 250);
+        Copy_dVec(pos, asteroids[i]->model.rootPart->localTransform.pos);
+        Sector_AddShip(sector, asteroids[i]);
+    }
+}
+
+void cleanup_testsector()
+{
+    for (int i = 0; i < astcount; i++)
+    {
+        Delete_Ship(asteroids[i]);
+    }
+    for (int i = 0; i < asttypecount; i++)
+    {
+        Delete_ShipBP(asteroidtypes[i]);
+    }
+    free(asteroids);
+    free(asteroidtypes);
+    Destroy_Sector(sector);
 }
 
 void create_testshipbp(EngineState* engineState)

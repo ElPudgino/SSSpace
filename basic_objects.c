@@ -73,7 +73,7 @@ void Render_Grid(PartStructureGrid* grid, void* logicblockdata, mat4 prev)
     if (SERVER) return;
     assert(grid);
     assert(grid->renderDatas);
-    assert(logicblockdata);
+    assert(grid->logicBlockCount == 0 || logicblockdata);
     //printf("Start render grid\n");
     for (int i = 0; i < grid->matCount; i++)
     {

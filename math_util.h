@@ -31,4 +31,6 @@ char DirName_ToBlockRotation(char up, char north);
 
 uint64_t Gen_ID64();
 
+void Gen_RandomQuat(versor q);
+
 #endif

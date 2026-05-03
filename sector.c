@@ -3,6 +3,7 @@
 #include "physics.h"
 #include "material_insts.h"
 #include "logger.h"
+#include "ship.h"
 
 #define HASH_CONST_A 3547361
 #define HASH_CONST_B 7165167
@@ -17,6 +18,22 @@ Sector* Init_Sector()
     s->rawObjects = (Ship**)calloc(SECTOR_OBJLIST_BASESIZE, sizeof(Ship*));
     s->rawObjects_cap = SECTOR_OBJLIST_BASESIZE;
     return s;
+}
+
+void Destroy_Sector(Sector* s)
+{
+    assert(s);
+    free(s->rawObjects);
+    free(s->objects);
+    free(s->hashtable);
+    free(s);
+}
+
+void Sector_AddShip(Sector* s, Ship* ship)
+{
+    s->rawObjects[s->rawObjects_count] = ship;
+    ship->sectorIndex = s->rawObjects_count;
+    s->rawObjects_count++;
 }
 
 /*! Spatial partition notes:
@@ -64,7 +81,7 @@ void Load_SectorVisualData(EngineState* engineState, Sector* sector)
     sector->visuals->stars = (SkyStar*)calloc(5000, sizeof(SkyStar));
     for (int i = 0; i < 5000; i++)
     {
-        st.magn = (float)(rand() % 15) / 2000.0;
+        st.magn = (float)(rand() % 10 + 5) / 2000.0;
         st.type = 0;
         st.spos[0] = (float)((rand() % 90) - (rand() % 90)) * GLM_PI / 180.0;
         st.spos[1] = (float)((rand() % 360) -  180) * GLM_PI / 180.0;
@@ -118,11 +135,14 @@ void Render_Sky(VkCommandBuffer bf, mat4 pv, Sector* sector)
 void Render_SectorObjects(EngineState* engineState, Sector* sector, mat4 pv)
 {
     if (SERVER) return;
+    assert(sector);
+    assert(sector->rawObjects);
+
     double fwd[3];
     Get_CameraForwardD(fwd);
-
     for (int i = 0; i < sector->rawObjects_count; i++)
     {
+        assert(sector->rawObjects[i]);
         Render_Object(sector->rawObjects[i], pv, fwd);
     }
 
@@ -130,6 +150,8 @@ void Render_SectorObjects(EngineState* engineState, Sector* sector, mat4 pv)
 
 void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmnd)
 {
+    assert(sector);
+
     mat4 mat;
     Get_ProjViewMatrix(mat, engineState->frameData.drawImage.imageExtent);
     mat4 cpy;

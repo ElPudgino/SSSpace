@@ -4,7 +4,7 @@
 Transform* CameraTransform = NULL;
 double BaseCameraVelocity = 0.015;
 double BaseCameraAngularVelocity = 0.01;
-float BaseViewAngle = GLM_PI * 0.3f;
+float BaseViewAngle = GLM_PI * 0.25f;
 // usually we dont want to rotate camera around the forward axis, 
 // these are euler angles
 float CameraAngles[3] = {0,0,0};
@@ -59,7 +59,7 @@ void Get_ProjViewMatrix(mat4 trg, VkExtent3D _drawExtent)
 {
     mat4 mat;
     mat4 proj;
-    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 100.0f, Get_ViewAngle());
+    Projection_Matrix(proj, (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 1000.0f, Get_ViewAngle());
     Get_CameraMatrix(mat);
     glm_mat4_mul(proj, mat, trg);
 }

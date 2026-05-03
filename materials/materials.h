@@ -12,6 +12,8 @@ Material* Basic_Mesh_Mat_Build(EngineState* engineState);
 
 Material* Test_Instanced_Mat_Build(EngineState* engineState);
 
+Material* Ship_Mat_Build(EngineState* engineState);
+
 Material* Sky_Mat_Build(EngineState* engineState);
 
 #endif

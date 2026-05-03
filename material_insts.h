@@ -9,4 +9,6 @@ Material* GetMaterial_Test();
 
 Material* GetMaterial_Sky();
 
+Material* GetMaterial_Hull();
+
 #endif

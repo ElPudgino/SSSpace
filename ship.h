@@ -57,6 +57,7 @@ typedef struct _ShipBP
 typedef struct _Ship
 {
     uint64_t ID;
+    uint32_t sectorIndex;
     ShipBP* BP; 
     ShipModel model;
     void* logicBlockData;

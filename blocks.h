@@ -8,6 +8,8 @@ int Init_Blocks();
 
 int Destroy_BlockModels(EngineState* engineState);
 
-BlockModel* Get_CubeModel(uint32_t sides);
+BlockModel* Get_HullCubeModel(uint32_t sides);
+
+BlockModel* Get_RockCubeModel(uint32_t sides);
 
 #endif

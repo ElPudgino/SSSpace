@@ -8,7 +8,7 @@
 
 #define SECTOR_HT_SIZE 2048
 #define SECTOR_HT_MASK (SECTOR_HT_SIZE - 1)
-#define SECTOR_OBJLIST_BASESIZE 2000
+#define SECTOR_OBJLIST_BASESIZE 5000
 #define SECTOR_PARTITION_SIZE 1024
 
 
@@ -51,6 +51,10 @@ typedef struct _Sector
 } Sector;
 
 Sector* Init_Sector();
+
+void Destroy_Sector(Sector* s);
+
+void Sector_AddShip(Sector* s, Ship* ship);
 
 void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmnd);
 

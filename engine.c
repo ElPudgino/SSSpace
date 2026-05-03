@@ -11,36 +11,18 @@
 #include "utests.h"
 
 // Testing
-Ship** testships = NULL;
+Ship* testship = NULL;
 
 void _Testing(EngineState* engineState)
 {
-    create_testsector();
+    create_testsector(engineState);
     Load_SectorVisualData(engineState, get_testsector());
     create_testshipbp(engineState);
     printf("Created test ship BP\n"); 
-    testships = (Ship**)calloc(9, sizeof(Ship*));
-    int ind = 0;
-    double pos[3] = {};
-    for (int x = -1; x < 2; x++)
-    {
-        for (int y = -1; y < 2; y++)
-        {
-            Ship* s = Create_ShipFromBP(get_testbp());
-            assert(s);
-            testships[ind] = s;
-            pos[0] = x*30;
-            pos[1] = y*30;
-            printf("calc pos\n");
-            Copy_dVec(pos, s->model.rootPart->localTransform.pos);
-            printf("adding to sector\n");
-            get_testsector()->rawObjects[ind] = s;
-            ind++;
-        }
-    }
+    testship = Create_ShipFromBP(get_testbp());
+    Sector_AddShip(get_testsector(), testship);
     printf("Created ships from BP\n");
-    get_testsector()->rawObjects_count = 9;
-    Set_CameraOrbit(testships[4]);
+    Set_CameraOrbit(testship);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -227,11 +209,8 @@ int main(int argc, char** argv)
         frameCount++;
     }
 
-    for (int i = 0; i < 9;i++)
-    {
-        Delete_Ship(testships[i]);
-    }
-    free(testships);
+    Delete_Ship(testship);
+    cleanup_testsector();
     Delete_ShipBP(get_testbp());
     Unload_SectorVisualData(engineState ,get_testsector()); // temp
     printf("%ld\n",frameCount);

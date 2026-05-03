@@ -150,3 +150,14 @@ uint64_t Gen_ID64()
 {
     return ((uint64_t)rand() << 32) + (uint64_t)rand();
 }
+
+void Gen_RandomQuat(versor q)
+{
+    vec3 vec = {};
+    vec[0] = (float)(rand()%400-200);
+    vec[1] = (float)(rand()%400-200);
+    vec[2] = (float)(rand()%400-200);
+
+    glm_euler_xyz_quat(vec, q);
+}
+

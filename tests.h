@@ -8,7 +8,9 @@
 
 void create_testshipbp(EngineState* engineState);
 
-void create_testsector();
+void create_testsector(EngineState* engineState);
+
+void cleanup_testsector();
 
 ShipBP* get_testbp();
 

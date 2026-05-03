@@ -1,14 +1,12 @@
 #include "blocks.h"
 
-BlockModel* cube;
+static BlockModel* cube;
 
-void _Init_Cube()
+void _Init_Cubes()
 {
     cube = (BlockModel*)calloc(1, sizeof(BlockModel));
     cube->vertices = (Vertex*)calloc(24, sizeof(Vertex)); // max size
     cube->indices = (uint32_t*)calloc(36, sizeof(uint32_t));
-    assert(SERVER || GetMaterial_Test());
-    cube->mat = GetMaterial_Test();
 }
 
 BlockModel* Get_CubeModel(uint32_t sides)
@@ -112,9 +110,25 @@ BlockModel* Get_CubeModel(uint32_t sides)
     return cube;
 }
 
+BlockModel* Get_HullCubeModel(uint32_t sides)
+{
+    BlockModel* res = Get_CubeModel(sides);
+    assert(SERVER || GetMaterial_Hull());
+    cube->mat = GetMaterial_Hull();
+    return res;
+}
+
+BlockModel* Get_RockCubeModel(uint32_t sides)
+{
+    BlockModel* res = Get_CubeModel(sides);
+    assert(SERVER || GetMaterial_Test());
+    res->mat = GetMaterial_Test();
+    return res;
+}
+
 int Init_Blocks()
 {
-    _Init_Cube();
+    _Init_Cubes();
     return 0;
 }
 

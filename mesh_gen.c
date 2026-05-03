@@ -15,9 +15,11 @@ BlockModel* GetBlockModel(uint32_t type, uint32_t visible_sides)
             return NULL;
             break;
         case 1: // Solid cube
-            return Get_CubeModel(visible_sides);
+            return Get_HullCubeModel(visible_sides);
             break;
-        
+        case 2:
+            return Get_RockCubeModel(visible_sides);
+            break;
         default:
             return NULL;
             break;
