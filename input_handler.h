@@ -4,7 +4,7 @@
 #include "camera_control.h"
 
 // used for buttons
-typedef void (*InputAction)();
+typedef void (*InputAction)(float dt);
 
 typedef struct _ControlKey
 {
@@ -29,7 +29,7 @@ int Destroy_Controls(EngineState* engineState);
 
 void Init_Controls();
 
-void Process_PersistentInput();
+void Process_PersistentInput(float dt);
 
 void Process_KeyboardInput(SDL_Event event);
 

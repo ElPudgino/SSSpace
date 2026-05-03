@@ -1,7 +1,7 @@
 #include "input_handler.h"
 
 Controls controls;
-#define TRY_ACTION(a) if (a) a()
+#define TRY_ACTION(a, b) if (a) a(b)
 
 void Init_Controls()
 {
@@ -53,17 +53,17 @@ void Process_KeyboardInput(SDL_Event event)
     {
         ControlKey ck = controls.keys[i];
         if (event.key.key != ck.key) continue;
-        if (event.type == SDL_EVENT_KEY_DOWN && !ck.state) {TRY_ACTION(ck.OnPressed); controls.keys[i].state = 1;}
-        else if (event.type == SDL_EVENT_KEY_UP) {TRY_ACTION(ck.OnReleased); controls.keys[i].state = 0;}
+        if (event.type == SDL_EVENT_KEY_DOWN && !ck.state) {TRY_ACTION(ck.OnPressed, 0); controls.keys[i].state = 1;}
+        else if (event.type == SDL_EVENT_KEY_UP) {TRY_ACTION(ck.OnReleased, 0); controls.keys[i].state = 0;}
     }
 }
 
-void Process_PersistentInput()
+void Process_PersistentInput(float dt)
 {
     ControlKey key = {};
     for (int i = 0; i < controls.keyCount; i++)
     {
         key = controls.keys[i];
-        if (key.state) TRY_ACTION(key.WhileHeld);
+        if (key.state) TRY_ACTION(key.WhileHeld, dt);
     }
 }

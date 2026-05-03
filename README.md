@@ -25,8 +25,11 @@ Spatial partitioning is done via spatial hashing.
 ## Building and Running
 
 `make` & `./app`
-Or
-`make run`
 
-##### WIP Notes:
-Test controls: Up&Down arrow, T key
+### Controls:
+'W' & 'S' - Forward / Backward
+'A' & 'D' - Right / Left
+Space & LShift - Up / Down
+UpArrow & DownArrow - Pitch Up / Down
+RightArrow & LeftArrow - Yaw Right / Left
+'E' & 'Q' - Roll Clockwise / Counterclockwise

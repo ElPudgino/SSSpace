@@ -199,13 +199,19 @@ int main(int argc, char** argv)
 
     printf("Started\n");
     Uint64 frameCount = 0;
+    uint64_t milis = SDL_GetTicks();
+    float dt = 0;
+
     while (running)
     {
+        dt = 0.001*(float)(SDL_GetTicks() - milis);   
+        milis = SDL_GetTicks();
+
         Process_Events(&running);   
-        Process_PersistentInput();
+        Process_PersistentInput(dt);
 
         if (!SERVER && Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
-        if (Run_LogicLoop(engineState, 0.001)) running = 0;
+        if (Run_LogicLoop(engineState, dt)) running = 0;
         frameCount++;
     }
 
