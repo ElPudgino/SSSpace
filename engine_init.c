@@ -83,48 +83,27 @@ int Get_PhysicalDevice(EngineState* engineState)
         printf("%s - device available\n", props.deviceName);
     }
 
-    for (int ind = 0; ind < deviceCount && !flag; ind++)
-    {
-        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
-        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
-        {
-            engineState->physicalDevice = physDevices[ind];
-            flag = 1;
-            printf("%s - device (Dedicated GPU) SELECTED\n", props.deviceName);
-        }
-    }
+    // In descending order
+    VkPhysicalDeviceType priorityList[5] = {
+        VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU,
+        VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU,
+        VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU,
+        VK_PHYSICAL_DEVICE_TYPE_CPU,
+        VK_PHYSICAL_DEVICE_TYPE_OTHER
+    };
 
-    for (int ind = 0; ind < deviceCount && !flag; ind++)
+    for (int p = 0; p < 5 && !flag; p++)
     {
-        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
-        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+        for (int ind = 0; ind < deviceCount; ind++)
         {
-            engineState->physicalDevice = physDevices[ind];
-            flag = 1;
-            printf("%s - device (Integrated GPU) SELECTED\n", props.deviceName);
-        }
-    }
-
-    for (int ind = 0; ind < deviceCount && !flag; ind++)
-    {
-        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
-        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_VIRTUAL_GPU)
-        {
-            engineState->physicalDevice = physDevices[ind];
-            flag = 1;
-            printf("%s - device (Virtual GPU) SELECTED\n", props.deviceName);
-        }
-    }
-
-    for (int ind = 0; ind < deviceCount && !flag; ind++)
-    {
-        vkGetPhysicalDeviceProperties(physDevices[ind], &props);
-        if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_CPU)
-        {
-            engineState->physicalDevice = physDevices[ind];
-            flag = 1;
-            printf("%s - device (CPU) SELECTED\n", props.deviceName);
-            printf("!This may not work correctly\n");
+            vkGetPhysicalDeviceProperties(physDevices[ind], &props);
+            if (props.deviceType == priorityList[p])
+            {
+                engineState->physicalDevice = physDevices[ind];
+                flag = 1;
+                printf("%s - device (Dedicated GPU) SELECTED\n", props.deviceName);
+                break;
+            }
         }
     }
 
