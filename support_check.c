@@ -74,3 +74,48 @@ int Select_QueueFamilies(EngineState* engineState)//QueueFamIndices* Selected, V
 
     return !(completion[0] && completion[1] && completion[2] && completion[3] && completion[4]);
 }
+
+static int extCount = 4;
+static char const* extensions[4];
+char const** Get_DeviceExtensions()
+{
+    extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
+    extensions[1] = VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME;
+    extensions[2] = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
+    extensions[3] = VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
+    return extensions;
+}
+
+int Get_ExtensionCount()
+{
+    return extCount;
+}
+
+int Check_ExtensionSupport(EngineState* engineState)
+{
+    Get_DeviceExtensions();
+    uint32_t DextCount = 0;
+    VkExtensionProperties* props = NULL;
+    vkEnumerateDeviceExtensionProperties(engineState->physicalDevice, NULL, &DextCount, NULL);
+    props = (VkExtensionProperties*)calloc(DextCount, sizeof(VkExtensionProperties));
+    vkEnumerateDeviceExtensionProperties(engineState->physicalDevice, NULL, &DextCount, props);
+
+    int found = 0;
+    for (int i = 0; i < extCount; i++)
+    {
+        found = 0;
+        for (int e = 0; e < DextCount; e++)
+        {
+            //printf("Found extension: %s\n", props[e].extensionName);
+            if (!strcmp(props[e].extensionName,extensions[i])) {found = 1; break;}
+        }
+        if (!found)
+        {
+            printf("!!Failed to find extension: %s\n", extensions[i]);
+            return 1;
+        }
+    }
+    free(props);
+    return 0;
+}
+

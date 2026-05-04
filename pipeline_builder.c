@@ -87,7 +87,7 @@ PipelineBuilder* Start_PipelineBuilder(VkDevice device)
         .sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
         .viewMask = 0,
         .colorAttachmentCount = 1,
-        .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT_S8_UINT
+        .depthAttachmentFormat = VK_FORMAT_D32_SFLOAT
     };
     return res;
 }

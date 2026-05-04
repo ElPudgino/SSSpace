@@ -65,7 +65,8 @@ void Mesh_UploadData(Mesh* mesh)
     BufferInfo indexbuf = CreateBuffer(mesh->engineState->allocator, ind, 
         VMA_MEMORY_USAGE_CPU_ONLY,
         (VmaAllocationCreateFlagBits)0,
-        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT);
+        VK_BUFFER_USAGE_STORAGE_BUFFER_BIT | VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT |
+        VK_BUFFER_USAGE_INDEX_BUFFER_BIT);
     printf("Created buffers\n");
     // Get vertex array gpu pointer
     // We dont need index array pointer though

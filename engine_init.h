@@ -80,6 +80,12 @@ typedef struct _AllocInfo
 
 int Select_QueueFamilies(EngineState* engineState);
 
+int Check_ExtensionSupport(EngineState* engineState);
+
+int Get_ExtensionCount();
+
+char const** Get_DeviceExtensions();
+
 int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo);
 
 int Cleanup_MainEngine(EngineState* engineState, AllocInfo* allocInfo);

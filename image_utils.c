@@ -76,9 +76,10 @@ int Create_Image(VkDevice device, VmaAllocator allocator, ImageData* imageData, 
 int Create_DepthImage(VkDevice device, VmaAllocator allocator, ImageData* imageData, VkExtent3D extent)
 {
     return Create_ImageGeneric(device, allocator, imageData, extent, 
-                            VK_FORMAT_D32_SFLOAT_S8_UINT,
+                            VK_FORMAT_D32_SFLOAT,
                             VK_IMAGE_USAGE_STORAGE_BIT |
-                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                            VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT |
+                            VK_IMAGE_USAGE_TRANSFER_DST_BIT,
                             VK_IMAGE_ASPECT_DEPTH_BIT);
 } 
 

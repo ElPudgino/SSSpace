@@ -54,7 +54,7 @@ int Load_ImageFromFile(EngineState* engineState, char* file, ImageData** img)
 
     vkCmdCopyBufferToImage(ic.buffer, temp.buffer, image->image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &copyRegion);
 
-    Change_ImageLayout(ic.buffer, image, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
+    Change_ImageLayout(ic.buffer, image, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_COLOR_BIT);
     Command_Immediate_Complete(ic);
     
     vmaDestroyBuffer(engineState->allocator, temp.buffer, temp.allocation);

@@ -73,7 +73,7 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
     Clear_Image(Cmnd, DrawImage, (VkClearColorValue){0.001f,0.001f,0.001f,1.0f});
 
     Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_GENERAL, VK_IMAGE_ASPECT_DEPTH_BIT);
-    Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){-999.0,0});
+    Clear_Depth(Cmnd, engineState->frameData.depthImage, (VkClearDepthStencilValue){0.0,0});
 
     Change_ImageLayout(Cmnd, &DrawImage, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_COLOR_BIT);
     Change_ImageLayout(Cmnd, &engineState->frameData.depthImage, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_ASPECT_DEPTH_BIT);

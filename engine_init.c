@@ -22,11 +22,17 @@ int Create_VulkanInstance(EngineState* engineState)
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.apiVersion = VK_API_VERSION_1_3;
 
+    const char* validationLayerName = "VK_LAYER_KHRONOS_validation";
+
     VkInstanceCreateInfo createInfo = {};
     uint32_t extCount = 0;
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo.pApplicationInfo = &appInfo;
-    createInfo.enabledLayerCount = 0;
+    if (DEBUG)
+    {
+        createInfo.enabledLayerCount = 1;
+        createInfo.ppEnabledLayerNames = &validationLayerName;
+    }
     createInfo.ppEnabledExtensionNames = SDL_Vulkan_GetInstanceExtensions(&extCount);
     createInfo.enabledExtensionCount = extCount;
 
@@ -38,6 +44,12 @@ int Create_VulkanInstance(EngineState* engineState)
         if (res == VK_NOT_READY)
         {
             printf("Failed to create VkInstance: Not Ready\n");
+        }
+        else if (res == VK_ERROR_LAYER_NOT_PRESENT)
+        {
+            createInfo.enabledLayerCount = 0;
+            createInfo.ppEnabledLayerNames = NULL;
+            printf("Validation layers not found, disabling\n");
         }
         else if (res != 0)
         {
@@ -101,7 +113,7 @@ int Get_PhysicalDevice(EngineState* engineState)
             {
                 engineState->physicalDevice = physDevices[ind];
                 flag = 1;
-                printf("%s - device (Dedicated GPU) SELECTED\n", props.deviceName);
+                printf("%s - device SELECTED\n", props.deviceName);
                 break;
             }
         }
@@ -131,6 +143,8 @@ int Destroy_MainSurface(EngineState* engineState)
 
 int Create_LogicalDevice(EngineState* engineState)
 {
+    if (Check_ExtensionSupport(engineState)) return 1; 
+    
     uint32_t families[5] = {engineState->queueFamIndices._Graphics,
                        engineState->queueFamIndices._Compute,
                        engineState->queueFamIndices._Sparse,
@@ -181,12 +195,8 @@ int Create_LogicalDevice(EngineState* engineState)
     createInfo.pQueueCreateInfos = queueCreateInfos;
     createInfo.pEnabledFeatures = &deviceFeatures;
 
-    uint32_t extensionCount = 4;
-    char const** extensions = (char const**)calloc(extensionCount, sizeof(char const**));
-    extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
-    extensions[1] = VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME;
-    extensions[2] = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
-    extensions[3] = VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
+    uint32_t extensionCount = Get_ExtensionCount();
+    char const** extensions = Get_DeviceExtensions();
 
     // Add required extensions (like swapchain)
     createInfo.enabledExtensionCount = extensionCount;
@@ -211,7 +221,6 @@ int Create_LogicalDevice(EngineState* engineState)
     int res = 0;
     if ((res = vkCreateDevice(engineState->physicalDevice, &createInfo, NULL, &engineState->device)) != VK_SUCCESS) printf("Failed to create logical device, error code: %d\n", res);
 
-    free(extensions);
     free(queueCreateInfos);
     return res;
 }
