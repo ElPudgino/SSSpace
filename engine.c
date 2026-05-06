@@ -183,6 +183,12 @@ int main(int argc, char** argv)
 
     int running = 1;
 
+    if (argc > 1 && !strcmp(argv[1], "--nogr_tests")) 
+    {
+        Run_CollisionTests();
+        return 0;
+    }
+
     EngineState* engineState;
     AllocInfo* allocInfo = (AllocInfo*)calloc(1, sizeof(AllocInfo));
     int res = 0;
@@ -193,6 +199,7 @@ int main(int argc, char** argv)
     if (argc > 1 && !strcmp(argv[1], "--tests")) 
     {
         Run_Tests(engineState);
+        running = 0;
     }
 
     _Testing(engineState);

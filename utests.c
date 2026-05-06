@@ -6,6 +6,7 @@
 #include "logger.h"
 #include "bploader.h"
 #include "bploader.h"
+#include "utests.h"
 
 int ShipBP1_Test(EngineState* engineState, ShipBP** bp)
 {

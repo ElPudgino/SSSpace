@@ -3,6 +3,23 @@
 #include "mesh_utils.h"
 #include "part_table.h"
 
+inline uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
+{
+    return x + y * grid.x_s + z * grid.x_s * grid.y_s;
+}
+
+void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t z)
+{
+    if (x < 0 || y < 0 || z < 0 || x >= grid.x_s || y >= grid.y_s || z >= grid.z_s) {/*printf("-grid position out of bounds\n");*/ return;}
+    grid.array[Get_IndexFromPos(grid, x, y, z)] = block;
+}
+
+Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
+{
+    if (x < 0 || y < 0 || z < 0 || x >= grid.x_s || y >= grid.y_s || z >= grid.z_s) {/*printf("-grid position out of bounds\n");*/ return (Block){0};}
+    return grid.array[Get_IndexFromPos(grid, x, y, z)];
+}
+
 // Block may be bigger than 1 by 1
 // result in local coords
 void Get_LogicBlockCenter(LogicBlock block, vec3 result)

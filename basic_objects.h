@@ -103,6 +103,12 @@ typedef struct _Part
     uint32_t childrenCount;
 } Part;
 
+uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
+
+Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z);
+
+void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t z);
+
 int Has_SpecialRender(LogicBlock block);
 
 Model* Create_Model();

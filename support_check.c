@@ -82,7 +82,7 @@ char const** Get_DeviceExtensions()
     extensions[0] = VK_KHR_SWAPCHAIN_EXTENSION_NAME;
     extensions[1] = VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME;
     extensions[2] = VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME;
-    extensions[3] = VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
+    extensions[3] = VK_EXT_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME;
     return extensions;
 }
 

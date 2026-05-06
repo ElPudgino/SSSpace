@@ -11,23 +11,6 @@ void Set_PartTransform(Part* part, Transform* tr)
     //self.mdoeltransform.matrixes[part.matrixindex] = ...
 }
 
-inline uint32_t Get_IndexFromPos(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
-{
-    return x + y * grid.x_s + z * grid.x_s * grid.y_s;
-}
-
-void Set_GridBlock(BlockGrid grid, Block block, uint32_t x, uint32_t y, uint32_t z)
-{
-    if (x < 0 || y < 0 || z < 0 || x >= grid.x_s || y >= grid.y_s || z >= grid.z_s) {/*printf("-grid position out of bounds\n");*/ return;}
-    grid.array[Get_IndexFromPos(grid, x, y, z)] = block;
-}
-
-Block Get_GridBlock(BlockGrid grid, uint32_t x, uint32_t y, uint32_t z)
-{
-    if (x < 0 || y < 0 || z < 0 || x >= grid.x_s || y >= grid.y_s || z >= grid.z_s) {/*printf("-grid position out of bounds\n");*/ return (Block){0};}
-    return grid.array[Get_IndexFromPos(grid, x, y, z)];
-}
-
 // Only for creating ship BPs
 Part* Create_Part(PartStructureGrid* structure, Part* apointer)
 {
