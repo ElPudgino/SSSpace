@@ -61,8 +61,6 @@ int Raycast_GridLocal(BlockGrid grid, vec3 s_dir, vec3 s_spos, RaycastData* data
         glm_vec3_scale(dirn, dist, dir);
         glm_vec3_add(spos, dir, spos);
     }
-    //printf("spos2: %f, %f, %f\n", spos[0],spos[1],spos[2]);
-
     vec3 fsg = {floorf(spos[0]), floorf(spos[1]), floorf(spos[2])};
 
     int sg[3] = {(int)fsg[0], (int)fsg[1], (int)fsg[2]};
@@ -71,7 +69,6 @@ int Raycast_GridLocal(BlockGrid grid, vec3 s_dir, vec3 s_spos, RaycastData* data
     vec3 ts = {};
     float mint = INFINITY;
     int minind = -1;
-    
 
     while (1)
     {
@@ -101,4 +98,23 @@ int Raycast_GridLocal(BlockGrid grid, vec3 s_dir, vec3 s_spos, RaycastData* data
     glm_vec3_copy(normal, data->normal);
     glm_vec3_copy(spos, data->pos);
     return 1;
+}
+
+int Raycast_GridGlobal(Part* grid, vec3 s_dir, double s_spos[3], RaycastData* data)
+{
+    vec3 dir = {};
+    double spos[3] = {};
+    versor q = {};
+    Get_GlobalPosition(&grid->localTransform, spos);
+    Get_GlobalRotation(&grid->localTransform, q);
+    glm_quat_inv(q, q);
+    Scalar_Mult(spos, -1);
+    Add_dVec(spos, s_spos); // Align grid center with 0,0,0
+    double coffset[3] = {};
+    Cast_ToDouble(grid->structure->centerOffset, coffset);
+    Scalar_Mult(coffset, -1);
+    Add_dVec(coffset, spos); // Align grid 0,0,0 with 0,0,0
+    glm_quat_rotatev(q, s_dir, dir);
+    vec3 pos = {(float)spos[0], (float)spos[1], (float)spos[2]};
+    return Raycast_GridLocal(grid->structure->grid, dir, pos, data);   
 }

@@ -5,6 +5,13 @@
 
 #define ENGINE_INIT
 
+typedef struct _BufferInfo
+{
+    VkBuffer buffer;
+    VmaAllocation allocation;
+    VmaAllocationInfo allocInfo;
+} BufferInfo;
+
 typedef struct _DescriptorCache
 {
     // Data like the draw image, camera transform and other things which dont change throughout the frame
@@ -57,6 +64,12 @@ typedef struct _QueueFamIndices
     uint32_t _Present;
 } QueueFamIndices;
 
+typedef struct _CameraData
+{
+    VkDeviceAddress cameraProjView; // pointer to projection view matrix
+    BufferInfo cameraProjViewBuffer;
+} CameraData;
+
 typedef struct _EngineState
 {
     VkInstance instance;
@@ -70,6 +83,7 @@ typedef struct _EngineState
     SDL_Window* window;
     SwapchainState swapchainState;
     VmaAllocator allocator;
+    CameraData cameraData;
 } EngineState;
 
 typedef struct _AllocInfo

@@ -16,13 +16,19 @@ Ship* testship = NULL;
 void _Testing(EngineState* engineState)
 {
     create_testsector(engineState);
-    Load_SectorVisualData(engineState, get_testsector());
     create_testshipbp(engineState);
     printf("Created test ship BP\n"); 
     testship = Create_ShipFromBP(get_testbp());
     Sector_AddShip(get_testsector(), testship);
     printf("Created ships from BP\n");
     Set_CameraOrbit(testship);
+}
+
+int Setup_Uniforms(EngineState* engineState) // TODO: do it in the main command buffer
+{
+    mat4 mat = {};
+    Get_ProjViewMatrix(mat, engineState->frameData.drawImage.imageExtent);
+    return Update_Buffer(engineState, mat, sizeof(mat4), &engineState->cameraData.cameraProjViewBuffer);
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
@@ -217,7 +223,11 @@ int main(int argc, char** argv)
         Process_Events(&running);   
         Process_PersistentInput(dt);
 
-        if (!SERVER && Run_MainLoop(engineState, frameCount) != VK_SUCCESS) running = 0;
+        if (!SERVER)
+        {
+            if (Setup_Uniforms(engineState)) {running = 0; break;}
+            if (Run_MainLoop(engineState, frameCount)) {running = 0; break;}
+        }        
         if (Run_LogicLoop(engineState, dt)) running = 0;
         frameCount++;
     }
@@ -225,7 +235,6 @@ int main(int argc, char** argv)
     Delete_Ship(testship);
     cleanup_testsector();
     Delete_ShipBP(get_testbp());
-    Unload_SectorVisualData(engineState ,get_testsector()); // temp
     printf("%ld\n",frameCount);
     printf("Closing\n");
     Cleanup_MainEngine(engineState, allocInfo);// EngineState is freed

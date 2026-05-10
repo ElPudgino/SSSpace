@@ -36,6 +36,10 @@ void Add_TransformArray(InstancedRenderData* mesh);
 
 void Add_InstanceToRender(InstancedRenderData* mesh, mat4 trs);
 
+void Get_GlobalRotation(Transform* tr, versor rot);
+
+void Get_GlobalPosition(Transform* transform, double res[3]);
+
 InstancedRenderData* Create_InstanceData();
 
 void Upload_Transforms(EngineState* engineState);

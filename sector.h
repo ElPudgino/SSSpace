@@ -22,7 +22,8 @@ typedef struct _BaseSectorData
 {
 
 } BaseSectorData;
- 
+
+/*
 typedef struct _SectorVisualData
 {
     SkyStar* stars;
@@ -30,6 +31,7 @@ typedef struct _SectorVisualData
     VkDeviceAddress starBufferAddr;
     BufferInfo starBufferInfo;
 } SectorVisualData;
+*/
 
 /*!
 * Exists when the sector is active:
@@ -47,7 +49,7 @@ typedef struct _Sector
     Ship** rawObjects; // full unsorted array
     uint32_t rawObjects_count;
     uint32_t rawObjects_cap;
-    SectorVisualData* visuals;
+    //SectorVisualData* visuals;
 } Sector;
 
 Sector* Init_Sector();

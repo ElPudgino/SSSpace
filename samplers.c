@@ -24,7 +24,7 @@ void Create_LinearSampler(EngineState* engineState)
     cinfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 
     cinfo.minFilter = VK_FILTER_LINEAR;
-    cinfo.magFilter = VK_FILTER_LINEAR;
+    cinfo.magFilter = VK_FILTER_LINEAR; 
     cinfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     cinfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;
     cinfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER;

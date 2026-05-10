@@ -51,14 +51,28 @@ void Get_TransformUp(Transform* tr, float dest[3])
 
 void Get_TransformRight(Transform* tr, float dest[3])
 {
+    assert(tr);
     dest[0] = 1;
     dest[1] = 0;
     dest[2] = 0;
     glm_quat_rotatev(tr->rotation, dest, dest);
 }
 
+void Get_GlobalRotation(Transform* tr, versor rot)
+{
+    assert(tr);
+    versor res = {};
+    glm_quat_identity(res);
+    for (Transform* p = tr; p->parent; p = p->parent)
+    {
+        glm_quat_mul(p->rotation, res, res);
+    }
+    glm_quat_copy(res, rot);
+}
+
 void Get_GlobalPosition(Transform* transform, double res[3])
 {
+    assert(transform);
     res[0] = transform->pos[0];
     res[1] = transform->pos[1];
     res[2] = transform->pos[2];
@@ -73,6 +87,7 @@ void Get_GlobalPosition(Transform* transform, double res[3])
 
 void Set_LocalPosition(Transform* transform, double pos[3])
 {
+    assert(transform);
     transform->pos[0] = pos[0];
     transform->pos[1] = pos[1];
     transform->pos[2] = pos[2];

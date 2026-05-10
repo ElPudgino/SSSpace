@@ -16,4 +16,6 @@ Material* Ship_Mat_Build(EngineState* engineState);
 
 Material* Sky_Mat_Build(EngineState* engineState);
 
+Material* Sky_proc_Mat_Build(EngineState* engineState);
+
 #endif

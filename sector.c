@@ -68,6 +68,7 @@ void Render_Object(Ship* obj, mat4 projview, double fwd[3])
     Render_Ship(obj, projview);
 }
 
+/*
 // Upload sky stars data etc.
 // will need more parameters to generate the data
 void Load_SectorVisualData(EngineState* engineState, Sector* sector)
@@ -110,24 +111,20 @@ void Unload_SectorVisualData(EngineState* engineState, Sector* sector)
     free(sector->visuals);
 
 }
+*/
 
-void Render_Sky(VkCommandBuffer bf, mat4 pv, Sector* sector)
+void Render_Sky(EngineState* engineState, VkCommandBuffer bf, Sector* sector)
 {
     assert(!SERVER);
     assert(sector);
-    assert(sector->visuals);
-    assert(sector->visuals->starBufferAddr);
 
     Material* skymat = GetMaterial_Sky();
 
-    mat4 m;
-    glm_mat4_copy(pv, m);
-    Material_SetParameter(skymat, 0, &m);
-    Material_SetParameter(skymat, 1, &sector->visuals->starBufferAddr);
+    Material_SetParameter(skymat, 0, &engineState->cameraData.cameraProjView);
 
     Bind_Material(bf, skymat);
     
-    vkCmdDraw(bf, 6, sector->visuals->starCount, 0, 0);
+    vkCmdDraw(bf, 36, 1, 0, 0);
 
     return;
 }
@@ -157,7 +154,7 @@ void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmn
     mat4 cpy;
     glm_mat4_copy(mat, cpy);
     Render_SectorObjects(engineState, sector, cpy);
-    Render_Sky(cmnd, mat, sector);
+    Render_Sky(engineState, cmnd, sector);
 }
 
 void Tick_Sector(Sector* sector)

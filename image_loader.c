@@ -25,7 +25,7 @@ int Load_ImageFromFile(EngineState* engineState, char* file, ImageData** img)
         LOG_INFO("Failed to copy texture to temp buffer: %s\n", file);
         return 1;
     }
-
+    LOG_INFO("Freeing image pixels: %s\n", file);
     stbi_image_free(pixels);
 
     ImageData* image = (ImageData*)calloc(1, sizeof(ImageData));

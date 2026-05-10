@@ -202,8 +202,8 @@ int Create_LogicalDevice(EngineState* engineState)
     createInfo.enabledExtensionCount = extensionCount;
     createInfo.ppEnabledExtensionNames = extensions;
 
-    VkPhysicalDeviceBufferDeviceAddressFeaturesEXT bdaf = {};
-    bdaf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_EXT;
+    VkPhysicalDeviceBufferDeviceAddressFeaturesKHR bdaf = {};
+    bdaf.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_BUFFER_DEVICE_ADDRESS_FEATURES_KHR;
     bdaf.bufferDeviceAddress = VK_TRUE;
 
     VkPhysicalDeviceSynchronization2Features s2f = {};
@@ -387,6 +387,24 @@ int Destroy_MainDrawImage(EngineState* engineState)
     return 1;
 }
 
+int Init_Uniforms(EngineState* engineState)
+{
+    VkDeviceAddress addr = 0;
+    BufferInfo info = {};
+    mat4 mat = GLM_MAT4_IDENTITY_INIT;
+    if (Upload_Buffer(engineState, mat, sizeof(mat4), &addr, &info)) {printf("!Failed to upload projview buffer\n"); return 1;}
+    engineState->cameraData.cameraProjViewBuffer = info;
+    engineState->cameraData.cameraProjView = addr;
+    return 0;
+}
+
+int Destroy_Uniforms(EngineState* engineState)
+{
+    assert(engineState->cameraData.cameraProjView);
+    vmaDestroyBuffer(engineState->allocator, engineState->cameraData.cameraProjViewBuffer.buffer, engineState->cameraData.cameraProjViewBuffer.allocation);
+    return 1;
+}
+
 // Recursively calls allocInfos destructors
 int Destroy_FromQueue(AllocInfo* allocInfo, EngineState* engineState)
 {
@@ -468,6 +486,10 @@ int Init_MainEngine(EngineState** esPointer, AllocInfo** allocInfo)
         if (Create_MainDrawImage(engineState)) {printf("!!Main draw image creation failed\n"); goto Fail;}
         Add_ToCleanupQueue(allocInfo, Destroy_MainDrawImage);
         printf("Main draw image created\n");
+
+        if (Init_Uniforms(engineState)) {printf("!!Failed to init uniforms\n"); goto Fail;}
+        Add_ToCleanupQueue(allocInfo, Destroy_Uniforms);
+        printf("Uniforms created\n");
 
         if (Setup_TransformBuffer(engineState, GLOBAL_TRANSFORM_ARRAY_SIZE)) {printf("!!Failed to allocate transform buffer with size: %d\n", GLOBAL_TRANSFORM_ARRAY_SIZE); goto Fail;}
         Add_ToCleanupQueue(allocInfo, Destroy_TransformBuffer);
