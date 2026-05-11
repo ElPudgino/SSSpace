@@ -120,7 +120,7 @@ void Render_Sky(EngineState* engineState, VkCommandBuffer bf, Sector* sector)
 
     Material* skymat = GetMaterial_Sky();
 
-    Material_SetParameter(skymat, 0, &engineState->cameraData.cameraProjView);
+    Material_SetParameter(skymat, 0, &engineState->uniformData.cameraProjView);
 
     Bind_Material(bf, skymat);
     
@@ -149,10 +149,7 @@ void Render_Sector(EngineState* engineState, Sector* sector, VkCommandBuffer cmn
 {
     assert(sector);
 
-    mat4 mat;
-    Get_ProjViewMatrix(mat, engineState->frameData.drawImage.imageExtent);
-    mat4 cpy;
-    glm_mat4_copy(mat, cpy);
+    mat4 cpy = GLM_MAT4_IDENTITY_INIT;
     Render_SectorObjects(engineState, sector, cpy);
     Render_Sky(engineState, cmnd, sector);
 }

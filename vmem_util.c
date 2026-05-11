@@ -45,12 +45,12 @@ int Update_Buffer(EngineState* engineState, void* arr, uint32_t size, BufferInfo
         VMA_MEMORY_USAGE_CPU_ONLY, 
         (VmaAllocationCreateFlagBits)(VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT ), 
         VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-    LOG_TEXT("Created a temp buffer\n");
+    //LOG_TEXT("Created a temp buffer\n");
 
     // Map gpu memory with temp buffer to cpu array 
 
     if (vmaCopyMemoryToAllocation(engineState->allocator, arr, temp.allocation, 0, size) != VK_SUCCESS) return 1;
-    LOG_TEXT("Copied data\n");
+    //LOG_TEXT("Copied data\n");
     
     ImmediateCommand IC = Command_Immediate_Begin(engineState->device, engineState->commandsHandle.miscUpdateBuffer, engineState->queueHandles._Graphics);
     
@@ -61,9 +61,9 @@ int Update_Buffer(EngineState* engineState, void* arr, uint32_t size, BufferInfo
 
     vkCmdCopyBuffer(IC.buffer, temp.buffer, buffer->buffer, 1, &bufCopy);
 
-    LOG_TEXT("copied ind buf\n");
+    //LOG_TEXT("copied ind buf\n");
     Command_Immediate_Complete(IC);
-    LOG_TEXT("submit imm cmnd\n");
+    //LOG_TEXT("submit imm cmnd\n");
     
     vmaDestroyBuffer(engineState->allocator, temp.buffer, temp.allocation);
     return 0;

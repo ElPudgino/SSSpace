@@ -26,9 +26,14 @@ void _Testing(EngineState* engineState)
 
 int Setup_Uniforms(EngineState* engineState) // TODO: do it in the main command buffer
 {
-    mat4 mat = {};
-    Get_ProjViewMatrix(mat, engineState->frameData.drawImage.imageExtent);
-    return Update_Buffer(engineState, mat, sizeof(mat4), &engineState->cameraData.cameraProjViewBuffer);
+    int res = 0;
+    mat4 mats[2] = {};
+    VkExtent3D _drawExtent = engineState->frameData.drawImage.imageExtent;
+
+    Projection_Matrix(mats[0], (float)_drawExtent.height/(float)_drawExtent.width, 0.01f, 1000.0f, Get_ViewAngle());
+    Get_CameraMatrix(mats[1]);
+
+    return Update_Buffer(engineState, mats, 2 * sizeof(mat4), &engineState->uniformData.cameraProjViewBuffer);  
 }
 
 int Run_MainLoop(EngineState* engineState, Uint64 frameCount)

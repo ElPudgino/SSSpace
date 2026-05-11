@@ -64,11 +64,11 @@ typedef struct _QueueFamIndices
     uint32_t _Present;
 } QueueFamIndices;
 
-typedef struct _CameraData
+typedef struct _UniformData
 {
-    VkDeviceAddress cameraProjView; // pointer to projection view matrix
+    VkDeviceAddress cameraProjView; // pointer to array of 2 matrices [projection, view]
     BufferInfo cameraProjViewBuffer;
-} CameraData;
+} UniformData;
 
 typedef struct _EngineState
 {
@@ -83,7 +83,7 @@ typedef struct _EngineState
     SDL_Window* window;
     SwapchainState swapchainState;
     VmaAllocator allocator;
-    CameraData cameraData;
+    UniformData uniformData;
 } EngineState;
 
 typedef struct _AllocInfo

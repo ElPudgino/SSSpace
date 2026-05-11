@@ -391,17 +391,17 @@ int Init_Uniforms(EngineState* engineState)
 {
     VkDeviceAddress addr = 0;
     BufferInfo info = {};
-    mat4 mat = GLM_MAT4_IDENTITY_INIT;
-    if (Upload_Buffer(engineState, mat, sizeof(mat4), &addr, &info)) {printf("!Failed to upload projview buffer\n"); return 1;}
-    engineState->cameraData.cameraProjViewBuffer = info;
-    engineState->cameraData.cameraProjView = addr;
+    mat4 mat[2] = {};
+    if (Upload_Buffer(engineState, mat, 2 * sizeof(mat4), &addr, &info)) {printf("!Failed to upload projview buffer\n"); return 1;}
+    engineState->uniformData.cameraProjViewBuffer = info;
+    engineState->uniformData.cameraProjView = addr;
     return 0;
 }
 
 int Destroy_Uniforms(EngineState* engineState)
 {
-    assert(engineState->cameraData.cameraProjView);
-    vmaDestroyBuffer(engineState->allocator, engineState->cameraData.cameraProjViewBuffer.buffer, engineState->cameraData.cameraProjViewBuffer.allocation);
+    assert(engineState->uniformData.cameraProjView);
+    vmaDestroyBuffer(engineState->allocator, engineState->uniformData.cameraProjViewBuffer.buffer, engineState->uniformData.cameraProjViewBuffer.allocation);
     return 1;
 }
 

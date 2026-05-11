@@ -111,7 +111,8 @@ void Render_InstancedMeshes(EngineState* engineState, VkCommandBuffer cmnd)
             printf("vert%d: %f %f %f\n", i, vert.position[0], vert.position[1], vert.position[2]);
         }*/
         //printf("inst data: %d | %d\n", GlobalTransformArrays[i].count, data.transformStartIndex);
-        MeshParameter p =  {.meshAddress = data.mesh->g_Address, .transformAddress = g_Transforms, .transformStartIndex = data.transformStartIndex};
+        MeshParameter p =  {.meshAddress = data.mesh->g_Address, .transformAddress = g_Transforms,
+            .uniforms = engineState->uniformData.cameraProjView, .transformStartIndex = data.transformStartIndex};
         Material_SetParameter(data.material, 0, &p);
         Bind_Material(cmnd, data.material);
         vkCmdBindIndexBuffer(cmnd, data.mesh->g_Indices.buffer, 0, VK_INDEX_TYPE_UINT32);

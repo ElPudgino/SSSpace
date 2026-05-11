@@ -138,6 +138,7 @@ typedef struct _MeshParameter
 {
     VkDeviceAddress meshAddress;
     VkDeviceAddress transformAddress;
+    VkDeviceAddress uniforms;
     uint32_t transformStartIndex;
 } MeshParameter;
 

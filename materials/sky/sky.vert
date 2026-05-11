@@ -4,13 +4,13 @@
 layout (location = 0) out vec2 outUv;
 layout (location = 1) flat out int side;
 
-layout(buffer_reference, std430) readonly buffer ProjView{ 
-	mat4 projviewMatrix;
+layout(buffer_reference, std430) readonly buffer Uniforms{
+	mat4 matrixes[];
 };
 
 layout( push_constant ) uniform constants
 {	
-	ProjView pv;
+	Uniforms uniforms;
 } PushConstants;
 
 void main() 
@@ -107,7 +107,7 @@ void main()
 
 	//output the position of each vertex
 	vec4 pos = vec4(positions[gl_VertexIndex], 1.0f);
-	gl_Position = PushConstants.pv.projviewMatrix * pos;
+	gl_Position = PushConstants.uniforms.matrixes[0] * PushConstants.uniforms.matrixes[1] * pos;
 	outUv = uvs[gl_VertexIndex];
 	side = (gl_VertexIndex - (gl_VertexIndex % 6)) / 6;
 }
