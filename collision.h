@@ -2,6 +2,7 @@
 #define COLLISION
 
 #include "basic_objects.h"
+#include "ship.h"
 
 typedef struct _BoundingBox 
 {
@@ -16,6 +17,17 @@ typedef struct _RaycastData
     vec3 normal;
     uint32_t gridPos[3];
 } RaycastData;
+
+typedef struct _OBB
+{
+    vec3 center;
+    vec3 ortAxis[3];
+    vec3 sizes;
+} OBB;
+
+int Check_Part_OBB_Intersect(Part* p1, Part* p2);
+
+int Check_Ship_POBB_Intersect(Ship* s1, Ship* s2);
 
 int Raycast_Box(BoundingBox bb, vec3 dir, vec3 spos, float* dist);
 

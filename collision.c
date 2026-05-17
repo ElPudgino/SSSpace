@@ -1,8 +1,123 @@
 #include "collision.h"
-#include "ship.h"
+
+#define OBB_SIZE_MULT 0.8
+
+void Get_Part_OBB_LocalPos(Part* part, OBB* obb)
+{
+    assert(part);
+    assert(obb);
+    obb->center[0] = ((float)part->structure->grid.x_s) / 2.0- part->structure->centerOffset[0];
+    obb->center[1] = ((float)part->structure->grid.y_s) / 2.0- part->structure->centerOffset[1];
+    obb->center[2] = ((float)part->structure->grid.z_s) / 2.0- part->structure->centerOffset[2];
+
+    obb->sizes[0] = (float)part->structure->grid.x_s / 2.0 * OBB_SIZE_MULT;
+    obb->sizes[1] = (float)part->structure->grid.y_s / 2.0 * OBB_SIZE_MULT;
+    obb->sizes[2] = (float)part->structure->grid.z_s / 2.0 * OBB_SIZE_MULT;
+
+    vec3 ax = {1,0,0};
+    versor q = {};
+    Get_GlobalRotation(&part->localTransform, q);
+    glm_quat_rotatev(q, ax, ax);
+    glm_vec3_copy(ax, obb->ortAxis[0]);
+    ax[0] = 0;
+    ax[1] = 1;
+    ax[2] = 0;
+    glm_quat_rotatev(q, ax, ax);
+    glm_vec3_copy(ax, obb->ortAxis[1]);
+    ax[0] = 0;
+    ax[1] = 0;
+    ax[2] = 1;
+    glm_quat_rotatev(q, ax, ax);
+    glm_vec3_copy(ax, obb->ortAxis[2]);
+}
+
+int Check_OBBs_AxisSep(OBB* obb1, OBB* obb2, vec3 ax)
+{
+    float dst = fabsf(glm_vec3_dot(obb1->center, ax) - glm_vec3_dot(obb2->center, ax));
+
+    float ra = 0.0f, rb = 0.0f;
+    for (int i = 0; i < 3; i++) 
+    {
+        ra += obb1->sizes[i] * fabsf(glm_vec3_dot(obb1->ortAxis[i], ax));
+        rb += obb2->sizes[i] * fabsf(glm_vec3_dot(obb2->ortAxis[i], ax));
+    }
+
+    return dst > ra + rb + 1e-6f;  
+}
+
+int Check_OBB_Intersect(OBB* a, OBB* b)
+{
+    vec3 ax = {};
+
+    for (int i = 0; i < 3; i++) 
+    {
+        if (Check_OBBs_AxisSep(a, b, a->ortAxis[i]))
+            return 0;
+    }
+
+    for (int i = 0; i < 3; i++) 
+    {
+        if (Check_OBBs_AxisSep(a, b, b->ortAxis[i]))
+            return 0;
+    }
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            glm_vec3_cross(a->ortAxis[i], b->ortAxis[j], ax);
+            if (glm_vec3_norm(ax) < 1e-6f) continue; 
+            glm_vec3_normalize(ax);
+            if (Check_OBBs_AxisSep(a, b, ax))
+                return 0;
+        }
+    }
+
+    return 1;
+}
+
+int Check_Part_OBB_Intersect(Part* p1, Part* p2)
+{
+    OBB a = {};
+    OBB b = {};
+    vec3 tr = {};
+    double ps1[3] = {};
+    double ps2[3] = {};
+    Get_GlobalPosition(&p1->localTransform, ps1);
+    Get_GlobalPosition(&p2->localTransform, ps2);
+    tr[0] = (float)(ps1[0]-ps2[0]);
+    tr[1] = (float)(ps1[1]-ps2[1]);
+    tr[2] = (float)(ps1[2]-ps2[2]);
+
+    // Absolute positions can be very large, but relative positions can not (objects are in the same chunk)
+    Get_Part_OBB_LocalPos(p1, &a);
+    glm_vec3_add(a.center, tr, a.center); // Put first obb at origin
+    Get_Part_OBB_LocalPos(p2, &b);
+    return Check_OBB_Intersect(&a, &b);
+}
+
+int _check_ship_part_intersect_rec(Part* a, Part* b)
+{
+    if (Check_Part_OBB_Intersect(a, b)) return 1;
+
+    for (int i = 0; i < a->childrenCount; i++)
+    {
+        if (_check_ship_part_intersect_rec(&a->children[i], b)) return 1;
+    }
+
+    for (int i = 0; i < b->childrenCount; i++)
+    {
+        if (_check_ship_part_intersect_rec(&b->children[i], a)) return 1;
+    }
+    return 0;
+}
+
+int Check_Ship_POBB_Intersect(Ship* s1, Ship* s2)
+{
+    return _check_ship_part_intersect_rec(s1->model.rootPart, s2->model.rootPart);
+}
 
 int Raycast_Box(BoundingBox bb, vec3 dir, vec3 spos, float* dist)
 {
+    assert(dist);
     glm_vec3_normalize(dir);
     vec3 start_ts = {};
     vec3 end_ts = {};

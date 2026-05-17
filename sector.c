@@ -68,51 +68,6 @@ void Render_Object(Ship* obj, mat4 projview, double fwd[3])
     Render_Ship(obj, projview);
 }
 
-/*
-// Upload sky stars data etc.
-// will need more parameters to generate the data
-void Load_SectorVisualData(EngineState* engineState, Sector* sector)
-{
-    if (SERVER) return;
-    sector->visuals = (SectorVisualData*)calloc(1, sizeof(SectorVisualData));
-    SkyStar st = {};
-
-    // Temporary --
-    sector->visuals->starCount = 5000;
-    sector->visuals->stars = (SkyStar*)calloc(5000, sizeof(SkyStar));
-    for (int i = 0; i < 5000; i++)
-    {
-        st.magn = (float)(rand() % 10 + 5) / 2000.0;
-        st.type = 0;
-        st.spos[0] = (float)((rand() % 90) - (rand() % 90)) * GLM_PI / 180.0;
-        st.spos[1] = (float)((rand() % 360) -  180) * GLM_PI / 180.0;
-        sector->visuals->stars[i] = st;
-    }
-    VkDeviceAddress addr = 0;
-    BufferInfo info = {};
-    if (Upload_Buffer(engineState, sector->visuals->stars, 5000 * sizeof(SkyStar), &addr, &info)) LOG_TEXT("!Failed to upload sector star data\n");
-
-    sector->visuals->starBufferAddr = addr;
-    sector->visuals->starBufferInfo = info;
-    // --
-}
-
-void Unload_SectorVisualData(EngineState* engineState, Sector* sector)
-{
-    if (SERVER) return;
-    assert(sector);
-    assert(sector->visuals);
-
-    if (sector->visuals->stars) free(sector->visuals->stars);
-    if (sector->visuals->starBufferAddr) 
-    {
-        vmaDestroyBuffer(engineState->allocator,sector->visuals->starBufferInfo.buffer ,sector->visuals->starBufferInfo.allocation);
-    }
-    free(sector->visuals);
-
-}
-*/
-
 void Render_Sky(EngineState* engineState, VkCommandBuffer bf, Sector* sector)
 {
     assert(!SERVER);

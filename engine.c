@@ -9,6 +9,7 @@
 #include "tests.h"
 #include "input_registry.h"
 #include "utests.h"
+#include "collision.h"
 
 // Testing
 Ship* testship = NULL;
@@ -162,6 +163,23 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 int Run_LogicLoop(EngineState* engineState, float dt)
 {
     Tick_Sector(get_testsector());
+
+    // temp
+    Sector* s = get_testsector();
+    for (int i = 0; i < s->rawObjects_count; i++)
+    {
+        //printf("Checking obj: %d\n", s->rawObjects[i]->ID);
+        if (testship->ID != s->rawObjects[i]->ID && Check_Ship_POBB_Intersect(testship, s->rawObjects[i])) 
+        {
+            glm_vec3_zero(testship->rb.angularVelocity);
+            glm_vec3_zero(testship->rb.velocity);
+            testship->rb.root->pos[0] = (double)(rand()%100 - 50);
+            testship->rb.root->pos[1] = (double)(rand()%100 - 50);
+            testship->rb.root->pos[2] = (double)(rand()%100 - 50);
+            printf("Collided\n");
+        }
+    }
+
     return 0;
 }
 

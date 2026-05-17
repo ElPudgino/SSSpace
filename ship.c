@@ -209,6 +209,7 @@ Ship* Create_ShipFromBP(ShipBP* bp)
     res->BP = bp;
     res->model.rootPart = (Part*)calloc(1, sizeof(Part));
     res->rb = bp->rb;
+    res->ID = Gen_ID64();
     if (bp->logicBlockDataLength > 0) {res->logicBlockData = calloc(1, bp->logicBlockDataLength); assert(res->logicBlockData);}
 
     _Create_ShipPart(res->model.rootPart, bp->model.rootPart);
