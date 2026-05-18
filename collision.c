@@ -1,14 +1,14 @@
 #include "collision.h"
 
-#define OBB_SIZE_MULT 0.8
+#define OBB_SIZE_MULT 0.7
 
 void Get_Part_OBB_LocalPos(Part* part, OBB* obb)
 {
     assert(part);
     assert(obb);
-    obb->center[0] = ((float)part->structure->grid.x_s) / 2.0- part->structure->centerOffset[0];
-    obb->center[1] = ((float)part->structure->grid.y_s) / 2.0- part->structure->centerOffset[1];
-    obb->center[2] = ((float)part->structure->grid.z_s) / 2.0- part->structure->centerOffset[2];
+    obb->center[0] = ((float)part->structure->grid.x_s) / 2.0 - part->structure->centerOffset[0];
+    obb->center[1] = ((float)part->structure->grid.y_s) / 2.0 - part->structure->centerOffset[1];
+    obb->center[2] = ((float)part->structure->grid.z_s) / 2.0 - part->structure->centerOffset[2];
 
     obb->sizes[0] = (float)part->structure->grid.x_s / 2.0 * OBB_SIZE_MULT;
     obb->sizes[1] = (float)part->structure->grid.y_s / 2.0 * OBB_SIZE_MULT;
@@ -29,6 +29,8 @@ void Get_Part_OBB_LocalPos(Part* part, OBB* obb)
     ax[2] = 1;
     glm_quat_rotatev(q, ax, ax);
     glm_vec3_copy(ax, obb->ortAxis[2]);
+
+    glm_quat_rotatev(q, obb->center, obb->center);
 }
 
 int Check_OBBs_AxisSep(OBB* obb1, OBB* obb2, vec3 ax)
