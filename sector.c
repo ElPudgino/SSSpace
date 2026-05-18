@@ -57,7 +57,7 @@ void _Get_ObjectBBsize(Ship* obj, double bb[3])
 void _Get_ObjectPos(Ship* obj, double pos[3])
 {
     assert(obj);
-    Copy_dVec((obj)->model.rootPart->localTransform.pos, pos);
+    Get_GlobalPosition(&obj->model.rootPart->localTransform, pos);
 
 }
 
@@ -118,9 +118,9 @@ void Tick_Sector(Sector* sector)
     Hash_ObjectArray(sector, sector->rawObjects, sector->rawObjects_count);
 }
 
-int32_t _PartPos(double val)
+int _PartPos(double val)
 {
-    return (int32_t)floor(val / SECTOR_PARTITION_SIZE);
+    return (int)floor(val / SECTOR_PARTITION_SIZE);
 }
 
 uint32_t _HashFuncChunkInt(uint32_t x, uint32_t y, uint32_t z)
@@ -163,13 +163,13 @@ void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount)
         corners[5] = _PartPos(pos[2] + bb[2]);
         
         indx = _HashFuncChunkInt(corners[0], corners[1], corners[2]);
-        for (int x = corners[0]; x < corners[3]; x++)
+        for (int x = corners[0]; x <= corners[3]; x++)
         {
             indy = indx;
-            for (int y = corners[1]; y < corners[4]; y++)
+            for (int y = corners[1]; y <= corners[4]; y++)
             {
                 indz = indy;
-                for (int z = corners[2]; z < corners[5]; z++)
+                for (int z = corners[2]; z <= corners[5]; z++)
                 {
                     sector->hashtable[indz]++;
                     indz = (indz + HASH_CONST_C) & SECTOR_HT_MASK;
@@ -205,14 +205,15 @@ void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount)
         corners[5] = _PartPos(pos[2] + bb[2]);
         
         indx = _HashFuncChunkInt(corners[0], corners[1], corners[2]);
-        for (int x = corners[0]; x < corners[3]; x++)
+        for (int x = corners[0]; x <= corners[3]; x++)
         {
             indy = indx;
-            for (int y = corners[1]; y < corners[4]; y++)
+            for (int y = corners[1]; y <= corners[4]; y++)
             {
                 indz = indy;
-                for (int z = corners[2]; z < corners[5]; z++)
+                for (int z = corners[2]; z <= corners[5]; z++)
                 {
+                    //printf("%d %d %d\n",x, y, z);
                     sector->hashtable[indz]--;
                     uint32_t ind = sector->hashtable[indz];
                     sector->objects[ind & 0x0000ffff] = objects[i];
@@ -223,9 +224,11 @@ void Hash_ObjectArray(Sector* sector, Ship** objects, uint32_t objcount)
             indx = (indx + HASH_CONST_A) & SECTOR_HT_MASK;
         }
     }
+    sector->objects_count = sector->rawObjects_count;
 }
 
-void Get_ObjectArrInPartition(Sector* sector, double pos[3], uint16_t* ind, uint16_t* cnt)
+// TODO: add a func to check for partitions of a bb (instead of apoint)
+void Get_ObjectArrInPartition(Sector* sector, double pos[3], uint16_t* ind, uint16_t* cnt) 
 {
     uint32_t r = sector->hashtable[_HashFunc(pos)];
     *ind = r & 0x0000ffff;

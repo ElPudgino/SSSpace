@@ -163,13 +163,17 @@ int Run_MainLoop(EngineState* engineState, Uint64 frameCount)
 int Run_LogicLoop(EngineState* engineState, float dt)
 {
     Tick_Sector(get_testsector());
-
+    
     // temp
     Sector* s = get_testsector();
-    for (int i = 0; i < s->rawObjects_count; i++)
+    double pos[3] = {};
+    uint16_t ind = 0, cnt = 0;
+    Hash_ObjectArray(s, s->rawObjects, s->rawObjects_count);
+    Get_GlobalPosition(&testship->model.rootPart->localTransform, pos);
+    Get_ObjectArrInPartition(s, pos, &ind, &cnt);
+    for (int i = ind; i < ind + cnt; i++)
     {
-        //printf("Checking obj: %d\n", s->rawObjects[i]->ID);
-        if (testship->ID != s->rawObjects[i]->ID && Check_Ship_POBB_Intersect(testship, s->rawObjects[i])) 
+        if (testship->ID != s->objects[i]->ID && Check_Ship_POBB_Intersect(testship, s->objects[i])) 
         {
             glm_vec3_zero(testship->rb.angularVelocity);
             glm_vec3_zero(testship->rb.velocity);
